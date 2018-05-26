@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Noodle</title>
+  <meta name="description" content="Noodle database" />
+  <meta name="keywords" content="ARMR, Noodle, data, database" />
+  <meta name="author" content="Dan Kranz" />
+  <link rel="icon" type="image/png" href="favicon.ico" />
+  <link rel="stylesheet" href="node_modules/normalize.css/normalize.css" type="text/css" />
+  <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css" />
+  <script src="libs/react.development.js"></script>
+  <script src="libs/react-dom.development.js"></script>
+  <script src="libs/react-virtualized.js"></script>
+  <script src="libs/Roots.js"></script>
+  <script src="libs/Noodle.js"></script>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden
+    }
+
+    .hide {
+      display: none !important
+    }
+
+    .hide-by-pos {
+      position: absolute;
+      top: -10000px;
+      left: -10000px
+    }
+
+    .invisible {
+      visibility: hidden !important
+    }
+
+    .edit-screen {
+      position: fixed;
+    }
+
+    .topnav {
+      width: 100%;
+      position: fixed;
+      top: 0;
+    }
+
+    .topnav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #333;
+    }
+
+    .topnav li {
+      float: left;
+      height: 40px;
+    }
+
+    .topnav li a {
+      display: block;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      padding: 7px 14px;
+    }
+
+    .topnav li a:hover:not(.active) {
+      background-color: #111;
+    }
+
+    .nav-icon {
+      text-align: center;
+      cursor: pointer;
+      margin: 5px 20px 5px 20px;
+      color: lightgray;
+      transition: color .15s ease;
+    }
+
+    .nav-icon:hover {
+      color: var(--medium-color);
+      color: lightgreen;
+    }
+
+    .nav-icon-i {
+      font-size: 1.5em;
+    }
+
+    .display {
+      position: fixed;
+      top: 40px;
+      height: calc(100% - 40px);
+      width: 100%;
+    }
+
+    .header {
+      max-height: 40%;
+      width: 100%;
+      padding-top: 6px;
+      background-color: lightgray;
+      display: flex;
+      flex-wrap: wrap;
+      white-space: normal;
+      overflow: auto;
+    }
+
+    .header_field {
+      margin-left: 14px;
+      padding-right: 4px;
+      white-space: nowrap;
+      font-weight: normal;
+      color: darkblue;
+    }
+
+    .zheader_field input {
+      margin-right: 4px;
+      margin-bottom: 4px;
+      display: block;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    .header_field input {
+      margin-right: 4px;
+      margin-bottom: 4px;
+      color: black;
+    }
+
+    .detail {
+      background-color: white;
+    }
+
+    .open {
+      flex: 1;
+      align-self: stretch;
+      align-items: center;
+      flex-direction: column;
+      background: #282c34;
+      background: var(--background-color)
+    }
+
+    .open,
+    .open__icons {
+      display: flex;
+      justify-content: center
+    }
+
+    .open__icons {
+      align-items: stretch;
+      flex-direction: row;
+      flex-shrink: 0;
+      flex-wrap: wrap
+    }
+
+    .open--drag .open__icons {
+      display: none
+    }
+
+    .open__icon {
+      text-align: center;
+      cursor: pointer;
+      margin: 20px;
+      transition: color .15s ease
+    }
+
+    .open__icon:hover {
+      color: #abb2bf;
+      color: var(--medium-color)
+    }
+
+    .open__icon-i,
+    .open__icon-svg {
+      font-size: 4em
+    }
+
+    .open__icon-text {
+      color: #4f545e;
+      color: var(--muted-color)
+    }
+
+    .open__icon:hover>.open__icon-text {
+      color: #abb2bf;
+      color: var(--medium-color)
+    }
+
+    .open__icon-svg {
+      line-height: 0
+    }
+
+    .open__icon-svg>svg {
+      height: 1em;
+      width: 1em
+    }
+
+    .detail {
+      height: calc(85% - 40px);
+      width: calc(100%-38px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div id="open-screen" class="open">
+      <div class="open__icons">
+        <div class="open__icon open__icon-open">
+          <i class="fa fa-lock open__icon-i"></i>
+          <div class="open__icon-text">Open</div>
+        </div>
+        <div class="open__icon open__icon-new">
+          <i class="fa fa-plus open__icon-i"></i>
+          <div class="open__icon-text">New</div>
+        </div>
+        <div class="open__icon open__icon-demo" onclick="showDemo()">
+          <i class="fa fa-magic open__icon-i"></i>
+          <div class="open__icon-text">Demo</div>
+        </div>
+        <div class="open__icon open__icon-storage svg-btn" data-storage="gdrive">
+          <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><path d="M86.657536,76.246208 L47.768064,9 L89.111168,9 L128,76.246208 L86.657536,76.246208 Z M25.010048,119.08 L102.690048,119.08 L123.36256,83.24 L45.68064,83.24 L25.010048,119.08 L25.010048,119.08 Z M38.793088,9.003712 L0,76.30496 L20.671872,112.110016 L59.464704,44.808128 L38.793088,9.003712 Z"></path></svg></div>
+          <div class="open__icon-text">Google Drive</div>
+        </div>
+        <div class="open__icon open__icon-more">
+          <i class="fa fa-ellipsis-h open__icon-i"></i>
+          <div class="open__icon-text">More</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="edit-screen" class="edit-screen hide">
+      <div class="topnav">
+        <ul style="height: 40px;">
+          <li>
+            <div class="nav-icon" onclick="message('hello')"><i class="fa fa-bars nav-icon-i"></i></div>
+          </li>
+          <li>
+            <div class="nav-icon" onclick="leftArrowClick()"><i class="fa fa-arrow-left nav-icon-i"></i></div>
+          </li>
+          <li>
+            <div class="nav-icon" onclick="rightArrowClick()"><i class="fa fa-arrow-right nav-icon-i"></i></div>
+          </li>
+          <ul style="float:right;">
+            <li>
+              <div class="nav-icon" onclick="message('hello')"><i class="fa fa-trash nav-icon-i"></i></div>
+            </li>
+            <li>
+              <div class="nav-icon" onclick="message('hello')"><i class="fa fa-search nav-icon-i"></i></div>
+            </li>
+          </ul>
+        </ul>
+      </div>
+      <div id="display" class="display">
+        <div id="header" class="header">
+        </div>
+        <div id="detail" class="detail">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/javascript">
+    var db1;
+    var gridElement;
+    var mygrid;
+    const STYLE = {
+      border: '1px solid #ddd',
+    };
+
+    // Screen layouts
+    var editScreen = [];
+    var currentScreen = 0;
+    var SCREEN_GET = 1;
+    var SCREEN_SORT = 2;
+
+    // Data view
+    var view = {};
+    view.hedlin = 0;
+    view.bfihed = [];
+    view.collin = 0;
+    view.bficol = [];
+    view.npage = 0;
+    view.curpag = 0;
+
+    var isDemo = false;
+
+    var message = function(msg) {
+      alert(msg);
+    }
+
+    var showDemo = function() {
+      isDemo = true;
+      document.getElementById("open-screen").classList.toggle("hide", true);
+
+      // Prepare a large data set
+
+      var zData = [];
+      var i, d;
+      var letters = [
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+      ];
+      var noyes = ["No", "Yes"]
+
+      for (i = 0; i < 40000; i++) {
+        d = (zData[i] = {});
+        d["Seq"] = i + 1;
+        d["Char1"] = letters[Math.floor(Math.random() * 26)];
+        d["YN"] = noyes[Math.floor(Math.random() * 2)];
+        d["String3"] = letters[Math.floor(Math.random() * 26)] +
+          letters[Math.floor(Math.random() * 26)] +
+          letters[Math.floor(Math.random() * 26)];
+        d["RNum"] = Math.random() * 10000;
+        d["Num"] = Math.floor((Math.random() * 100) + 1);
+        d["Date"] = Date.now();
+        d["Count"] = 1;
+      }
+
+      db1 = new Noodle(zData);
+
+      // Create a sample edit screen for the demo
+
+      editScreen[0] = {
+        "name": "Rows by Char1 and YN",
+        "header": [
+				  {"field": "Char1"},
+					{"field": "YN"},
+					{"field": "Count"}
+				],
+        "columns": [
+				  {"field": "Seq", "width": 50},
+					{"field": "String3"},
+					{"field": "RNum"},
+					{"field": "Date"}
+				]
+      };
+
+      // Show the screen
+      showEditScreen();
+    }
+
+    var ScreenGet = function() {}
+
+    var coslay = function() {
+
+      var i;
+
+      if (currentScreen < 1)
+        return false;
+
+      // Extract header fields
+      view.hedlin = editScreen[currentScreen - 1].header.length;
+      for (i = 0; i < view.hedlin; i++) {
+        view.bfihed[i] = db1.BFI(editScreen[currentScreen - 1].header[i].field);
+      }
+
+      // Extract columnar fields
+      view.collin = editScreen[currentScreen - 1].columns.length;
+      for (i = 0; i < view.collin; i++) {
+        view.bficol[i] = db1.BFI(editScreen[currentScreen - 1].columns[i].field);
+      }
+
+      //alert(JSON.stringify(view));
+      return true;
+    }
+
+    var BuildView = function() {
+
+      var i;
+
+      // Translate the screen file
+      if (!coslay())
+        return false;
+
+      // Set the data base view
+      db1.InitializeView();
+      for (i = 0; i < view.hedlin; i++) {
+        //if (screen.layout->hAttribute[i].style & ATTR_SUMMARY)
+        //	db1.EnterHeaderSum(view.bfihed[i]);
+        //else
+        db1.EnterHeader(view.bfihed[i]);
+      }
+      for (i = 0; i < view.collin; i++) {
+        //if (screen.layout->cAttribute[i].style & ATTR_SUMMARY)
+        //	db1.EnterColumnarSum(view.bficol[i]);
+        //else
+        db1.EnterColumnar(view.bficol[i]);
+      }
+      db1.GenerateView();
+
+      view.npage = db1.PageCount();
+      view.curpag = 1;
+      //view.lineCount = db1.LineCount(1);
+      return true;
+    }
+
+    var BuildForm = function() {
+      BuildHeader(view.bfihed, 0);
+      BuildDetail(view.bficol, 0);
+    }
+
+    var FillPage = function() {
+
+      //	Fill the header portion
+      if (view.hedlin)
+        FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
+
+      //	Fill the columnar portion
+      if (view.collin)
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin);
+    }
+
+    var RemoveScreensFromMenu = function() {}
+
+    var ShowNewScreen = function(nFlags) {
+      // Get the currently selected screen to display
+      if (nFlags & SCREEN_GET)
+        ScreenGet();
+
+      //if (screen.layblk.nline)
+      //	screen.quiet = false;
+
+      // Sort the data based on the screen layout
+      if (nFlags & SCREEN_SORT)
+        BuildView();
+
+      // Create a form for displaying the data view and display the first page of data.
+
+      BuildForm();
+
+      document.getElementById("edit-screen").classList.toggle("hide", false);
+      FillPage();
+
+      //if (view.hedlin)
+      //	Header->hEdit[0]->SetFocus();
+
+      //document.getElementById("edit-screen").classList.toggle("hide",false);
+    }
+
+    var BuildHeader = function(bfi, attr) {
+      var i, field, field_input, label, t, nline = bfi.length;
+
+      var header = document.getElementById("header");
+      var detail = document.getElementById("detail");
+      var child;
+
+      // Delete old header input fields
+      while (header.firstChild !== null) {
+        child = header.firstChild;
+        header.removeChild(child);
+      }
+
+      // Hide the header when there are no header input fields
+      if (nline == 0) {
+        document.getElementById("header").classList.toggle("hide", true);
+        return;
+      }
+
+      // Build the new header input fields
+      for (i = 0; i < nline; i++) {
+        field = document.createElement("span");
+        field.className = "header_field";
+
+        /*
+        label = encodeURIComponent(db1.FieldName(bfi[i]));
+        field.innerHTML = label;
+        field_input = document.createElement("input");
+        label = "hedit" + i;
+        field_input.setAttribute("id", label);
+        field_input.setAttribute("type", "text");
+        field_input.onchange = function () {
+        	headerChange(i, this.value);
+        };
+        field.appendChild(field_input);
+        */
+
+        label = encodeURIComponent(db1.FieldName(bfi[i])) + " ";
+        field.innerHTML = label + "<input id=\"hedit" + i + "\" maxlength=\"30\" onchange=\"headerChange(" + i + ",this.value)\"></input>";
+
+        header.appendChild(field);
+      }
+
+      document.getElementById("header").classList.toggle("hide", false);
+    }
+
+    var FillHeader = function(page, npage, bfihed, hedlin) {
+      if (db1 === undefined)
+        return;
+
+      // Fill header with data from data base
+      var id, text;
+      for (var i = 0; i < hedlin; i++) {
+        id = "hedit" + i;
+        if (page <= npage) {
+          text = db1.GetValue(page, 0, bfihed[i]);
+          document.getElementById(id).value = text;
+        } else
+          document.getElementById(id).value = "";
+      }
+    }
+
+    var headerChange = function(fx, val) {
+      db1.PutValue(event.target.value, view.curpag, 0, view.bfihed[fx]);
+    }
+
+    var BuildDetail = function(bfi, attr) {
+      // TODO - set the column styles here
+    }
+
+    // React fires a change event for each keystroke.
+    // This code duplicates the default behavior of only firing a change
+    // event when the input field was changed and loses focus.
+    class CellInput extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {
+          changed: false
+        };
+      }
+
+      // The cell value has changed
+      onChange(event) {
+        this.setState({
+          changed: true
+        });
+      }
+
+      // Blur the input field if the 'Enter' key is pressed
+      onKeyPress(event) {
+        if (event.which === 13) {
+          event.target.blur();
+        }
+        return false;
+      }
+
+      // The cell lost focus; i.e. was blurred
+      onBlur(event) {
+        if (this.state.changed) {
+          //alert(this.props.id + ": " + event.target.value);
+          //this.props.cellChange(event.target.value, this.props.page, this.props.line, this.props.bfi);
+          db1.PutValue(event.target.value, this.props.page, this.props.line, this.props.bfi);
+          this.setState({
+            changed: false
+          });
+        }
+      }
+
+      render() {
+        return React.createElement('input', {
+          id: this.props.id,
+          style: this.props.style,
+          type: this.props.type,
+          defaultValue: this.props.defaultValue,
+          onChange: this.onChange.bind(this),
+          onKeyPress: this.onKeyPress.bind(this),
+          onBlur: this.onBlur.bind(this),
+        });
+      }
+    }
+
+    var myCellRenderer = function(parms) {
+      if (db1 === undefined)
+        return;
+      var keyval = view.curpag + "," + (parms.rowIndex + 1) + "," + (parms.columnIndex + 1);
+      return React.createElement(CellInput, {
+        id: keyval,
+        key: keyval,
+        //className: 'input',
+        type: 'text',
+        defaultValue: db1.GetValue(view.curpag, parms.rowIndex + 1, view.bficol[parms.columnIndex]),
+        style: parms.style,
+        //cellChange: function() { db1.PutValue },
+        page: view.curpag,
+        line: parms.rowIndex + 1,
+        bfi: view.bficol[parms.columnIndex]
+      });
+    }
+
+    var FillColumns = function(page, npage, bficol, collin) {
+      var width = document.getElementById('detail').offsetWidth - 10;
+      width = 800;
+
+      gridElement = React.createElement(ReactVirtualized.Grid, {
+        cellRenderer: myCellRenderer,
+        columnCount: view.collin,
+        columnWidth: 300,
+        height: 400,
+        rowCount: db1.LineCount(page),
+        rowHeight: 30,
+        width: width,
+        style: STYLE,
+        page: page,
+        scrollToRow: 0,
+        scrollToColumn: 0
+      }, null);
+      ReactDOM.render(gridElement, document.getElementById('detail'));
+    }
+
+    var leftArrowClick = function() {
+      if (--view.curpag < 1) {
+        view.curpag = 1;
+        return;
+      }
+      FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
+
+      if (view.collin)
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin);
+    }
+
+    var rightArrowClick = function() {
+      ++view.curpag;
+      if (view.curpag > view.npage) {
+        // TODO logic for new pages
+        alert("New Page");
+        view.curpag = view.npage + 1;
+      }
+      FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
+
+      if (view.collin)
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin);
+    }
+
+    var showEditScreen = function() {
+      if (db1 === undefined)
+        return;
+
+      // Initialize the screen menu
+      RemoveScreensFromMenu();
+
+      currentScreen = 1;
+      ShowNewScreen(SCREEN_GET | SCREEN_SORT);
+    }
+  </script>
+</body>
+
+</html>
