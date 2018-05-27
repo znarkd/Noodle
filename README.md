@@ -33,7 +33,8 @@ for (i = 0; i < 40000; i++) {
 
 // Create a sample data view with Noodle.
 // In the header, group by Char1 (bfi=2).  One group per page.
-// In the columnar portion, show each unique combination of String3 (bfi=4) and Seq (bfi=1).
+// In the columnar portion, show each unique combination of String3 (bfi=4)
+// and Seq (bfi=1) for that page.
 
 var db1 = new Noodle(zData);
 db1.InitializeView();
