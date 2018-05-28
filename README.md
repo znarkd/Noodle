@@ -10,7 +10,7 @@ Noodle is built upon *Roots*.  The Roots library provides a foundation for creat
 // Create a sample data set
 
 var zData = [];
-var i, d, text;
+var i, d;
 var letters = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
@@ -32,7 +32,10 @@ for (i = 0; i < 40000; i++) {
 }
 
 // Create a sample data view with Noodle.
-// Group by column 2 which is Char1 (bfi = 2)
+// In the header, group by Char1 (bfi=2).  One group per page.
+// In the columnar portion, show each unique combination of String3 (bfi=4)
+// and Seq (bfi=1) for that page.
+
 var db1 = new Noodle(zData);
 db1.InitializeView();
 db1.EnterHeader(2);
