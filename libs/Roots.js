@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: May 25, 2018
+ * Release: May 28, 2018
  */
 
 var Roots = Roots || {};
@@ -50,6 +50,28 @@ Roots.conlst = function(afirst, bfirst, nextLine) {
     nextLine[last - 1] = bfirst;
   }
   bfirst = 0;
+}
+
+// The sort order represented by sorti is converted into a list
+
+Roots.list1 = function(sorti, nline, nextLine) {
+  var i=1, n, last;
+
+  if (nline === 0)
+    return 0;
+
+  if (nline < 0)
+    throw("Roots.list1: Bad nline!");
+
+  first = sorti[0];
+	last = first;
+  for (n = nline; --n > 0;) {
+    nextLine[last-1] = sorti[i];
+    last = sorti[i];
+    i += 1;
+  }
+  nextLine[last-1] = 0;
+  return first;
 }
 
 // Sort list items.  group and nextLine keep the new sort sequence.
