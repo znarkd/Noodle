@@ -126,7 +126,7 @@
     .detail {
       background-color: white;
       width: auto;
-      height: calc(100% - 100px);
+      height: calc(100% - 110px);
     }
 
     .detail_grid {
@@ -250,10 +250,10 @@
             <div class="nav-icon" onclick="message('hello')"><i class="fa fa-bars nav-icon-i"></i></div>
           </li>
           <li>
-            <div class="nav-icon" onclick="leftArrowClick()"><i class="fa fa-arrow-left nav-icon-i"></i></div>
+            <div id="next_page" class="nav-icon" onclick="leftArrowClick()"><i class="fa fa-arrow-left nav-icon-i"></i></div>
           </li>
           <li>
-            <div class="nav-icon" onclick="rightArrowClick()"><i class="fa fa-arrow-right nav-icon-i"></i></div>
+            <div id="prev_page" class="nav-icon" onclick="rightArrowClick()"><i class="fa fa-arrow-right nav-icon-i"></i></div>
           </li>
           <ul style="float:right;">
             <li>
@@ -293,6 +293,12 @@
     view.curpag = 0;
 
     var isDemo = false;
+
+    // Disable scrolling (for IOS)
+    // Doesn't seem to work.  :(
+    //document.ontouchmove = function (e) {
+    //  e.preventDefault();
+    //}
 
     var message = function(msg) {
       alert(msg);
@@ -336,7 +342,17 @@
             "field": "Char1"
           },
           {
-            "field": "YN"
+            "field": "YN",
+            "width": 10
+          },
+          {
+            "field": "Count"
+          },
+          {
+            "field": "Count"
+          },
+          {
+            "field": "Count"
           },
           {
             "field": "Count"
@@ -364,6 +380,17 @@
 
     var ScreenGet = function() {}
 
+    var showEditScreen = function() {
+      if (db1 === undefined)
+        return;
+
+      // Initialize the screen menu
+      RemoveScreensFromMenu();
+
+      currentScreen = 1;
+      ShowNewScreen(SCREEN_GET | SCREEN_SORT);
+    }
+
     var coslay = function() {
 
       var i;
@@ -372,13 +399,19 @@
         return false;
 
       // Extract header fields
-      view.hedlin = editScreen[currentScreen - 1].header.length;
+      if (editScreen[currentScreen - 1].header != undefined)
+        view.hedlin = editScreen[currentScreen - 1].header.length;
+      else
+        view.hedlin = 0;
       for (i = 0; i < view.hedlin; i++) {
         view.bfihed[i] = db1.BFI(editScreen[currentScreen - 1].header[i].field);
       }
 
       // Extract columnar fields
-      view.collin = editScreen[currentScreen - 1].columns.length;
+      if (editScreen[currentScreen - 1].columns != undefined)
+        view.collin = editScreen[currentScreen - 1].columns.length;
+      else
+        view.collin = 0;
       for (i = 0; i < view.collin; i++) {
         view.bficol[i] = db1.BFI(editScreen[currentScreen - 1].columns[i].field);
       }
@@ -448,21 +481,13 @@
         BuildView();
 
       // Create a form for displaying the data view and display the first page of data.
-
       BuildForm();
-
       document.getElementById("edit-screen").classList.toggle("hide", false);
       FillPage();
-
-      //if (view.hedlin)
-      //	Header->hEdit[0]->SetFocus();
-
-      //document.getElementById("edit-screen").classList.toggle("hide",false);
     }
 
     var BuildHeader = function(bfi, attr) {
-      var i, field, field_input, label, t, nline = bfi.length;
-
+      var i, s, field, field_input, nline = bfi.length;
       var header = document.getElementById("header");
       var detail = document.getElementById("detail");
       var child;
@@ -476,6 +501,8 @@
       // Hide the header when there are no header input fields
       if (nline == 0) {
         document.getElementById("header").classList.toggle("hide", true);
+        document.getElementById("next_page").classList.toggle("hide", true);
+        document.getElementById("prev_page").classList.toggle("hide", true);
         return;
       }
 
@@ -484,26 +511,25 @@
         field = document.createElement("span");
         field.className = "header_field";
 
-        /*
-        label = encodeURIComponent(db1.FieldName(bfi[i]));
-        field.innerHTML = label;
-        field_input = document.createElement("input");
-        label = "hedit" + i;
-        field_input.setAttribute("id", label);
-        field_input.setAttribute("type", "text");
-        field_input.onchange = function () {
-        	headerChange(i, this.value);
-        };
-        field.appendChild(field_input);
-        */
+        s = encodeURIComponent(db1.FieldName(bfi[i])) + " ";
+        field.innerHTML = s;
 
-        label = encodeURIComponent(db1.FieldName(bfi[i])) + " ";
-        field.innerHTML = label + "<input id=\"hedit" + i + "\" maxlength=\"30\" onchange=\"headerChange(" + i + ",this.value)\"></input>";
+        field_input = document.createElement("input");
+        s = "hedit" + i;
+        field_input.setAttribute("id", s);
+        field_input.setAttribute("type", "text");
+
+
+        s = "headerChange(" + i + ",this.value)";
+        field_input.setAttribute("onchange", s);
+        field.appendChild(field_input);
 
         header.appendChild(field);
       }
 
       document.getElementById("header").classList.toggle("hide", false);
+      document.getElementById("next_page").classList.toggle("hide", false);
+      document.getElementById("prev_page").classList.toggle("hide", false);
     }
 
     var FillHeader = function(page, npage, bfihed, hedlin) {
@@ -523,7 +549,11 @@
     }
 
     var headerChange = function(fx, val) {
-      db1.PutValue(event.target.value, view.curpag, 0, view.bfihed[fx]);
+      db1.PutValue(val, view.curpag, 0, view.bfihed[fx]);
+    }
+
+    var detailChange = function(props, val) {
+      db1.PutValue(val, view.curpag, props.line, props.bfi);
     }
 
     var BuildDetail = function(bfi, attr) {
@@ -559,9 +589,7 @@
       // The cell lost focus; i.e. was blurred
       onBlur(event) {
         if (this.state.changed) {
-          //alert(this.props.id + ": " + event.target.value);
-          //this.props.cellChange(event.target.value, this.props.page, this.props.line, this.props.bfi);
-          db1.PutValue(event.target.value, this.props.page, this.props.line, this.props.bfi);
+          this.props.cellChange(this.props, event.target.value);
           this.setState({
             changed: false
           });
@@ -585,19 +613,22 @@
     var myCellRenderer = function(parms) {
       if (db1 === undefined)
         return;
-      var keyval = view.curpag + "," + (parms.rowIndex + 1) + "," + (parms.columnIndex + 1);
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
-        id: keyval,
-        key: keyval,
+        key: view.curpag + "," + (parms.rowIndex + 1) + "," + (parms.columnIndex + 1),
         type: "text",
         defaultValue: db1.GetValue(view.curpag, parms.rowIndex + 1, view.bficol[parms.columnIndex]),
-        //cellChange: function() { db1.PutValue },
-        page: view.curpag,
+        cellChange: detailChange,
         line: parms.rowIndex + 1,
         bfi: view.bficol[parms.columnIndex]
       });
+    }
+
+    // Cause the grid's current input cell to lose focus when scrolling.
+    // This allows any changes to be saved.
+    var handleGridScroll = function(parms) {
+      document.activeElement.blur();
     }
 
     var FillColumns = function(page, npage, bficol, collin) {
@@ -605,13 +636,13 @@
         return React.createElement(ReactVirtualized.Grid, {
           className: "detail_grid",
           cellRenderer: myCellRenderer,
+          rowCount: db1.LineCount(page),
+          rowHeight: 30,
           columnCount: view.collin,
           columnWidth: 300,
           height: params.height,
-          rowCount: db1.LineCount(page),
-          rowHeight: 30,
           width: params.width,
-          page: page,
+          onScroll: handleGridScroll,
           scrollToRow: 0,
           scrollToColumn: 0
         });
@@ -619,6 +650,7 @@
       ReactDOM.render(gridElement, document.getElementById('detail'));
     }
 
+    // Next page
     var leftArrowClick = function() {
       if (--view.curpag < 1) {
         view.curpag = 1;
@@ -630,6 +662,7 @@
         FillColumns(view.curpag, view.npage, view.bficol, view.collin);
     }
 
+    // Previous page
     var rightArrowClick = function() {
       ++view.curpag;
       if (view.curpag > view.npage) {
@@ -641,17 +674,6 @@
 
       if (view.collin)
         FillColumns(view.curpag, view.npage, view.bficol, view.collin);
-    }
-
-    var showEditScreen = function() {
-      if (db1 === undefined)
-        return;
-
-      // Initialize the screen menu
-      RemoveScreensFromMenu();
-
-      currentScreen = 1;
-      ShowNewScreen(SCREEN_GET | SCREEN_SORT);
     }
   </script>
 </body>
