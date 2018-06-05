@@ -63,5 +63,14 @@ db1.PutValue("XYZ", page, line, bfi);
 bfi = 2;
 db1.PutValue("Z", page, 0, bfi);
 ```
+### NoodleApp dependencies
+```
+normalize.css
+font-awesome
+react
+react-dom
+react-virtualized
+```
+
 ### License
 MIT © [Dan Kranz](https://github.com/znarkd?tab=repositories)
