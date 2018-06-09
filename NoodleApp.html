@@ -29,129 +29,6 @@
       display: none !important
     }
 
-    .edit-screen {
-      position: fixed;
-    }
-
-    .topnav {
-      width: 100%;
-      position: fixed;
-      top: 0;
-    }
-
-    .topnav ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: #333;
-    }
-
-    .topnav li {
-      float: left;
-      height: 40px;
-    }
-
-    .topnav li a {
-      display: block;
-      color: white;
-      text-align: center;
-      text-decoration: none;
-      padding: 7px 14px;
-    }
-
-    .topnav li a:hover:not(.active) {
-      background-color: #111;
-    }
-
-    .nav-icon {
-      text-align: center;
-      cursor: pointer;
-      margin: 5px 20px 5px 20px;
-      color: lightgray;
-      transition: color .15s ease;
-    }
-
-    .nav-icon:hover {
-      color: var(--medium-color);
-      color: lightgreen;
-    }
-
-    .nav-icon-i {
-      font-size: 1.5em;
-    }
-
-    .display {
-      position: fixed;
-      top: 40px;
-      height: calc(100% - 40px);
-      width: 100%;
-      background-color: lightgray;
-    }
-
-    .header {
-      max-height: 100px;
-      width: 100%;
-      padding-top: 6px;
-      background-color: lightgray;
-      display: flex;
-      flex-wrap: wrap;
-      white-space: normal;
-      overflow: auto;
-    }
-
-    .header_field {
-      margin-left: 14px;
-      padding-right: 4px;
-      white-space: nowrap;
-      font-weight: normal;
-      color: darkblue;
-    }
-
-    .zheader_field input {
-      margin-right: 4px;
-      margin-bottom: 4px;
-      display: block;
-      -moz-box-sizing: border-box;
-      -webkit-box-sizing: border-box;
-      box-sizing: border-box;
-    }
-
-    .header_field input {
-      margin-right: 4px;
-      margin-bottom: 4px;
-      color: black;
-    }
-
-    .detail {
-      background-color: white;
-      width: auto;
-      height: calc(100% - 110px);
-    }
-
-    .detail_grid {
-      border-top: 2px solid white;
-      border-bottom: 2px solid white;
-      background-color: lightgray;
-    }
-
-    .evenCell,
-    .oddCell {
-      display: flex;
-      align-items: center;
-      border-right: 1px solid #d9dddd;
-      border-bottom: 1px solid #d9dddd;
-    }
-
-    .evenCell {
-      background-color: #f4f4f4;
-    }
-
-    .oddCell {
-      background-color: white;
-
-    }
-
     .open {
       flex: 1;
       align-self: stretch;
@@ -213,6 +90,148 @@
       height: 1em;
       width: 1em
     }
+
+    .edit-screen {}
+
+    .navbar {
+      width: 100%;
+      height: 41px;
+      overflow: hidden;
+      white-space: nowrap;
+      color: #f1f1f1;
+      background-color: #5f5f5f;
+      overflow: hidden;
+    }
+
+    .navbar a {
+      float: left;
+      font-size: 1.5em;
+      color: white;
+      text-align: center;
+      padding: 7px 20px;
+      text-decoration: none;
+    }
+
+    #pagecount,
+    #screentitle {
+      float: left;
+      font-size: 1.25em;
+      color: white;
+      text-align: center;
+      padding: 7px 20px;
+    }
+
+    .dropdown {
+      float: left;
+      overflow: hidden;
+    }
+
+    .dropdown .dropbtn {
+      font-size: 1.5em;
+      border: none;
+      outline: none;
+      color: white;
+      padding: 7px 20px;
+      background-color: inherit;
+      font-family: inherit;
+      margin: 0;
+    }
+
+    .navbar a:hover,
+    .dropdown:hover .dropbtn {
+      background-color: #990000;
+    }
+
+    .dropdown-content {
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+
+    .dropdown-content a {
+      float: none;
+      color: black;
+      padding: 7px 14px;
+      text-decoration: none;
+      display: block;
+      text-align: left;
+      font-size: 1em;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #ddd;
+    }
+
+    .right-nav {
+      float: right;
+    }
+
+    .edit-display {
+      top: 41px;
+      position: fixed;
+      width: 100%;
+      height: calc(100% - 41px);
+      background-color: lightgray;
+    }
+
+    .header {
+      max-height: 100px;
+      width: 100%;
+      padding-top: 6px;
+      background-color: lightgray;
+      display: flex;
+      flex-wrap: wrap;
+      white-space: normal;
+      overflow: auto;
+    }
+
+    .header_field {
+      margin-left: 14px;
+      padding-right: 4px;
+      white-space: nowrap;
+      font-weight: normal;
+      color: darkblue;
+    }
+
+    .header_field input {
+      margin-right: 4px;
+      margin-bottom: 4px;
+      color: black;
+      zzzdisplay: block;
+      zzz-moz-box-sizing: border-box;
+      zzz-webkit-box-sizing: border-box;
+      zzzbox-sizing: border-box;
+    }
+
+    .detail {
+      background-color: white;
+      width: auto;
+      height: calc(100% - 110px);
+    }
+
+    .detail_grid {
+      border-top: 2px solid white;
+      border-bottom: 2px solid white;
+      background-color: lightgray;
+    }
+
+    .evenCell,
+    .oddCell {
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #d9dddd;
+      border-bottom: 1px solid #d9dddd;
+    }
+
+    .evenCell {
+      background-color: #f4f4f4;
+    }
+
+    .oddCell {
+      background-color: white;
+    }
   </style>
 </head>
 
@@ -242,30 +261,26 @@
         </div>
       </div>
     </div>
-
     <div id="edit-screen" class="edit-screen hide">
-      <div class="topnav">
-        <ul style="height: 40px;">
-          <li>
-            <div class="nav-icon" onclick="message('hello')"><i class="fa fa-bars nav-icon-i"></i></div>
-          </li>
-          <li>
-            <div id="next_page" class="nav-icon" onclick="leftArrowClick()"><i class="fa fa-arrow-left nav-icon-i"></i></div>
-          </li>
-          <li>
-            <div id="prev_page" class="nav-icon" onclick="rightArrowClick()"><i class="fa fa-arrow-right nav-icon-i"></i></div>
-          </li>
-          <ul style="float:right;">
-            <li>
-              <div class="nav-icon" onclick="message('hello')"><i class="fa fa-trash nav-icon-i"></i></div>
-            </li>
-            <li>
-              <div class="nav-icon" onclick="message('hello')"><i class="fa fa-search nav-icon-i"></i></div>
-            </li>
-          </ul>
-        </ul>
+      <div id="navbar" class="navbar">
+        <div class="dropdown">
+          <button class="dropbtn" onclick="toggleMenu();"><i class="fa fa-bars"></i></button>
+          <div id="dropdown-content" class="dropdown-content hide">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+        </div>
+        <a id="next_page" onclick="leftArrowClick();"><i class="fa fa-arrow-left"></i></a>
+        <a id="prev_page" onclick="rightArrowClick();"><i class="fa fa-arrow-right"></i></a>
+        <span id="pagecount">Page nnn of mmm</span>
+        <span id="screentitle">A description of the screen contents</span>
+        <div class="right-nav">
+          <a id="trash" onclick="trashClick();"><i class="fa fa-trash"></i></a>
+          <a id="search" onclick="searchClick();"><i class="fa fa-search"></i></a>
+        </div>
       </div>
-      <div id="display" class="display">
+      <div id="edit-display" class="edit-display">
         <div id="header" class="header">
         </div>
         <div id="detail" class="detail">
@@ -292,20 +307,14 @@
     view.npage = 0;
     view.curpag = 0;
 
-    var isDemo = false;
-
     // Disable scrolling (for IOS)
     // Doesn't seem to work.  :(
-    //document.ontouchmove = function (e) {
-    //  e.preventDefault();
-    //}
-
-    var message = function(msg) {
-      alert(msg);
+    document.ontouchmove = function(e) {
+      e.preventDefault();
+      return false;
     }
 
     var showDemo = function() {
-      isDemo = true;
       document.getElementById("open-screen").classList.toggle("hide", true);
 
       // Prepare a large data set
@@ -482,7 +491,11 @@
 
       // Create a form for displaying the data view and display the first page of data.
       BuildForm();
+
+      document.getElementById("screentitle").innerText = editScreen[currentScreen - 1].name;
       document.getElementById("edit-screen").classList.toggle("hide", false);
+
+      // Load data into the newly created screen page
       FillPage();
     }
 
@@ -546,6 +559,7 @@
         } else
           document.getElementById(id).value = "";
       }
+      document.getElementById("pagecount").innerText = "Page " + page + " of " + npage;
     }
 
     var headerChange = function(fx, val) {
@@ -631,6 +645,7 @@
       document.activeElement.blur();
     }
 
+    // Display the columnar portion of the edit screen
     var FillColumns = function(page, npage, bficol, collin) {
       var gridElement = React.createElement(ReactVirtualized.AutoSizer, null, function(params) {
         return React.createElement(ReactVirtualized.Grid, {
@@ -650,6 +665,11 @@
       ReactDOM.render(gridElement, document.getElementById('detail'));
     }
 
+    // Show or Hide the edit menu
+    var toggleMenu = function() {
+      document.getElementById("dropdown-content").classList.toggle("hide");
+    }
+
     // Next page
     var leftArrowClick = function() {
       if (--view.curpag < 1) {
@@ -660,6 +680,7 @@
 
       if (view.collin)
         FillColumns(view.curpag, view.npage, view.bficol, view.collin);
+      return false;
     }
 
     // Previous page
@@ -674,6 +695,23 @@
 
       if (view.collin)
         FillColumns(view.curpag, view.npage, view.bficol, view.collin);
+      return false;
+    }
+
+    var trashClick = function() {
+      alert("Trash not yet implemented");
+    }
+
+    var searchClick = function() {
+      alert("Search not yet implemented");
+    }
+
+    var doReport = function() {
+      alert("Report not yet implemented");
+    }
+
+    var doExport = function() {
+      alert("Export not yet implemented");
     }
   </script>
 </body>
