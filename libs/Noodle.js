@@ -540,6 +540,90 @@ function Noodle(dataArray, labels) {
         putLineValue(val, clone, bfi);
     }
   }
+	
+  // Create an XML file the represents the current screen's data view
+  this.XMLReport = function(title, fn, page1) {
+    var i, page, start, end, line, bfi;
+    var xmldata, blob, alink;
+
+    if (fn === undefined)
+      fn = "report.xml";
+    
+    start = end = page1;
+    if (start === undefined) {
+      start = 1;
+      end = viewNumPages;
+    }
+    
+    // Create the XML data
+    
+    xmldata = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    xmldata += "<?xml-stylesheet type=\"text/xsl\" href=\"report.xsl\"?>\n";
+    var d = new Date();
+    var txt = d.toLocaleDateString();
+    xmldata = xmldata + "<report date=\"" + txt + "\">\n";
+    xmldata += "<title>";
+    xmldata += title;
+    xmldata += "</title>\n";
+
+    for (page = start; page <= end; page++) {
+      xmldata = xmldata + "<page seq=\"" + page + "\">\n";
+
+      // Header info
+      if (viewHeaderFields.length > 0) {
+        xmldata += "<header>\n";
+        for (i = 0; i < viewHeaderFields.length; i++) {
+          bfi = viewHeaderFields[i];
+          xmldata += "<field name=\"";
+          xmldata += mLabels[bfi-1];
+          xmldata += "\">";
+          xmldata += this.GetValue(page, 0, bfi);
+          xmldata += "</field>\n";
+        }
+        xmldata += "</header>\n";
+      }
+
+      // Detail
+      if (viewColumnarFields.length > 0) {
+        xmldata += "<detail>\n";
+
+        var nline = this.LineCount(page);
+        for (line = 1; line <= nline; line++) {
+          xmldata += "<line>\n";
+
+          for (i = 0; i < viewColumnarFields.length; i++) {
+            bfi = viewColumnarFields[i];
+            xmldata += "<field name=\"";
+            xmldata += mLabels[bfi - 1];
+            xmldata += "\">";
+            xmldata += this.GetValue(page, line, bfi);
+            xmldata += "</field>\n";
+          }
+
+          xmldata += "</line>\n";
+        }
+        xmldata += "</detail>\n";
+      }
+
+      xmldata += "</page>\n";
+    }
+
+    xmldata += "</report>\n";
+    
+    // Create a temporary link to download the data
+    
+    blob = new Blob([xmldata], {
+      "type": "application/xml;charset=utf8;"			
+    });
+    
+    alink = document.createElement('a');
+    document.body.appendChild(alink);
+    alink.setAttribute("href", window.URL.createObjectURL(blob));
+    alink.setAttribute('download', fn);
+    alink.click();
+    alink.remove();
+  }
+
 
   // ----- Slickgrid interface methods ------------------
 

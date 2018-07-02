@@ -9,6 +9,8 @@
   <meta name="keywords" content="ARMR, Noodle, data, database" />
   <meta name="author" content="Dan Kranz" />
   <link rel="icon" type="image/png" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+  <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png"/>	
   <link rel="stylesheet" href="node_modules/normalize.css/normalize.css" type="text/css" />
   <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css" />
   <script src="node_modules/react/umd/react.production.min.js"></script>
@@ -266,7 +268,7 @@
         <div class="dropdown">
           <button class="dropbtn" onclick="toggleMenu();"><i class="fa fa-bars"></i></button>
           <div id="dropdown-content" class="dropdown-content hide">
-            <a href="#">Link 1</a>
+            <a onclick="doReport();">Export as XML</a>
             <a href="#">Link 2</a>
             <a href="#">Link 3</a>
           </div>
@@ -327,7 +329,7 @@
       ];
       var noyes = ["No", "Yes"]
 
-      for (i = 0; i < 40000; i++) {
+      for (i = 0; i < 2000; i++) {
         d = (zData[i] = {});
         d["Seq"] = i + 1;
         d["Char1"] = letters[Math.floor(Math.random() * 26)];
@@ -707,7 +709,8 @@
     }
 
     var doReport = function() {
-      alert("Report not yet implemented");
+      document.getElementById("dropdown-content").classList.toggle("hide", true);
+      db1.XMLReport(editScreen[currentScreen - 1].name);
     }
 
     var doExport = function() {
