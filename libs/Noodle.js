@@ -540,6 +540,17 @@ function Noodle(dataArray, labels) {
         putLineValue(val, clone, bfi);
     }
   }
+  
+  // Output encode XML special characters
+  encodeXML = function(s) {
+    return (s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/'/g, '&apos;')
+      .replace(/"/g, '&quot;')
+    );
+  }
 	
   // Create an XML file the represents the current screen's data view
   this.XMLReport = function(title, fn, page1) {
@@ -563,7 +574,7 @@ function Noodle(dataArray, labels) {
     var txt = d.toLocaleDateString();
     xmldata = xmldata + "<report date=\"" + txt + "\">\n";
     xmldata += "<title>";
-    xmldata += title;
+    xmldata += encodeXML(title);
     xmldata += "</title>\n";
 
     for (page = start; page <= end; page++) {
@@ -575,9 +586,9 @@ function Noodle(dataArray, labels) {
         for (i = 0; i < viewHeaderFields.length; i++) {
           bfi = viewHeaderFields[i];
           xmldata += "<field name=\"";
-          xmldata += mLabels[bfi-1];
+          xmldata += encodeXML(mLabels[bfi-1]);
           xmldata += "\">";
-          xmldata += this.GetValue(page, 0, bfi);
+          xmldata += encodeXML(this.GetValue(page, 0, bfi));
           xmldata += "</field>\n";
         }
         xmldata += "</header>\n";
@@ -594,9 +605,9 @@ function Noodle(dataArray, labels) {
           for (i = 0; i < viewColumnarFields.length; i++) {
             bfi = viewColumnarFields[i];
             xmldata += "<field name=\"";
-            xmldata += mLabels[bfi - 1];
+            xmldata += encodeXML(mLabels[bfi - 1]);
             xmldata += "\">";
-            xmldata += this.GetValue(page, line, bfi);
+            xmldata += encodeXML(this.GetValue(page, line, bfi));
             xmldata += "</field>\n";
           }
 
