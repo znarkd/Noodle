@@ -2,7 +2,7 @@
  * Noodle gives JavaScript arrays a pivot table like data view.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: May 25, 2018
+ * Release: July 3, 2018
  */
 
 function Noodle(dataArray, labels) {
@@ -624,7 +624,7 @@ function Noodle(dataArray, labels) {
     // Create a temporary link to download the data
     
     blob = new Blob([xmldata], {
-      "type": "application/xml;charset=utf8;"			
+      "type": "application/xml; charset=utf8;"			
     });
     
     alink = document.createElement('a');
@@ -635,6 +635,73 @@ function Noodle(dataArray, labels) {
     alink.remove();
   }
 
+  GetCsvWritableValue = function(s1) {
+    if (s1 === null)
+      return "";
+
+    // Replace " with ""
+    var s2 = s1.replace(/"/g, '""');
+    
+    // Add quotes if the value starts with whitespace
+    // or if the value contains , " \r \n
+    var pattern = /(^\s|.*[,"\r\n])/;
+    if (pattern.test(s2))
+      return '"' + s2 + '"';
+    
+    return s2;
+  }
+
+  this.WriteCsvFile = function(fn, separator) {
+     var i, page, line, output, sep;
+
+    //StreamWriter writer = new StreamWriter(path);
+
+    // Write a line with the view's column names
+    output = "";
+    sep = "";
+    for (i = 0; i < viewHeaderFields.length; i++) {
+      output += sep;
+      output += GetCsvWritableValue(mLabels[viewHeaderFields[i]-1]);
+      sep = separator;
+    }
+    for (i = 0; i < viewColumnarFields.length; i++) {
+      output += sep;
+      output += GetCsvWritableValue(mLabels[viewColumnarFields[i] - 1]);
+      sep = separator;
+    }
+    output += "\n";
+
+    // Save the current view data
+    for (page = 1; page <= viewNumPages; page++) {
+      for (line = 1; line <= this.LineCount(page); line++) {
+        sep = "";
+        for (i = 0; i < viewHeaderFields.length; i++) {
+          output += sep;
+          output += GetCsvWritableValue(this.GetValue(page,0,viewHeaderFields[i]));
+          sep = separator;
+        }
+        for (i = 0; i < viewColumnarFields.length; i++) {
+          output += sep;
+          output += GetCsvWritableValue(this.GetValue(page, line, viewColumnarFields[i]));
+          sep = separator;
+        }
+        output += "\n";
+      }
+    }
+    
+    // Create a temporary link to download the data
+    
+    blob = new Blob([output], {
+      "type": "data/text; charset=utf8;"			
+    });
+    
+    alink = document.createElement('a');
+    document.body.appendChild(alink);
+    alink.setAttribute("href", window.URL.createObjectURL(blob));
+    alink.setAttribute('download', fn);
+    alink.click();
+    alink.remove();
+  }
 
   // ----- Slickgrid interface methods ------------------
 

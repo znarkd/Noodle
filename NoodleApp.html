@@ -270,7 +270,7 @@
           <button class="dropbtn" onclick="toggleMenu();"><i class="fa fa-bars"></i></button>
           <div id="dropdown-content" class="dropdown-content hide">
             <a onclick="doReport();">Export as XML</a>
-            <a href="#">Link 2</a>
+            <a onclick="doExport();">Export as CSV</a>
             <a href="#">Link 3</a>
           </div>
         </div>
@@ -715,7 +715,8 @@
     }
 
     var doExport = function() {
-      alert("Export not yet implemented");
+      document.getElementById("dropdown-content").classList.toggle("hide", true);
+      db1.WriteCsvFile("output.csv", ',');
     }
   </script>
 </body>
