@@ -10,12 +10,12 @@
   <meta name="author" content="Dan Kranz" />
   <link rel="icon" type="image/png" href="favicon.ico" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
-  <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png"/>	
-  <link rel="stylesheet" href="node_modules/normalize.css/normalize.css" type="text/css" />
-  <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css" />
-  <script src="node_modules/react/umd/react.production.min.js"></script>
-  <script src="node_modules/react-dom/umd/react-dom.production.min.js"></script>
-  <script src="node_modules/react-virtualized/dist/umd/react-virtualized.js"></script>
+  <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png"/>
+  <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css" type="text/css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://unpkg.com/font-awesome/css/font-awesome.min.css" crossorigin="anonymous" />
+  <script src="https://unpkg.com/react/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-virtualized/dist/umd/react-virtualized.js" crossorigin="anonymous"></script>
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
 
@@ -330,7 +330,7 @@
       ];
       var noyes = ["No", "Yes"]
 
-      for (i = 0; i < 2000; i++) {
+      for (i = 0; i < 10000; i++) {
         d = (zData[i] = {});
         d["Seq"] = i + 1;
         d["Char1"] = letters[Math.floor(Math.random() * 26)];
