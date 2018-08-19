@@ -1,10 +1,35 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: May 28, 2018
+ * Release: August 19, 2018
  */
 
 var Roots = Roots || {};
+
+
+// Unpack the binary integer stored within block at field.
+
+Roots.bunpac = function(block, field) {
+  if (field[0] < 1 || field[1] < 1 || field[1] > 4)
+    throw "Roots.bunpac: Bad field values";
+  
+  var bin = 0;
+  var k = field[0] - 1;
+  var i = field[1];
+  while (i-- > 0) {
+    bin *= 256;
+    bin += block[k++];
+  }
+  
+  // Don't want -0
+  if (bin===0)
+    return 0;
+  
+  // The number stored in block is in 2's complement form.
+  // Convert back to integer.
+  return -(~(bin-1));
+}
+
 
 Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, group) {
   var i, last, check, ngroup;
@@ -35,6 +60,7 @@ Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, gro
   return ngroup;
 }
 
+
 Roots.conlst = function(afirst, bfirst, nextLine) {
   var line, last = afirst,
     check = nextLine.length;
@@ -51,6 +77,7 @@ Roots.conlst = function(afirst, bfirst, nextLine) {
   }
   bfirst = 0;
 }
+
 
 // The sort order represented by sorti is converted into a list
 
@@ -73,6 +100,7 @@ Roots.list1 = function(sorti, nline, nextLine) {
   nextLine[last-1] = 0;
   return first;
 }
+
 
 // Sort list items.  group and nextLine keep the new sort sequence.
 // rank may also keep the sort sequence.
@@ -214,6 +242,29 @@ Roots.mrsort = function(list, compareFunc, sortColumns, group, nextLine, rank) {
     rank[i++] = a;
 }
 
+
+// The integer num is packed into the block position indicated by field
+
+Roots.pacbin = function(num, block, field) {
+  if (!Number.isInteger(num))
+    throw "Roots.pacbin: Not an integer";
+  if (num < 0 && field[1] < 4)
+    throw "Roots.pacbin: Need 4 bytes for negative numbers";
+  if (field[0] < 1 || field[1] < 1 || field[1] > 4)
+    throw "Roots.pacbin: Bad field values";
+  
+  // Get the 32-bit two's complement representation of the number.
+  var bin = num>>>0;
+  
+  var k = field[0] - 1;
+  var i = field[1];
+  while (i-- > 0) {
+    block[k+i] = bin % 256;
+    bin = Math.trunc(bin / 256);
+  }
+}
+
+
 Roots.seqlst = function(nextLine) {
   var n = nextLine.length;
   if (n === 0)
@@ -227,6 +278,7 @@ Roots.seqlst = function(nextLine) {
   nextLine[k] = 0;
   return 1;
 }
+
 
 Roots.xpand = function(arr, newCount) {
   if (arr === undefined)
