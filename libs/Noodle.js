@@ -2,7 +2,7 @@
  * Noodle gives JavaScript arrays a pivot table like data view.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: July 3, 2018
+ * Release: September 23, 2018
  */
 
 function Noodle(dataArray, labels) {
@@ -60,10 +60,6 @@ function Noodle(dataArray, labels) {
   var DELETED_ROW = 1;
   var PRUNED_ROW = 2;
   var NEW_ROW = 4;
-
-  this.showData = function() {
-    alert("nline=" + mData.length + ", mKeys=" + mKeys + ", viewHeaderFields.length=" + viewHeaderFields.length);
-  }
 
   ErrorMsg = function(msg) {
     alert(msg);
@@ -296,13 +292,14 @@ function Noodle(dataArray, labels) {
     return sum;
   }
 
-  noodleCompare = function(a, b, sortColumns) {
-    var i, fx, rc;
+  noodleCompare = function(list, a, b, sortColumns) {
+    var i, fx, aRow = list[a], bRow = list[b], rc;
+    
     // Consider switching to Intl.Collator when mobile browsers support it
 
     for (i = 0; i < sortColumns.length; i++) {
       fx = mKeys[sortColumns[i] - 1];
-      rc = a[fx].toString().localeCompare(b[fx].toString());
+      rc = aRow[fx].toString().localeCompare(bRow[fx].toString());
       if (rc != 0)
         return rc;
     }
@@ -319,10 +316,12 @@ function Noodle(dataArray, labels) {
     if (!viewInitialized)
       SOS("View was not initialized.");
 
-    if (compareFunc === undefined)
-      comparer = noodleCompare;
-    else
+    if (compareFunc != undefined)
       comparer = compareFunc;
+    else if (mData.Compare != undefined)
+      comparer = mData.Compare;
+    else
+      comparer = noodleCompare;
 
     // Prime a new data set if necessary
     if (mData.length === 0) {

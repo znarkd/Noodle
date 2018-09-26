@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: August 19, 2018
+ * Release: September 23, 2018
  */
 
 var Roots = Roots || {};
@@ -49,7 +49,7 @@ Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, gro
       throw "Roots.colect: Bad input list";
 
     // If the lines don't match, create a new group
-    if (compareFunc(list[group[ngroup - 1] - 1], list[i - 1], sortColumns) != 0) {
+    if (compareFunc(list, group[ngroup-1]-1, i-1, sortColumns) != 0) {
       group[ngroup++] = i;
       nextLine[last - 1] = 0;
     }
@@ -133,7 +133,7 @@ Roots.mrsort = function(list, compareFunc, sortColumns, group, nextLine, rank) {
 
   for (a = 0, b = 1; b < count; ++a, ++b) {
 
-    if (compareFunc(list[b], list[a], sortColumns) < 0) {
+    if (compareFunc(list, b, a, sortColumns) < 0) {
 
       // New group
       group[++g] = b + 1;
@@ -159,7 +159,7 @@ Roots.mrsort = function(list, compareFunc, sortColumns, group, nextLine, rank) {
       b = group[++g];
 
       // Initial compare
-      if (compareFunc(list[b - 1], list[a - 1], sortColumns) < 0) {
+      if (compareFunc(list, b-1, a-1, sortColumns) < 0) {
 
         // b is the 1st member of a new group
         group[pair] = b;
@@ -191,7 +191,7 @@ Roots.mrsort = function(list, compareFunc, sortColumns, group, nextLine, rank) {
       for (;;) {
 
         // Append b to an established group
-        if (compareFunc(list[b - 1], list[a - 1], sortColumns) < 0) {
+        if (compareFunc(list, b-1, a-1, sortColumns) < 0) {
           nextLine[last - 1] = b;
           last = b;
           b = nextLine[b - 1];
