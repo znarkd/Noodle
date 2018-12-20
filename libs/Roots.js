@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 23, 2018
+ * Release: December 19, 2018
  */
 
 var Roots = Roots || {};
@@ -40,7 +40,7 @@ Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, gro
 
   ngroup = 1;
   last = group[0] = firstLine;
-  check = list.length;
+  check = nextLine.length;
 
   // Compare adjacent list items
 
@@ -110,7 +110,11 @@ Roots.list1 = function(sorti, nline, nextLine) {
 // compareFunc = Comparison function
 
 Roots.mrsort = function(list, compareFunc, sortColumns, group, nextLine, rank) {
-  var count = list.length;
+  var count;
+  if (typeof list.length === "function")
+    count = list.length();
+  else
+    count = list.length;
   if (count <= 0)
     throw "Roots.mrsort: Bad input!";
 

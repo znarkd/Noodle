@@ -16,8 +16,10 @@
   <script src="https://unpkg.com/react/umd/react.production.min.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-virtualized/dist/umd/react-virtualized.js" crossorigin="anonymous"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
+  <script src="libs/RootsIO.js"></script>
   <script src="libs/NoodleDatabase.js"></script>
 
   <style>
@@ -127,8 +129,10 @@
       float: left;
       font-size: 1.25em;
       color: white;
+      background-color: #5f5f5f;
       text-align: center;
       padding: 7px 20px;
+      border-style: none;
     }
 
     .dropdown {
@@ -154,6 +158,7 @@
     }
 
     .dropdown-content {
+      display: none;
       position: absolute;
       background-color: #f9f9f9;
       min-width: 160px;
@@ -174,7 +179,11 @@
     .dropdown-content a:hover {
       background-color: #ddd;
     }
-
+    
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    
     .right-nav {
       float: right;
     }
@@ -275,8 +284,9 @@
     <div id="edit-screen" class="edit-screen hide">
       <div id="navbar" class="navbar">
         <div class="dropdown">
-          <button class="dropbtn" onclick="toggleMenu();"><i class="fa fa-bars"></i></button>
-          <div id="dropdown-content" class="dropdown-content hide">
+          <button class="dropbtn"><i class="fa fa-bars"></i></button>
+          <div id="dropdown-content" class="dropdown-content">
+            <a onclick="ShowOpen();">Home</a>
             <a onclick="doReport();">Export as XML</a>
             <a onclick="doExport();">Export as CSV</a>
             <a href="#">Link 3</a>
@@ -285,7 +295,9 @@
         <a id="next_page" onclick="leftArrowClick();"><i class="fa fa-arrow-left"></i></a>
         <a id="prev_page" onclick="rightArrowClick();"><i class="fa fa-arrow-right"></i></a>
         <span id="pagecount">Page nnn of mmm</span>
-        <span id="screentitle">A description of the screen contents</span>
+        <select id="screentitle" onchange="screenChange()">
+          <option value="1">A description of the screen contents</option>
+        </select>
         <div class="right-nav">
           <a id="trash" onclick="trashClick();"><i class="fa fa-trash"></i></a>
           <a id="search" onclick="searchClick();"><i class="fa fa-search"></i></a>
@@ -301,6 +313,8 @@
   </div>
 
   <script type="application/javascript">
+  
+    // the Database
     var db1;
 
     // Screen layouts
@@ -309,17 +323,14 @@
     var SCREEN_GET = 1;
     var SCREEN_SORT = 2;
 
-    // Data view
+    // Data view - initialized in showEditScreen()
     var view = {};
-    view.hedlin = 0;
-    view.bfihed = [];
-    view.collin = 0;
-    view.bficol = [];
-    view.npage = 0;
-    view.curpag = 0;
+    
+    // For the grid key
+    var screenNum = 0;
 
     var showDemo = function() {
-      document.getElementById("open-screen").classList.toggle("hide", true);
+      ++screenNum;
 
       // Prepare a large data set
 
@@ -386,23 +397,99 @@
           }
         ]
       };
-
-      // Show the screen
+      editScreen[1] = {
+        "name": "All Rows",
+        "columns": [{
+            "field": "Char1"
+          },
+          {
+            "field": "String3"
+          },
+          {
+            "field": "Seq"
+          },
+          {
+            "field": "RNum"
+          },
+          {
+            "field": "Date"
+          }
+        ]
+      };
+      // Show the screen of data
       showEditScreen();
     }
     
+    // Show the open screen
+    var ShowOpen = function() {
+      document.getElementById("edit-screen").classList.toggle("hide", true);
+      document.getElementById("open-screen").classList.toggle("hide", false);
+    }
+    
     var gdrive = function() {
+      Roots.GDriveGetFile(onGDriveFileLoaded);
     }
 
-    var ScreenGet = function() {}
+    var onGDriveFileLoaded = function(stream) {
+      ++screenNum;
+      var ary = new NoodleDatabase(stream);
+      db1 = new Noodle(ary);
+      editScreen = ary.getScreens();
+      showEditScreen();
+    }
+    
+    var ScreenGet = function() {
+      //if (db1.GetEditScreens != undefined)
+      //  editScreen = db1.GetEditScreens();
+      
+      // Build a menu of screens
+      var sel = document.getElementById("screentitle");
+      var fragment = document.createDocumentFragment();
 
+      editScreen.forEach(function(scr, index) {
+        var opt = document.createElement("option");
+        opt.innerHTML = scr.name;
+        opt.value = index;
+        fragment.appendChild(opt);
+      });
+
+      sel.appendChild(fragment);
+    }
+
+    var screenChange = function() {
+      currentScreen = parseInt(document.getElementById("screentitle").value) + 1;
+      
+      // Initialize the data view
+      view.hedlin = 0;
+      view.bfihed = [];
+      view.collin = 0;
+      view.bficol = [];
+      view.npage = 0;
+      view.curpag = 0;
+      
+      // Display the new screen of data
+      ++screenNum;
+      ShowNewScreen(SCREEN_SORT);
+    }
+    
     var showEditScreen = function() {
       if (db1 === undefined)
         return;
 
+      // Hide the open screen  
+      document.getElementById("open-screen").classList.toggle("hide", true);
+      
       // Initialize the screen menu
       RemoveScreensFromMenu();
 
+      // Initialize the data view
+      view.hedlin = 0;
+      view.bfihed = [];
+      view.collin = 0;
+      view.bficol = [];
+      view.npage = 0;
+      view.curpag = 0;
+      
       currentScreen = 1;
       ShowNewScreen(SCREEN_GET | SCREEN_SORT);
     }
@@ -482,7 +569,13 @@
         FillColumns(view.curpag, view.npage, view.bficol, view.collin);
     }
 
-    var RemoveScreensFromMenu = function() {}
+    var RemoveScreensFromMenu = function() {
+      var sel = document.getElementById("screentitle");
+      while (sel.firstChild !== null) {
+        child = sel.firstChild;
+        sel.removeChild(child);
+      }
+    }
 
     var ShowNewScreen = function(nFlags) {
       // Get the currently selected screen to display
@@ -499,7 +592,7 @@
       // Create a form for displaying the data view and display the first page of data.
       BuildForm();
 
-      document.getElementById("screentitle").innerText = editScreen[currentScreen - 1].name;
+      //document.getElementById("screentitle").innerText = editScreen[currentScreen - 1].name;
       document.getElementById("edit-screen").classList.toggle("hide", false);
 
       // Load data into the newly created screen page
@@ -523,6 +616,7 @@
         document.getElementById("header").classList.toggle("hide", true);
         document.getElementById("next_page").classList.toggle("hide", true);
         document.getElementById("prev_page").classList.toggle("hide", true);
+        document.getElementById("pagecount").classList.toggle("hide", true);
         return;
       }
 
@@ -550,6 +644,7 @@
       document.getElementById("header").classList.toggle("hide", false);
       document.getElementById("next_page").classList.toggle("hide", false);
       document.getElementById("prev_page").classList.toggle("hide", false);
+      document.getElementById("pagecount").classList.toggle("hide", false);
     }
 
     var FillHeader = function(page, npage, bfihed, hedlin) {
@@ -637,7 +732,7 @@
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
-        key: view.curpag + "," + (parms.rowIndex + 1) + "," + (parms.columnIndex + 1),
+        key: screenNum + "," + view.curpag + "," + (parms.rowIndex + 1) + "," + (parms.columnIndex + 1),
         type: "text",
         defaultValue: db1.GetValue(view.curpag, parms.rowIndex + 1, view.bficol[parms.columnIndex]),
         cellChange: detailChange,
@@ -670,11 +765,6 @@
         });
       });
       ReactDOM.render(gridElement, document.getElementById('detail'));
-    }
-
-    // Show or Hide the edit menu
-    var toggleMenu = function() {
-      document.getElementById("dropdown-content").classList.toggle("hide");
     }
 
     // Next page

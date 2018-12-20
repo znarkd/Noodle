@@ -2,26 +2,38 @@
  * Noodle gives JavaScript arrays a pivot table like data view.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 23, 2018
+ * Release: December 19, 2018
  */
 
 function Noodle(dataArray, labels) {
-  if (!Array.isArray(dataArray))
-    throw ("Noodle only works with arrays!");
-  if (dataArray.length === 0)
-    throw ("Noodle can't work with empty arrays!");
-
-  // Setup
-  var mData = dataArray;
-  var mKeys = Object.keys(dataArray[0]);
-
+  var mData;
+  var mKeys;
   var mLabels;
+  var mNumFields;
+  
+  // Setup
+  
+  if (dataArray instanceof NoodleDatabase) {
+    mData = dataArray;
+    mKeys = mData.GetFieldLabels();
+  }
+  else if (Array.isArray(dataArray)) {
+    if (dataArray.length === 0)
+      throw ("Noodle can't work with empty arrays!");
+    mData = dataArray;
+    mKeys = Object.keys(dataArray[0]);
+  }
+  else { 
+    alert("Noodle: invalid datatype!");
+    return;
+  }
+
   if (labels != undefined)
     mLabels = labels;
   else
     mLabels = mKeys;
 
-  var mNumFields = mLabels.length;
+  mNumFields = mLabels.length;
 
   var viewInitialized = false; // Was the view initialized?
   var viewGenerated = false; // Was the view generated?
@@ -84,7 +96,15 @@ function Noodle(dataArray, labels) {
   }
 
   this.Nline = function() {
-    return mData.length;
+    if (typeof mData.length === "function")
+      return mData.length();
+    else
+      return mData.length;
+  }
+  
+  this.GetEditScreens = function() {
+    if (mData instanceof NoodleDatabase)
+      return 	mData.getScreens();
   }
 
   this.InitializeView = function() {
@@ -323,15 +343,18 @@ function Noodle(dataArray, labels) {
     else
       comparer = noodleCompare;
 
+    var rowcount = this.Nline();
+    
     // Prime a new data set if necessary
-    if (mData.length === 0) {
+    if (rowcount === 0) {
       mData.push();
       PrimeNewLine(1);
+      rowcount = 1;
     }
 
     // Make room for summary data
     for (i = 0; i < viewSums.length; i++)
-      Roots.xpand(viewSums[i], mData.length);
+      Roots.xpand(viewSums[i], rowcount);
 
     // Sort the data
 
@@ -353,18 +376,18 @@ function Noodle(dataArray, labels) {
     }
     viewNumCol = viewSortFields.length - viewNumHead;
 
-    Roots.xpand(viewNextLine, mData.length);
-    Roots.xpand(viewPrevLine, mData.length);
-    Roots.xpand(viewPages, mData.length);
-    Roots.xpand(viewFirstDetail, mData.length);
-    Roots.xpand(viewNextDetail, mData.length);
-    Roots.xpand(viewState, mData.length);
+    Roots.xpand(viewNextLine, rowcount);
+    Roots.xpand(viewPrevLine, rowcount);
+    Roots.xpand(viewPages, rowcount);
+    Roots.xpand(viewFirstDetail, rowcount);
+    Roots.xpand(viewNextDetail, rowcount);
+    Roots.xpand(viewState, rowcount);
 
     if (viewSortFields.length > 0) {
       Roots.mrsort(mData, comparer, viewSortFields, viewPages, viewNextLine);
       first = viewPages[0];
     } else
-      Roots.seqlst(mData.length, first, viewNextLine);
+      Roots.seqlst(rowcount, first, viewNextLine);
 
     // Drop out records which have been deleted or filtered out
     drop = first;

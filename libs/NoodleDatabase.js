@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: September 26, 2018
+ * Release: December 19, 2018
  */
 
 function NoodleDatabase(stream) {
@@ -9,9 +9,9 @@ function NoodleDatabase(stream) {
   var field = [];
   var base = {};
   var table = [];
-  var screen = [];
+  var ndlEditScreen = [];
   var blkfld = [];
-  
+    
   // Utility functions
   
   // https://gist.github.com/getify/7325764
@@ -59,7 +59,7 @@ function NoodleDatabase(stream) {
       base = ary.NoodleDatabase.base;
       base.block = convertBaseToUint8Array(window.atob(base.block));
       table = ary.NoodleDatabase.table;
-      screen = ary.NoodleDatabase.screen;
+      ndlEditScreen = ary.NoodleDatabase.screen;
       
       var start = 1;
       for (var i=0; i < field.length; i++) {
@@ -74,7 +74,30 @@ function NoodleDatabase(stream) {
     }
   }
   
+  this.length = function() {
+    return base.nline;
+  }
+  
+  // Return the field names in an array
+  
+  this.GetFieldLabels = function() {
+    var i, labels = [];
+    
+    for (i=0; i < field.length; i++) {
+      labels.push(field[i].name);
+    }
+    return labels;
+  }
+  
+  // Get the database's edit screens
+  
+  this.getScreens = function() {
+    return ndlEditScreen;
+  }
+  
   // Compare field values
+  
+  // Note: The list parameter is included only for compatibility with Roots.
   
   this.Compare = function(list, a, b, sortColumns) {
     var aval, bval, v=[], rc;
@@ -86,9 +109,9 @@ function NoodleDatabase(stream) {
         case 'Z':
           v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0];
           v[1] = blkfld[sortColumns[i]-1][1];
-          aval = Roots.bunpac(list, v);
+          aval = Roots.bunpac(base.block, v);
           v[0] = (b * base.cpl) + blkfld[sortColumns[i]-1][0];
-          bval = Roots.bunpac(list, v);
+          bval = Roots.bunpac(base.block, v);
           rc = aval - bval;
           if (rc != 0)
             return rc;
@@ -97,9 +120,9 @@ function NoodleDatabase(stream) {
           break;
         case 'E':
           v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0] - 1;
-          aval = list.slice(v[0], v[0]+blkfld[sortColumns[i]-1][1]).join('');
+          aval = base.block.slice(v[0], v[0]+blkfld[sortColumns[i]-1][1]).join('');
           v[0] = (b * base.cpl) + blkfld[sortColumns[i]-1][0] - 1;
-          bval = list.slice(v[0], v[0]+blkfld[sortColumns[i]-1][1]).join('');
+          bval = base.block.slice(v[0], v[0]+blkfld[sortColumns[i]-1][1]).join('');
           rc = aval.localeCompare(bval);
           if (rc != 0)
             return rc;
