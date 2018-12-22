@@ -326,12 +326,13 @@
     // Data view - initialized in showEditScreen()
     var view = {};
     
-    // For the grid key
-    var screenNum = 0;
+    // Grid hacks
+    var keynum = 0;
+    var lineCount = 0;
+    var lastRowCount = 0;
 
     var showDemo = function() {
-      ++screenNum;
-
+ 
       // Prepare a large data set
 
       var zData = [];
@@ -398,12 +399,30 @@
         ]
       };
       editScreen[1] = {
-        "name": "All Rows",
-        "columns": [{
+        "name": "Same data with different order",
+        "header": [{
             "field": "Char1"
           },
           {
-            "field": "String3"
+            "field": "YN",
+            "width": 10
+          },
+          {
+            "field": "Count"
+          },
+          {
+            "field": "Count"
+          },
+          {
+            "field": "Count"
+          },
+          {
+            "field": "Count"
+          }
+        ],
+        "columns": [{
+            "field": "String3",
+            "width": 50
           },
           {
             "field": "Seq"
@@ -431,7 +450,6 @@
     }
 
     var onGDriveFileLoaded = function(stream) {
-      ++screenNum;
       var ary = new NoodleDatabase(stream);
       db1 = new Noodle(ary);
       editScreen = ary.getScreens();
@@ -468,7 +486,6 @@
       view.curpag = 0;
       
       // Display the new screen of data
-      ++screenNum;
       ShowNewScreen(SCREEN_SORT);
     }
     
@@ -729,12 +746,19 @@
     var myCellRenderer = function(parms) {
       if (db1 === undefined)
         return;
+        
+      // Grid hacks
+      if (parms.rowIndex > lineCount)
+        return;
+      ++keynum;
+            
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
-        key: screenNum + "," + view.curpag + "," + (parms.rowIndex + 1) + "," + (parms.columnIndex + 1),
+        key: keynum.toString(),
         type: "text",
-        defaultValue: db1.GetValue(view.curpag, parms.rowIndex + 1, view.bficol[parms.columnIndex]),
+        defaultValue: (parms.rowIndex === lineCount) ? "" :
+          db1.GetValue(view.curpag, parms.rowIndex+1, view.bficol[parms.columnIndex]),
         cellChange: detailChange,
         line: parms.rowIndex + 1,
         bfi: view.bficol[parms.columnIndex]
@@ -749,11 +773,20 @@
 
     // Display the columnar portion of the edit screen
     var FillColumns = function(page, npage, bficol, collin) {
+
+      // Grid hacks
+      lineCount = db1.LineCount(page);
+      rowcount = lineCount + 1;
+      if (rowcount === lastRowCount)
+        ++rowcount;
+      lastRowCount = rowcount;
+      
+      // Display the grid
       var gridElement = /* add headers here with more React.createElement calls */ React.createElement(ReactVirtualized.AutoSizer, null, function(params) {
         return React.createElement(ReactVirtualized.Grid, {
           className: "detail_grid",
           cellRenderer: myCellRenderer,
-          rowCount: db1.LineCount(page),
+          rowCount: rowcount,
           rowHeight: 30,
           columnCount: view.collin,
           columnWidth: 300,
