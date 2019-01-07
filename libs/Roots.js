@@ -1,16 +1,17 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 19, 2018
+ * Release: January 4, 2019
  */
 
 var Roots = Roots || {};
 
-
 // Unpack the binary integer stored within block at field.
 
 Roots.bunpac = function(block, field) {
-  if (field[0] < 1 || field[1] < 1 || field[1] > 4)
+  if (!(block instanceof Uint8Array))
+    throw "Roots.bunpac: block must be Uint8Array";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > 4)
     throw "Roots.bunpac: Bad field values";
   
   var bin = 0;
@@ -30,6 +31,7 @@ Roots.bunpac = function(block, field) {
   return -(~(bin-1));
 }
 
+// Group sorted list items
 
 Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, group) {
   var i, last, check, ngroup;
@@ -60,6 +62,7 @@ Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, gro
   return ngroup;
 }
 
+// Concatenate two lists
 
 Roots.conlst = function(afirst, bfirst, nextLine) {
   var line, last = afirst,
@@ -77,7 +80,6 @@ Roots.conlst = function(afirst, bfirst, nextLine) {
   }
   bfirst = 0;
 }
-
 
 // The sort order represented by sorti is converted into a list
 
@@ -100,7 +102,6 @@ Roots.list1 = function(sorti, nline, nextLine) {
   nextLine[last-1] = 0;
   return first;
 }
-
 
 // Sort list items.  group and nextLine keep the new sort sequence.
 // rank may also keep the sort sequence.
@@ -246,15 +247,16 @@ Roots.mrsort = function(list, compareFunc, sortColumns, group, nextLine, rank) {
     rank[i++] = a;
 }
 
-
-// The integer num is packed into the block position indicated by field
+// The integer, num, is packed into the block position indicated by field
 
 Roots.pacbin = function(num, block, field) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.pacbin: block must be Uint8Array";
   if (!Number.isInteger(num))
     throw "Roots.pacbin: Not an integer";
   if (num < 0 && field[1] < 4)
     throw "Roots.pacbin: Need 4 bytes for negative numbers";
-  if (field[0] < 1 || field[1] < 1 || field[1] > 4)
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > 4)
     throw "Roots.pacbin: Bad field values";
   
   // Get the 32-bit two's complement representation of the number.
@@ -268,6 +270,64 @@ Roots.pacbin = function(num, block, field) {
   }
 }
 
+// The floating point number, rnum, is packed into the
+// block position indicated by field
+
+Roots.pacrel = function(rnum, block, field) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.pacrel: block must be Uint8Array";
+  if (Number(rnum) === NaN)
+    throw "Roots.pacrel: Not a number";
+  if (field[0] <= 0)
+    throw "Roots.pacrel: Bad field values";
+
+  var u8, len;
+  if (field[1] === 8) {
+    var f64 = new Float64Array(1);
+    f64[0] = rnum;
+    u8 = new Uint8Array(f64.buffer);
+    len = 8;
+  }
+  else if (field[1] === 4) {
+    var f32 = new Float32Array(1);
+    f32[0] = rnum;
+    u8 = new Uint8Array(f32.buffer);
+    len = 4;
+  }
+  else
+    throw "Roots.pacrel: Must use 4 or 8 bytes for floating point";
+
+  var k = field[0] - 1;
+  var i = field[1];
+  while (i-- > 0) {
+    block[k+i] = u8[--len];
+  }
+}
+
+// Unpack the floating point number stored within block at field.
+
+Roots.runpac = function(block, field) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.runpac: block must be Uint8Array";
+  if (field[0] <= 0)
+    throw "Roots.runpac: Bad field values";
+  
+  var u8;
+  if (field[1] === 8) {
+    u8 = block.slice(field[0]-1, field[0]+7);
+    var f64 = new Float64Array(u8.buffer);
+    return f64[0];
+  }
+  else if (field[1] === 4) {
+    u8 = block.slice(field[0]-1, field[0]+3);
+    var f32 = new Float32Array(u8.buffer);
+    return f32[0];
+  }
+  else
+    throw "Roots.runpac: Must use 4 or 8 bytes for floating point";
+}
+
+// Prime a new list
 
 Roots.seqlst = function(nextLine) {
   var n = nextLine.length;
@@ -283,10 +343,11 @@ Roots.seqlst = function(nextLine) {
   return 1;
 }
 
+// Extend an array
 
 Roots.xpand = function(arr, newCount) {
-  if (arr === undefined)
-    throw ("Roots.xpand: undefined array");
+  if (!Array.isArray(arr))
+    throw ("Roots.xpand: invalid array");
   if (newCount > arr.length)
     arr.length = newCount;
 }

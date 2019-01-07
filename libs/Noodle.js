@@ -2,7 +2,7 @@
  * Noodle gives JavaScript arrays a pivot table like data view.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 19, 2018
+ * Release: January 7, 2019
  */
 
 function Noodle(dataArray, labels) {
@@ -13,16 +13,29 @@ function Noodle(dataArray, labels) {
   
   // Setup
   
-  if (dataArray instanceof NoodleDatabase) {
+  // Preferred data type
+  if (typeof NoodleDatabase === "function" && dataArray instanceof NoodleDatabase) {
     mData = dataArray;
     mKeys = mData.GetFieldLabels();
   }
+
+  // Array
   else if (Array.isArray(dataArray)) {
     if (dataArray.length === 0)
       throw ("Noodle can't work with empty arrays!");
-    mData = dataArray;
-    mKeys = Object.keys(dataArray[0]);
+    if (typeof dataArray[0] === "object")
+      mData = dataArray;
+    else {
+      mData = [];
+      for (var i=0; i < dataArray.length; i++) {
+        mData[i] = [];
+        mData[i][0] = dataArray[i];
+      }
+    }
+    mKeys = Object.keys(mData[0]);
   }
+
+  // Invalid
   else { 
     alert("Noodle: invalid datatype!");
     return;
@@ -35,6 +48,30 @@ function Noodle(dataArray, labels) {
 
   mNumFields = mLabels.length;
 
+  // Get a data element from the data source
+  var LineValue;
+  _linevalue = function(line, bfi) {
+    var val = mData[line - 1][mKeys[bfi - 1]];
+    if (val != undefined)
+      return val.toString();
+    return "";
+  }
+  if (mData.LineValue != undefined)
+    LineValue = mData.LineValue;
+  else
+    LineValue = _linevalue;
+
+  // Put a data element into the data source
+  var PutLineValue;
+  _putlinevalue = function(val, line, bfi) {
+    mData[line - 1][mKeys[bfi - 1]] = val;
+  }
+  if (mData.PutLineValue != undefined)
+    PutLineValue = mData.PutLineValue;
+  else
+    PutLineValue = _putlinevalue;
+
+  // View information
   var viewInitialized = false; // Was the view initialized?
   var viewGenerated = false; // Was the view generated?
   var viewHeaderFields = []; // Fields in header
@@ -301,10 +338,7 @@ function Noodle(dataArray, labels) {
   groupSum = function(bfi, first, nextLine) {
     var s, line, d, sum = 0.0;
     for (line = first; line > 0; line = nextLine[line - 1]) {
-      if (mData.LineValue)
-        s = mData.LineValue(line, bfi);
-      else
-        s = mData[line - 1][mKeys[bfi - 1]].toString();
+      s = LineValue(line,bfi);
       d = parseFloat(s);
       if (d != NaN)
         sum += d;
@@ -347,7 +381,7 @@ function Noodle(dataArray, labels) {
     
     // Prime a new data set if necessary
     if (rowcount === 0) {
-      mData.push();
+      mData.push({});
       PrimeNewLine(1);
       rowcount = 1;
     }
@@ -501,11 +535,9 @@ function Noodle(dataArray, labels) {
 
     // Regular field
     if ((viewType[bfi - 1] & COLUMNAR_FIELD) != 0 ||
-      (viewType[bfi - 1] & HEADER_FIELD) != 0) {
-      if (mData.LineValue)
-        return mData.LineValue(first, bfi);
-      else
-        return mData[first - 1][mKeys[bfi - 1]].toString();
+      (viewType[bfi - 1] & HEADER_FIELD) != 0)
+    {
+      return LineValue(first,bfi);
     }
 
     // Summary field
@@ -515,9 +547,6 @@ function Noodle(dataArray, labels) {
     }
   }
 
-  _putlinevalue = function(val, line, bfi) {
-    mData[line - 1][mKeys[bfi - 1]] = val;
-  }
 
   // Set the value for column number bfi for the given page and line.
   this.PutValue = function(val, page, line, bfi) {
@@ -525,12 +554,6 @@ function Noodle(dataArray, labels) {
 
     // Input audit
     fieldAudits(page, line, bfi);
-
-    var putLineValue;
-    if (mData.PutLineValue === undefined)
-      putLineValue = _putlinevalue;
-    else
-      putLineValue = mData.PutLineValue;
 
     // Field in header
     if (line === 0) {
@@ -540,10 +563,9 @@ function Noodle(dataArray, labels) {
         SOS(mLabels[bfi - 1] + " is not a Header field.");
 
       for (first = viewPages[page - 1]; first > 0; first = viewNextLine[first - 1]) {
-        putLineValue(val, first, bfi);
-        for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1]) {
-          putLineValue(val, clone, bfi);
-        }
+        PutLineValue(val, first, bfi);
+        for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
+          PutLineValue(val, clone, bfi);
       }
     }
 
@@ -557,10 +579,110 @@ function Noodle(dataArray, labels) {
         SOS("Line number not on page");
 
       first = firstOf(page, line);
-      putLineValue(val, first, bfi);
+      PutLineValue(val, first, bfi);
       for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
-        putLineValue(val, clone, bfi);
+        PutLineValue(val, clone, bfi);
     }
+  }
+  
+  PrimeNewLine = function(line) {
+    if (mData instanceof NoodleDatabase)
+      return;
+    for (var i=1; i <= mNumFields; i++)
+      PutLineValue("", line, i);
+  }
+
+  AdjustPruneBitMatrix = function() {
+  }
+
+  this.CreateNewPage = function() {
+    if (!viewGenerated)
+      throw("Noodle: View was not generated!");
+
+    if (!viewNumHead)
+      throw("Noodle: View has no header fields.");
+    
+    // Add a new row to the dataset
+    var nline = mData.push({});
+    PrimeNewLine(nline);
+    for (var i = 0; i < viewSums.length; i++)
+      viewSums[i].push(0.0);
+  
+    //	update lists
+    var newLine = nline - 1;
+    Roots.xpand(viewPages, nline);
+    viewPages[viewNumPages] = nline;
+    viewNumPages++;
+    Roots.xpand(viewNextLine, nline);
+    Roots.xpand(viewPrevLine, nline);
+    Roots.xpand(viewFirstDetail, nline);
+    Roots.xpand(viewNextDetail, nline);
+    Roots.xpand(viewState, nline);
+    viewNextLine[newLine] = 0;
+    viewPrevLine[newLine] = 0;
+    viewFirstDetail[newLine] = 0;
+    viewNextDetail[newLine] = 0;
+    viewState[newLine] = NEW_ROW;
+
+	  AdjustPruneBitMatrix();
+
+	  return viewNumPages;
+  }
+
+  CopyHeaderFields = function(newLine, parentLine) {
+     for (var i = 0; i < viewHeaderFields.length; i++) {
+        var bfi = viewHeaderFields[i];
+        if ((viewType[bfi - 1] & HEADER_FIELD) != 0) {
+           PutLineValue(LineValue(parentLine, bfi), newLine, bfi);
+        }
+        else {   // HEADER_SUM
+           var k = viewSum[bfi - 1] - 1;
+           viewSums[k][newLine - 1] = viewSums[k][parentLine - 1];
+        }
+     }
+  }
+
+  
+  this.CreateNewLineOnPage = function(page) {
+    if (!viewGenerated)
+      SOS("View was not generated.");
+
+    if (viewColumnarFields.length === 0)
+      SOS("View has no columnar fields.\nUse: CreateNewPage() instead.");
+
+    if (page > viewNumPages || page <= 0)
+      SOS("Page number " + page + " not in current view!");
+
+    // Add a new row to the dataset
+    var newLine = mData.push({});
+    for (var i = 0; i < viewSums.length; i++)
+      viewSums[i].push(0.0);
+
+    // Copy data to the new row
+    PrimeNewLine(newLine);
+    CopyHeaderFields(newLine, viewPages[page-1]);
+
+    // Find last on current page
+    var last = firstOf(page, nlineOf(page));
+
+    // Update lists
+    Roots.xpand(viewNextLine, mData.Count);
+    Roots.xpand(viewPrevLine, mData.Count);
+    Roots.xpand(viewFirstDetail, mData.Count);
+    Roots.xpand(viewNextDetail, mData.Count);
+    Roots.xpand(viewState, mData.Count);
+    viewNextLine[last-1] = newLine;
+    viewNextLine[newLine-1] = 0;
+    viewPrevLine[newLine-1] = last;
+    viewFirstDetail[newLine-1] = 0;
+    viewNextDetail[newLine-1] = 0;
+    viewState[newLine - 1] = NEW_ROW;
+
+    AdjustPruneBitMatrix();
+
+    // Update recent and return
+    ++recentNline;
+    return recentNline;
   }
   
   // Output encode XML special characters

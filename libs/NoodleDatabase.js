@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: December 19, 2018
+ * Release: January 4, 2019
  */
 
 function NoodleDatabase(stream) {
@@ -35,7 +35,7 @@ function NoodleDatabase(stream) {
   // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/transfer
   transfer = function(source, length) {
     if (!(source instanceof Uint8Array))
-      throw new TypeError('Source must be an instance of Uint8Array');
+      throw new TypeError("Source must be an instance of Uint8Array");
     if (length <= source.length)
       return source.slice(0, length);
     var destView = new Uint8Array(length);
@@ -70,7 +70,7 @@ function NoodleDatabase(stream) {
       }
     }
     catch(err) {
-      throw ("NoodleDatabase: Invalid format!");
+      throw "NoodleDatabase: Invalid format";
     }
   }
   
@@ -117,6 +117,14 @@ function NoodleDatabase(stream) {
             return rc;
           break;
         case 'R':
+          v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0];
+          v[1] = blkfld[sortColumns[i]-1][1];
+          aval = Roots.runpac(base.block, v);
+          v[0] = (b * base.cpl) + blkfld[sortColumns[i]-1][0];
+          bval = Roots.runpac(base.block, v);
+          rc = aval - bval;
+          if (rc != 0)
+            return rc;
           break;
         case 'E':
           v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0] - 1;
@@ -128,7 +136,7 @@ function NoodleDatabase(stream) {
             return rc;
           break;
         default:
-          throw new TypeError("NoodleDatabase: Invalid data type.");
+          throw new TypeError("NoodleDatabase: Invalid data type");
       }
     }
     return 0;
@@ -138,40 +146,42 @@ function NoodleDatabase(stream) {
   
   this.LineValue = function(line, bfi) {
     if (line <= 0 || line > base.nline)
-      throw new TypeError("NoodleDatabase: Invalid line number.");
+      throw "NoodleDatabase: Invalid line number";
     if (bfi > field.length)
-      throw new TypeError("NoodleDatabase: Invalid field index");
+      throw "NoodleDatabase: Invalid field index";
     
-    var bin, v=[];
+    var num, v=[];
     v[0] = ((line-1) * base.cpl) + blkfld[bfi-1][0];
     v[1] = blkfld[bfi-1][1];
     
     switch(field[bfi-1].type) {
       case 'T':
-        bin = Roots.bunpac(base.block, v);
-        if (bin === 0)
+        num = Roots.bunpac(base.block, v);
+        if (num === 0)
           return "";
-        return table[field[bfi-1].tindex-1].item[bin-1].toString();
+        return table[field[bfi-1].tindex-1].item[num-1].toString();
         break;
       case 'B':
-         bin = Roots.bunpac(base.block, v);
-        return bin.toString();
+        num = Roots.bunpac(base.block, v);
+        return num.toString();
         break;
       case 'D':
-        bin = Roots.bunpac(base.block, v);
-        return bin.toString();
+        num = Roots.bunpac(base.block, v);
+        return num.toString();
         break;
       case 'Z':
-        bin = Roots.bunpac(base.block, v);
-        return bin.toString();
+        num = Roots.bunpac(base.block, v);
+        return num.toString().padStart(field[bfi-1].width, '0');
         break;
       case 'R':
+        num = Roots.runpac(base.block, v);
+        return num.toFixed(field[bfi-1].decimals);
         break;
       case 'E':
         return base.block.slice(v[0]-1, v[0]-1+v[1]).join('');
         break;
       default:
-        throw new TypeError("NoodleDatabase: Invalid data type.");
+        throw new TypeError("NoodleDatabase: Invalid data type");
     }
   }
   
@@ -179,7 +189,7 @@ function NoodleDatabase(stream) {
   
   this.push = function() {
     if (base.cpl <= 0)
-      throw("NoodleDatabase: base cpl < 1");
+      throw "NoodleDatabase: base cpl < 1";
     
     // Allocate memory if needed.  Allow room for additional growth.
     var need = base.cpl * (base.nline+1);
@@ -188,6 +198,13 @@ function NoodleDatabase(stream) {
     
     // Add the new line
     base.nline += 1;
+
+    // Blank the new line per field type
+    for (var i=0; i < field.length; i++) {
+      if (field[i].type === 'E')
+        this.PutLineValue(" ", base.nline, i+1);
+    }
+
     return base.nline;
   }
   
@@ -195,9 +212,9 @@ function NoodleDatabase(stream) {
   
   this.PutLineValue = function(val, line, bfi) {
     if (line <= 0 || line > base.nline)
-      throw new TypeError("NoodleDatabase: Invalid line number.");
+      throw "NoodleDatabase: Invalid line number";
     if (bfi > field.length)
-      throw new TypeError("NoodleDatabase: Invalid field index");
+      throw "NoodleDatabase: Invalid field index";
     
     var v=[];
     v[0] = ((line-1) * base.cpl) + blkfld[bfi-1][0];
@@ -205,9 +222,13 @@ function NoodleDatabase(stream) {
 
     switch(field[bfi-1].type) {
       case 'T':
-        var index = table[field[bfi-1].tindex-1].item.indexOf(val) + 1;
-        if (index <= 0)
-          index = table[field[bfi-1].tindex-1].item.push(val);
+        var index = 0;
+        var str = val.trim();
+        if (str.length > 0) {
+          index = table[field[bfi-1].tindex-1].item.indexOf(str) + 1;
+          if (index === 0)
+            index = table[field[bfi-1].tindex-1].item.push(str);
+        }
         Roots.pacbin(index, base.block, v);
         break;
       case 'B':
@@ -220,6 +241,10 @@ function NoodleDatabase(stream) {
       case 'D':
         break;
       case 'R':
+        if (Number(val) != NaN)
+          Roots.pacrel(val, base.block, v);
+        else
+          Roots.pacrel(0, base.block, v);
         break;
       case 'E':
         var vstr = val.split('');
@@ -233,7 +258,7 @@ function NoodleDatabase(stream) {
           base.block[i++] = ' ';
         break;
       default:
-        throw new TypeError("NoodleDatabase: Invalid data type.");
+        throw new TypeError("NoodleDatabase: Invalid data type");
     }
   }
 }

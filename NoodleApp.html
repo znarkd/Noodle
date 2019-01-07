@@ -5,12 +5,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>Noodle</title>
-  <meta name="description" content="Noodle database" />
+  <meta name="description" content="Noodle database editor." />
   <meta name="keywords" content="ARMR, Noodle, data, database" />
   <meta name="author" content="Dan Kranz" />
   <link rel="icon" type="image/png" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
-  <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png"/>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png" />
   <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css" type="text/css" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://unpkg.com/font-awesome/css/font-awesome.min.css" crossorigin="anonymous" />
   <script src="https://unpkg.com/react/umd/react.production.min.js" crossorigin="anonymous"></script>
@@ -272,7 +272,9 @@
           <div class="open__icon-text">Demo</div>
         </div>
         <div class="open__icon open__icon-storage svg-btn" data-storage="gdrive" onclick="gdrive()">
-          <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><path d="M86.657536,76.246208 L47.768064,9 L89.111168,9 L128,76.246208 L86.657536,76.246208 Z M25.010048,119.08 L102.690048,119.08 L123.36256,83.24 L45.68064,83.24 L25.010048,119.08 L25.010048,119.08 Z M38.793088,9.003712 L0,76.30496 L20.671872,112.110016 L59.464704,44.808128 L38.793088,9.003712 Z"></path></svg></div>
+          <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+              <path d="M86.657536,76.246208 L47.768064,9 L89.111168,9 L128,76.246208 L86.657536,76.246208 Z M25.010048,119.08 L102.690048,119.08 L123.36256,83.24 L45.68064,83.24 L25.010048,119.08 L25.010048,119.08 Z M38.793088,9.003712 L0,76.30496 L20.671872,112.110016 L59.464704,44.808128 L38.793088,9.003712 Z"></path>
+            </svg></div>
           <div class="open__icon-text">Google Drive</div>
         </div>
         <div class="open__icon open__icon-more">
@@ -313,7 +315,7 @@
   </div>
 
   <script type="application/javascript">
-  
+
     // the Database
     var db1;
 
@@ -325,14 +327,14 @@
 
     // Data view - initialized in showEditScreen()
     var view = {};
-    
+
     // Grid hacks
     var keynum = 0;
     var lineCount = 0;
     var lastRowCount = 0;
 
-    var showDemo = function() {
- 
+    var showDemo = function () {
+
       // Prepare a large data set
 
       var zData = [];
@@ -364,107 +366,93 @@
       editScreen[0] = {
         "name": "Rows by Char1 and YN",
         "header": [{
-            "field": "Char1"
-          },
-          {
-            "field": "YN",
-            "width": 10
-          },
-          {
-            "field": "Count"
-          },
-          {
-            "field": "Count"
-          },
-          {
-            "field": "Count"
-          },
-          {
-            "field": "Count"
-          }
+          "field": "Char1"
+        },
+        {
+          "field": "YN",
+          "width": 10
+        },
+        {
+          "field": "Count"
+        },
+        {
+          "field": "Count"
+        },
+        {
+          "field": "Count"
+        },
+        {
+          "field": "Count"
+        }
         ],
         "columns": [{
-            "field": "Seq",
-            "width": 50
-          },
-          {
-            "field": "String3"
-          },
-          {
-            "field": "RNum"
-          },
-          {
-            "field": "Date"
-          }
+          "field": "Seq",
+          "width": 50
+        },
+        {
+          "field": "String3"
+        },
+        {
+          "field": "RNum"
+        },
+        {
+          "field": "Date"
+        }
         ]
       };
       editScreen[1] = {
-        "name": "Same data with different order",
+        "name": "Char1 values by YN",
         "header": [{
-            "field": "Char1"
-          },
-          {
-            "field": "YN",
-            "width": 10
-          },
-          {
-            "field": "Count"
-          },
-          {
-            "field": "Count"
-          },
-          {
-            "field": "Count"
-          },
-          {
-            "field": "Count"
-          }
+          "field": "YN"
+        }
         ],
         "columns": [{
-            "field": "String3",
-            "width": 50
-          },
-          {
-            "field": "Seq"
-          },
-          {
-            "field": "RNum"
-          },
-          {
-            "field": "Date"
-          }
+          "field": "Char1",
+          "width": 50
+        }
         ]
       };
+      editScreen[2] = {
+        "name": "All header",
+        "header": [{
+          "field": "String3"
+        },
+        {
+          "field": "Char1"
+        }
+        ]
+      };
+
       // Show the screen of data
       showEditScreen();
     }
-    
+
     // Show the open screen
-    var ShowOpen = function() {
+    var ShowOpen = function () {
       document.getElementById("edit-screen").classList.toggle("hide", true);
       document.getElementById("open-screen").classList.toggle("hide", false);
     }
-    
-    var gdrive = function() {
+
+    var gdrive = function () {
       Roots.GDriveGetFile(onGDriveFileLoaded);
     }
 
-    var onGDriveFileLoaded = function(stream) {
+    var onGDriveFileLoaded = function (stream) {
       var ary = new NoodleDatabase(stream);
       db1 = new Noodle(ary);
       editScreen = ary.getScreens();
       showEditScreen();
     }
-    
-    var ScreenGet = function() {
+
+    var ScreenGet = function () {
       //if (db1.GetEditScreens != undefined)
       //  editScreen = db1.GetEditScreens();
-      
+
       // Build a menu of screens
       var sel = document.getElementById("screentitle");
       var fragment = document.createDocumentFragment();
 
-      editScreen.forEach(function(scr, index) {
+      editScreen.forEach(function (scr, index) {
         var opt = document.createElement("option");
         opt.innerHTML = scr.name;
         opt.value = index;
@@ -474,9 +462,9 @@
       sel.appendChild(fragment);
     }
 
-    var screenChange = function() {
+    var screenChange = function () {
       currentScreen = parseInt(document.getElementById("screentitle").value) + 1;
-      
+
       // Initialize the data view
       view.hedlin = 0;
       view.bfihed = [];
@@ -484,18 +472,18 @@
       view.bficol = [];
       view.npage = 0;
       view.curpag = 0;
-      
+
       // Display the new screen of data
       ShowNewScreen(SCREEN_SORT);
     }
-    
-    var showEditScreen = function() {
+
+    var showEditScreen = function () {
       if (db1 === undefined)
         return;
 
       // Hide the open screen  
       document.getElementById("open-screen").classList.toggle("hide", true);
-      
+
       // Initialize the screen menu
       RemoveScreensFromMenu();
 
@@ -506,12 +494,12 @@
       view.bficol = [];
       view.npage = 0;
       view.curpag = 0;
-      
+
       currentScreen = 1;
       ShowNewScreen(SCREEN_GET | SCREEN_SORT);
     }
 
-    var coslay = function() {
+    var coslay = function () {
 
       var i;
 
@@ -540,7 +528,7 @@
       return true;
     }
 
-    var BuildView = function() {
+    var BuildView = function () {
 
       var i;
 
@@ -570,12 +558,12 @@
       return true;
     }
 
-    var BuildForm = function() {
+    var BuildForm = function () {
       BuildHeader(view.bfihed, 0);
       BuildDetail(view.bficol, 0);
     }
 
-    var FillPage = function() {
+    var FillPage = function () {
 
       //	Fill the header portion
       if (view.hedlin)
@@ -583,10 +571,10 @@
 
       //	Fill the columnar portion
       if (view.collin)
-        FillColumns(view.curpag, view.npage, view.bficol, view.collin);
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
     }
 
-    var RemoveScreensFromMenu = function() {
+    var RemoveScreensFromMenu = function () {
       var sel = document.getElementById("screentitle");
       while (sel.firstChild !== null) {
         child = sel.firstChild;
@@ -594,7 +582,7 @@
       }
     }
 
-    var ShowNewScreen = function(nFlags) {
+    var ShowNewScreen = function (nFlags) {
       // Get the currently selected screen to display
       if (nFlags & SCREEN_GET)
         ScreenGet();
@@ -616,7 +604,7 @@
       FillPage();
     }
 
-    var BuildHeader = function(bfi, attr) {
+    var BuildHeader = function (bfi, attr) {
       var i, s, field, field_input, nline = bfi.length;
       var header = document.getElementById("header");
       var detail = document.getElementById("detail");
@@ -629,7 +617,7 @@
       }
 
       // Hide the header when there are no header input fields
-      if (nline == 0) {
+      if (nline === 0) {
         document.getElementById("header").classList.toggle("hide", true);
         document.getElementById("next_page").classList.toggle("hide", true);
         document.getElementById("prev_page").classList.toggle("hide", true);
@@ -664,7 +652,7 @@
       document.getElementById("pagecount").classList.toggle("hide", false);
     }
 
-    var FillHeader = function(page, npage, bfihed, hedlin) {
+    var FillHeader = function (page, npage, bfihed, hedlin) {
       if (db1 === undefined)
         return;
 
@@ -681,16 +669,42 @@
       document.getElementById("pagecount").innerText = "Page " + page + " of " + npage;
     }
 
-    var headerChange = function(fx, val) {
+    var headerChange = function (fx, val) {
+      // Ignore changes to Protected or Summary field
+
+      // Add a new page?
+      if (view.curpag > view.npage) {
+        db1.CreateNewPage();
+        view.npage++;
+        document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
+      }
+
+      // Save the value to the database
       db1.PutValue(val, view.curpag, 0, view.bfihed[fx]);
     }
 
-    var detailChange = function(props, val) {
+    var detailChange = function (props, val) {
+      var refresh = false;
+      var n = db1.LineCount(view.curpag);
+      if (props.line > n) {
+        db1.CreateNewLineOnPage(view.curpag);
+        refresh = true;
+      }
       db1.PutValue(val, view.curpag, props.line, props.bfi);
+      if (refresh)
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin, true);
     }
 
-    var BuildDetail = function(bfi, attr) {
+    var BuildDetail = function (bfi, attr) {
+      var nline = bfi.length;
+      if (nline === 0) {
+        document.getElementById("detail").classList.toggle("hide", true);
+        return;
+      }
+
       // TODO - set the column styles here
+
+      document.getElementById("detail").classList.toggle("hide", false);
     }
 
     // React fires a change event for each keystroke.
@@ -743,22 +757,22 @@
       }
     }
 
-    var myCellRenderer = function(parms) {
+    var myCellRenderer = function (parms) {
       if (db1 === undefined)
         return;
-        
+
       // Grid hacks
       if (parms.rowIndex > lineCount)
         return;
       ++keynum;
-            
+
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
         key: keynum.toString(),
         type: "text",
         defaultValue: (parms.rowIndex === lineCount) ? "" :
-          db1.GetValue(view.curpag, parms.rowIndex+1, view.bficol[parms.columnIndex]),
+          db1.GetValue(view.curpag, parms.rowIndex + 1, view.bficol[parms.columnIndex]),
         cellChange: detailChange,
         line: parms.rowIndex + 1,
         bfi: view.bficol[parms.columnIndex]
@@ -772,77 +786,78 @@
     }
 
     // Display the columnar portion of the edit screen
-    var FillColumns = function(page, npage, bficol, collin) {
+    var FillColumns = function (page, npage, bficol, collin, refresh) {
+
+      if (page > npage) {
+        lineCount = 0;
+        rowcount = 1;
+      }
+      else {
+        lineCount = db1.LineCount(page);
+        rowcount = lineCount + 1;
+      }
 
       // Grid hacks
-      lineCount = db1.LineCount(page);
-      rowcount = lineCount + 1;
-      if (rowcount === lastRowCount)
+      if (!refresh && rowcount === lastRowCount)
         ++rowcount;
       lastRowCount = rowcount;
-      
+
+      // Grid parameters
+      var gparms = {};
+      gparms.className = "detail_grid";
+      gparms.cellRenderer = myCellRenderer;
+      gparms.rowCount = rowcount;
+      gparms.rowHeight = 30;
+      gparms.columnCount = view.collin;
+      gparms.columnWidth = 300;
+      gparms.onScroll = handleGridScroll;        
+      if (!refresh) {
+        gparms.scrollToRow = 0;
+        gparms.scrollToColumn = 0;
+      }
+
       // Display the grid
-      var gridElement = /* add headers here with more React.createElement calls */ React.createElement(ReactVirtualized.AutoSizer, null, function(params) {
-        return React.createElement(ReactVirtualized.Grid, {
-          className: "detail_grid",
-          cellRenderer: myCellRenderer,
-          rowCount: rowcount,
-          rowHeight: 30,
-          columnCount: view.collin,
-          columnWidth: 300,
-          height: params.height,
-          width: params.width,
-          onScroll: handleGridScroll,
-          scrollToRow: 0,
-          scrollToColumn: 0
-        });
+      var grid = React.createElement(ReactVirtualized.AutoSizer,null,function(params) {
+        gparms.height = params.height;
+        gparms.width = params.width;
+        return React.createElement(ReactVirtualized.Grid, gparms);
       });
-      ReactDOM.render(gridElement, document.getElementById('detail'));
+      ReactDOM.render(grid, document.getElementById('detail'));
     }
 
-    // Next page
-    var leftArrowClick = function() {
+    // Previous page
+    var leftArrowClick = function () {
       if (--view.curpag < 1) {
         view.curpag = 1;
         return;
       }
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
-
       if (view.collin)
-        FillColumns(view.curpag, view.npage, view.bficol, view.collin);
-      //return false;
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
     }
 
-    // Previous page
-    var rightArrowClick = function() {
-      ++view.curpag;
-      if (view.curpag > view.npage) {
-        // TODO logic for new pages
-        alert("New Page");
+    // Next page
+    var rightArrowClick = function () {
+      if (++view.curpag > view.npage)
         view.curpag = view.npage + 1;
-      }
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
-
       if (view.collin)
-        FillColumns(view.curpag, view.npage, view.bficol, view.collin);
-      //return false;
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
     }
 
-    var trashClick = function() {
+    var trashClick = function () {
       alert("Trash not yet implemented");
     }
 
-    var searchClick = function() {
+    var searchClick = function () {
       alert("Search not yet implemented");
     }
 
-    var doReport = function() {
-      document.getElementById("dropdown-content").classList.toggle("hide", true);
+    var doReport = function () {
       db1.XMLReport(editScreen[currentScreen - 1].name);
     }
 
-    var doExport = function() {
-      document.getElementById("dropdown-content").classList.toggle("hide", true);
+    var doExport = function () {
       db1.WriteCsvFile("output.csv", ',');
     }
   </script>
