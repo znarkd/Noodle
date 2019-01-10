@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: January 4, 2019
+ * Release: January 10, 2019
  */
 
 function NoodleDatabase(stream) {
@@ -35,12 +35,39 @@ function NoodleDatabase(stream) {
   // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/transfer
   transfer = function(source, length) {
     if (!(source instanceof Uint8Array))
-      throw new TypeError("Source must be an instance of Uint8Array");
+      throw("Source must be an instance of Uint8Array");
     if (length <= source.length)
       return source.slice(0, length);
     var destView = new Uint8Array(length);
     destView.set(source);
     return destView;
+  }
+
+  validateField = function(i) {
+    if (field[i].width <= 0)
+      throw("display width < 1");
+
+    switch (field[i].type) {
+      case 'T':
+      case 'B':
+      case 'Z':
+        if (field[i].cpl <= 0 || field[i].cpl > 4)
+          throw("Invalid cpl for Type-" + field[i].type);
+        break;
+      case 'D':
+        if (field[i].cpl != 4)
+          throw("cpl for Type-D must equal 4");
+        break;
+      case 'R':
+        if (field[i].cpl != 4 && field[i].cpl != 8)
+          throw("cpl for Type-R must be 4 or 8");
+        if (field[i].decimals === undefined)
+          throw("Type-R requires decimals value")
+      case 'E':
+        break;
+      default:
+        throw("Invalid data type");
+    }
   }
   
   // Constructor
@@ -61,16 +88,20 @@ function NoodleDatabase(stream) {
       table = ary.NoodleDatabase.table;
       ndlEditScreen = ary.NoodleDatabase.screen;
       
+      // Save field's location in base.block and perform validity checks
+
       var start = 1;
       for (var i=0; i < field.length; i++) {
         blkfld[i] = [];
         blkfld[i][0] = start;
         blkfld[i][1] = field[i].cpl;
         start += field[i].cpl;
+
+        validateField(i);
       }
     }
     catch(err) {
-      throw "NoodleDatabase: Invalid format";
+      throw("NoodleDatabase: Invalid format. " + err);
     }
   }
   
@@ -136,7 +167,7 @@ function NoodleDatabase(stream) {
             return rc;
           break;
         default:
-          throw new TypeError("NoodleDatabase: Invalid data type");
+          throw("NoodleDatabase: Invalid data type");
       }
     }
     return 0;
@@ -146,9 +177,9 @@ function NoodleDatabase(stream) {
   
   this.LineValue = function(line, bfi) {
     if (line <= 0 || line > base.nline)
-      throw "NoodleDatabase: Invalid line number";
+      throw("NoodleDatabase: Invalid line number");
     if (bfi > field.length)
-      throw "NoodleDatabase: Invalid field index";
+      throw("NoodleDatabase: Invalid field index");
     
     var num, v=[];
     v[0] = ((line-1) * base.cpl) + blkfld[bfi-1][0];
@@ -160,28 +191,25 @@ function NoodleDatabase(stream) {
         if (num === 0)
           return "";
         return table[field[bfi-1].tindex-1].item[num-1].toString();
-        break;
       case 'B':
         num = Roots.bunpac(base.block, v);
         return num.toString();
-        break;
       case 'D':
         num = Roots.bunpac(base.block, v);
-        return num.toString();
-        break;
+        var y = Math.trunc(num/10000);
+        var m = "0" + Math.trunc((num%10000)/100);
+        var d = "0" + Math.trunc(num%100);
+        return m.slice(-2) + '/' + d.slice(-2) + y;
       case 'Z':
         num = Roots.bunpac(base.block, v);
         return num.toString().padStart(field[bfi-1].width, '0');
-        break;
       case 'R':
         num = Roots.runpac(base.block, v);
         return num.toFixed(field[bfi-1].decimals);
-        break;
       case 'E':
         return base.block.slice(v[0]-1, v[0]-1+v[1]).join('');
-        break;
       default:
-        throw new TypeError("NoodleDatabase: Invalid data type");
+        throw("NoodleDatabase: Invalid data type");
     }
   }
   
@@ -189,7 +217,7 @@ function NoodleDatabase(stream) {
   
   this.push = function() {
     if (base.cpl <= 0)
-      throw "NoodleDatabase: base cpl < 1";
+      throw("NoodleDatabase: base cpl < 1");
     
     // Allocate memory if needed.  Allow room for additional growth.
     var need = base.cpl * (base.nline+1);
@@ -209,12 +237,14 @@ function NoodleDatabase(stream) {
   }
   
   // Save a value to the database
+
+  const _maxval = [255,65535,16777215,2147483647];
   
   this.PutLineValue = function(val, line, bfi) {
     if (line <= 0 || line > base.nline)
-      throw "NoodleDatabase: Invalid line number";
+      throw("NoodleDatabase: Invalid line number");
     if (bfi > field.length)
-      throw "NoodleDatabase: Invalid field index";
+      throw("NoodleDatabase: Invalid field index");
     
     var v=[];
     v[0] = ((line-1) * base.cpl) + blkfld[bfi-1][0];
@@ -223,22 +253,40 @@ function NoodleDatabase(stream) {
     switch(field[bfi-1].type) {
       case 'T':
         var index = 0;
-        var str = val.trim();
+        // remove trailing blanks
+        var str = val.replace(/\s+$/,'');
         if (str.length > 0) {
           index = table[field[bfi-1].tindex-1].item.indexOf(str) + 1;
           if (index === 0)
             index = table[field[bfi-1].tindex-1].item.push(str);
         }
-        Roots.pacbin(index, base.block, v);
+        if (index > _maxval[v[1]])
+          throw("Table index exceeds field's cpl");
+        else
+          Roots.pacbin(index, base.block, v);
         break;
       case 'B':
       case 'Z':
-        if (Number(val) != NaN)
-          Roots.pacbin(Math.trunc(val), base.block, v);
+        if (Number(val) != NaN) {
+          if (Math.trunc(val) <= _maxval[v[1]])
+            Roots.pacbin(Math.trunc(val), base.block, v);
+          else
+            alert("The number input is too large");
+        }
         else
-          Roots.pacbin(0, base.block, v);
+          alert("Not a number");
         break;
       case 'D':
+        var date = new Date(val);
+        if (date === "Invalid Date")
+          alert("Invalid Date");
+        else {
+          var y = date.getFullYear();
+          var m = date.getMonth() + 1;
+          var d = date.getDate();
+          var ymd=(y*10000)+(m*100)+d;
+          Roots.pacbin(ymd, base.block, v);
+        }
         break;
       case 'R':
         if (Number(val) != NaN)
@@ -258,7 +306,7 @@ function NoodleDatabase(stream) {
           base.block[i++] = ' ';
         break;
       default:
-        throw new TypeError("NoodleDatabase: Invalid data type");
+        throw("NoodleDatabase: Invalid data type");
     }
   }
 }
