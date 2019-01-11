@@ -69,4 +69,6 @@ db1.PutValue("Z", page, 0, bfi);
 
 
 ### License
-MIT © [Dan Kranz](https://github.com/znarkd?tab=repositories)
+Copyright © [Dan Kranz](https://github.com/znarkd?tab=repositories).  All rights reserved.
+
+Licensed under the [MIT](https://github.com/znarkd/Noodle/blob/master/LICENSE) License.
