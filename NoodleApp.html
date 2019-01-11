@@ -333,6 +333,10 @@
     var lineCount = 0;
     var lastRowCount = 0;
 
+    window.onbeforeunload = function(event) {
+      event.returnValue =  "Are you sure you want to leave this page?";
+    }
+
     var showDemo = function () {
 
       // Prepare a large data set
