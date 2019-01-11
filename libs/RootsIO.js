@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 19, 2018
+ * Release: January 10, 2019
  */
  
 var Roots = Roots || {};
@@ -41,10 +41,12 @@ _onAuthApiLoad = function() {
 // Create and render a Picker object for selecting user files.
 _createPicker = function() {
   if (_APIsLoaded && _oauthToken) {
-    var view1 = new google.picker.View(google.picker.ViewId.DOCS);
-    view1.setQuery("*.ndl");
-    var view2 = new google.picker.View(google.picker.ViewId.DOCS);
-    view2.setQuery("*.csv");
+    var view1 = new google.picker.DocsView(google.picker.ViewId.DOCS)
+    .setMode(google.picker.DocsViewMode.LIST)
+    .setQuery("*.ndl");
+    var view2 = new google.picker.DocsView(google.picker.ViewId.DOCS)
+    .setMode(google.picker.DocsViewMode.LIST)
+    .setQuery("*.csv");
     var picker = new google.picker.PickerBuilder().
     addView(view1).
     addView(view2).
