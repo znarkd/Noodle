@@ -369,61 +369,48 @@
 
       editScreen[0] = {
         "name": "Rows by Char1 and YN",
-        "header": [{
-          "field": "Char1"
-        },
-        {
-          "field": "YN",
-          "width": 10
-        },
-        {
-          "field": "Count"
-        },
-        {
-          "field": "Count"
-        },
-        {
-          "field": "Count"
-        },
-        {
-          "field": "Count"
-        }
+        "header": [
+          {"field": "Char1"},
+          {"field": "YN", "width": 10},
+          {"field": "Count"},
+          {"field": "Count"},
+          {"field": "Count"},
+          {"field": "Count"}
         ],
-        "columns": [{
-          "field": "Seq",
-          "width": 50
-        },
-        {
-          "field": "String3"
-        },
-        {
-          "field": "RNum"
-        },
-        {
-          "field": "Date"
-        }
+        "columns": [
+          {"field": "Seq", "width": 50},
+          {"field": "String3"},
+          {"field": "RNum"},
+          {"field": "Date"}
         ]
       };
       editScreen[1] = {
         "name": "Char1 values by YN",
-        "header": [{
-          "field": "YN"
-        }
+        "header": [
+          {"field": "YN"}
         ],
-        "columns": [{
-          "field": "Char1",
-          "width": 50
-        }
+        "columns": [
+          {"field": "Char1", "width": 50}
         ]
       };
       editScreen[2] = {
         "name": "All header",
-        "header": [{
-          "field": "String3"
-        },
-        {
-          "field": "Char1"
-        }
+        "header": [
+          {"field": "String3"},
+          {"field": "Char1"}
+        ]
+      };
+      editScreen[3] = {
+        "name": "Everything",
+        "columns": [
+          {"field": "String3"},
+          {"field": "Char1"},
+          {"field": "YN"},
+          {"field": "Seq"},
+          {"field": "RNum"},
+          {"field": "Num"},
+          {"field": "Date"},
+          {"field": "Count"}
         ]
       };
 
