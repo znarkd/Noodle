@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: January 10, 2019
+ * Release: January 16, 2019
  */
 
 function NoodleDatabase(stream) {
@@ -101,6 +101,7 @@ function NoodleDatabase(stream) {
       }
     }
     catch(err) {
+      alert("NoodleDatabase: Invalid format. " + err);
       throw("NoodleDatabase: Invalid format. " + err);
     }
   }
