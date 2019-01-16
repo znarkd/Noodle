@@ -101,7 +101,6 @@ function NoodleDatabase(stream) {
       }
     }
     catch(err) {
-      alert("NoodleDatabase: Invalid format. " + err);
       throw("NoodleDatabase: Invalid format. " + err);
     }
   }

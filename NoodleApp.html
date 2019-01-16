@@ -429,10 +429,15 @@
     }
 
     var onGDriveFileLoaded = function (stream) {
-      var ary = new NoodleDatabase(stream);
-      db1 = new Noodle(ary);
-      editScreen = ary.getScreens();
-      showEditScreen();
+      try {
+        var ary = new NoodleDatabase(stream);
+        db1 = new Noodle(ary);
+        editScreen = ary.getScreens();
+        showEditScreen();
+      }
+      catch(err) {
+        alert(err);
+      }
     }
 
     var ScreenGet = function () {
