@@ -199,7 +199,7 @@ function NoodleDatabase(stream) {
         var y = Math.trunc(num/10000);
         var m = "0" + Math.trunc((num%10000)/100);
         var d = "0" + Math.trunc(num%100);
-        return m.slice(-2) + '/' + d.slice(-2) + y;
+        return m.slice(-2) + '/' + d.slice(-2) + '/' + y;
       case 'Z':
         num = Roots.bunpac(base.block, v);
         return num.toString().padStart(field[bfi-1].width, '0');
