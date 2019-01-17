@@ -196,6 +196,8 @@ function NoodleDatabase(stream) {
         return num.toString();
       case 'D':
         num = Roots.bunpac(base.block, v);
+        if (num === 0)
+          return "";
         var y = Math.trunc(num/10000);
         var m = "0" + Math.trunc((num%10000)/100);
         var d = "0" + Math.trunc(num%100);
