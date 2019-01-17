@@ -209,7 +209,9 @@ function NoodleDatabase(stream) {
         num = Roots.runpac(base.block, v);
         return num.toFixed(field[bfi-1].decimals);
       case 'E':
-        return base.block.slice(v[0]-1, v[0]-1+v[1]).join('').toString();
+        var dec = new TextDecoder("Latin1");
+        s = dec.decode(base.block.slice(v[0]-1, v[0]-1+v[1])).join('');
+        return s.toString();
       default:
         throw("NoodleDatabase: Invalid data type");
     }
