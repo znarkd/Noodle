@@ -11,11 +11,11 @@
   <link rel="icon" type="image/png" href="favicon.ico" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png" />
-  <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css" type="text/css" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://unpkg.com/font-awesome/css/font-awesome.min.css" crossorigin="anonymous" />
-  <script src="https://unpkg.com/react/umd/react.production.min.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-virtualized/dist/umd/react-virtualized.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="libs/node_modules/normalize.css/normalize.css" type="text/css" />
+  <link rel="stylesheet" href="libs/node_modules/font-awesome/css/font-awesome.min.css" />
+  <script src="libs/node_modules/react/umd/react.production.min.js"></script>
+  <script src="libs/node_modules/react-dom/umd/react-dom.production.min.js"></script>
+  <script src="libs/node_modules/react-virtualized/dist/umd/react-virtualized.js"></script>
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
@@ -219,16 +219,36 @@
       margin-right: 4px;
       margin-bottom: 4px;
       color: black;
-      zzzdisplay: block;
-      zzz-moz-box-sizing: border-box;
-      zzz-webkit-box-sizing: border-box;
-      zzzbox-sizing: border-box;
+    }
+
+    .detail_labels {
+      height: 24px;
+      color: darkblue;
+      background-color: lightgray;
+      font-weight: normal;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .labels {
+      border-top: 2px solid darkgray;
+      height: 24px;
+      width: 10000px;
+      overflow: hidden;
+    }
+
+    .label {
+      float: left;
+      padding: 2px 0;
+      text-align: center;
+      height: 24px;
+      overflow: hidden;
     }
 
     .detail {
       background-color: white;
       width: auto;
-      height: calc(100% - 110px);
+      height: calc(100% - 132px);
     }
 
     .detail_grid {
@@ -308,8 +328,10 @@
       <div id="edit-display" class="edit-display">
         <div id="header" class="header">
         </div>
-        <div id="detail" class="detail">
+        <div id="detail_labels" class="detail_labels">Column labels go here
         </div>
+        <div id="detail" class="detail">
+        </div>       
       </div>
     </div>
   </div>
@@ -328,10 +350,10 @@
     // Data view - initialized in showEditScreen()
     var view = {};
 
-    // Grid hacks
-    var keynum = 0;
+    // for Grid hacks
+    //var grid;
+    var refreshNum = 0;
     var lineCount = 0;
-    var lastRowCount = 0;
 
     window.onbeforeunload = function(event) {
       event.returnValue =  "Are you sure you want to leave this page?";
@@ -372,16 +394,16 @@
         "header": [
           {"field": "Char1"},
           {"field": "YN", "width": 10},
-          {"field": "Count"},
-          {"field": "Count"},
-          {"field": "Count"},
-          {"field": "Count"}
+          {"field": "Count", "width": 100},
+          {"field": "Count", "width": 100},
+          {"field": "Count", "width": 100},
+          {"field": "Count", "width": 100}
         ],
         "columns": [
-          {"field": "Seq", "width": 50},
-          {"field": "String3"},
-          {"field": "RNum"},
-          {"field": "Date"}
+          {"field": "Seq", "width": 80},
+          {"field": "String3", "width": 80},
+          {"field": "RNum", "width": 250},
+          {"field": "Date", "width": 250}
         ]
       };
       editScreen[1] = {
@@ -390,7 +412,7 @@
           {"field": "YN"}
         ],
         "columns": [
-          {"field": "Char1", "width": 50}
+          {"field": "Char1", "width": 80}
         ]
       };
       editScreen[2] = {
@@ -520,7 +542,6 @@
         view.bficol[i] = db1.BFI(editScreen[currentScreen - 1].columns[i].field);
       }
 
-      //alert(JSON.stringify(view));
       return true;
     }
 
@@ -694,13 +715,47 @@
     var BuildDetail = function (bfi, attr) {
       var nline = bfi.length;
       if (nline === 0) {
+        document.getElementById("detail_labels").classList.toggle("hide", true);
         document.getElementById("detail").classList.toggle("hide", true);
         return;
       }
 
       // TODO - set the column styles here
 
+      document.getElementById("detail_labels").classList.toggle("hide", false);
       document.getElementById("detail").classList.toggle("hide", false);
+    }
+
+    // Get the width of grid columns
+    var getColWidth = function(index) {
+      var w = editScreen[currentScreen-1].columns[index].width;
+      if (w === undefined)
+        w = 300;
+      return w;
+    }
+  
+    var getColumnWidth = function(parms) {
+      return getColWidth(parms.index);
+    }
+
+    class ColumnLabels extends React.Component {
+      constructor(props) {
+        super(props);
+      }
+
+      render() {
+        var i = 0;
+        var labels = this.props.bfis.map(function(bfi) {
+          var width = getColWidth(i++);
+          return React.createElement('div', {
+            className: "label",
+            style: {width: width}
+            }, db1.FieldName(bfi));
+        });
+        return React.createElement('div', {
+          className: this.props.className
+        }, labels);
+      }
     }
 
     // React fires a change event for each keystroke.
@@ -753,19 +808,18 @@
       }
     }
 
-    var myCellRenderer = function (parms) {
+    var myCellRenderer = function(parms) {
       if (db1 === undefined)
         return;
 
       // Grid hacks
       if (parms.rowIndex > lineCount)
         return;
-      ++keynum;
 
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
-        key: keynum.toString(),
+        key: 'K' + refreshNum + ',' + parms.rowIndex + ',' + parms.columnIndex,
         type: "text",
         defaultValue: (parms.rowIndex === lineCount) ? "" :
           db1.GetValue(view.curpag, parms.rowIndex + 1, view.bficol[parms.columnIndex]),
@@ -777,7 +831,15 @@
 
     // Cause the grid's current input cell to lose focus when scrolling.
     // This allows any changes to be saved.
+    //
+    // Adjust detail labels
     var handleGridScroll = function(parms) {
+      var left;
+      if (parms.scrollLeft === 0)
+        left = "0px";
+      else
+        left = "-" + parms.scrollLeft + "px";
+      document.getElementById("detail_labels").style.left = left;
       document.activeElement.blur();
     }
 
@@ -793,10 +855,13 @@
         rowcount = lineCount + 1;
       }
 
-      // Grid hacks
-      if (!refresh && rowcount === lastRowCount)
-        ++rowcount;
-      lastRowCount = rowcount;
+      // Grid column labels
+      ReactDOM.render(React.createElement(ColumnLabels, {
+        className: "labels",
+        key: refreshNum,
+        // Note: pass in what you need
+        bfis: bficol
+      }), document.getElementById('detail_labels'));
 
       // Grid parameters
       var gparms = {};
@@ -804,21 +869,25 @@
       gparms.cellRenderer = myCellRenderer;
       gparms.rowCount = rowcount;
       gparms.rowHeight = 30;
-      gparms.columnCount = view.collin;
-      gparms.columnWidth = 300;
-      gparms.onScroll = handleGridScroll;        
+      gparms.columnCount = collin;
+      gparms.columnWidth = getColumnWidth;
+      gparms.onScroll = handleGridScroll;
+      //gparms.ref = function(ref) { grid = ref; };
+      
       if (!refresh) {
         gparms.scrollToRow = 0;
         gparms.scrollToColumn = 0;
+        refreshNum += 1;
       }
+      gparms.refresh = refreshNum;
 
       // Display the grid
-      var grid = React.createElement(ReactVirtualized.AutoSizer,null,function(params) {
+      var g = React.createElement(ReactVirtualized.AutoSizer,null,function(params) {
         gparms.height = params.height;
         gparms.width = params.width;
         return React.createElement(ReactVirtualized.Grid, gparms);
       });
-      ReactDOM.render(grid, document.getElementById('detail'));
+      ReactDOM.render(g, document.getElementById('detail'));
     }
 
     // Previous page
