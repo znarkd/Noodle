@@ -873,7 +873,6 @@
       ReactDOM.render(React.createElement(ColumnLabels, {
         className: "labels",
         key: refreshNum,
-        // Note: pass in what you need
         bfis: bficol
       }), document.getElementById('detail_labels'));
 
@@ -891,17 +890,18 @@
       if (!refresh) {
         gparms.scrollToRow = 0;
         gparms.scrollToColumn = 0;
+        gparms.scrollLeft = 0;
         refreshNum += 1;
       }
       gparms.refresh = refreshNum;
 
       // Display the grid
-      var g = React.createElement(ReactVirtualized.AutoSizer,null,function(params) {
-        gparms.height = params.height;
-        gparms.width = params.width;
-        return React.createElement(ReactVirtualized.Grid, gparms);
-      });
-      ReactDOM.render(g, document.getElementById('detail'));
+      ReactDOM.render(React.createElement(ReactVirtualized.AutoSizer, null,
+        function(params) {
+          gparms.height = params.height;
+          gparms.width = params.width;
+          return React.createElement(ReactVirtualized.Grid, gparms);
+        }), document.getElementById('detail'));
     }
 
     // Previous page
