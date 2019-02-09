@@ -351,6 +351,8 @@
     // for Grid hacks
     //var grid;
     var refreshNum = 0;
+    var viewNum = 0;
+    var lastViewNum = 0;
     var lineCount = 0;
 
     window.onbeforeunload = function(event) {
@@ -570,6 +572,7 @@
       view.npage = db1.PageCount();
       view.curpag = 1;
       //view.lineCount = db1.LineCount(1);
+      viewNum += 1;
       return true;
     }
 
@@ -807,7 +810,7 @@
           defaultValue: this.props.defaultValue,
           onChange: this.onChange.bind(this),
           onKeyPress: this.onKeyPress.bind(this),
-          onBlur: this.onBlur.bind(this),
+          onBlur: this.onBlur.bind(this)
         });
       }
     }
@@ -857,6 +860,14 @@
       document.activeElement.blur();
     }
 
+    // Account for change in view by clearing style cache
+    function myCellRangeRenderer(props) {
+      if (viewNum != lastViewNum)
+        props.styleCache = [];
+      lastViewNum = viewNum;
+      return ReactVirtualized.defaultCellRangeRenderer(props);
+    }
+
     // Display the columnar portion of the edit screen
     var FillColumns = function (page, npage, bficol, collin, refresh) {
 
@@ -879,6 +890,7 @@
       // Grid parameters
       var gparms = {};
       gparms.className = "detail_grid";
+      gparms.cellRangeRenderer = myCellRangeRenderer,
       gparms.cellRenderer = myCellRenderer;
       gparms.rowCount = rowcount;
       gparms.rowHeight = 30;
