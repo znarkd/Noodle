@@ -351,8 +351,6 @@
     // for Grid hacks
     //var grid;
     var refreshNum = 0;
-    var viewNum = 0;
-    var lastViewNum = 0;
     var lineCount = 0;
 
     window.onbeforeunload = function(event) {
@@ -572,7 +570,6 @@
       view.npage = db1.PageCount();
       view.curpag = 1;
       //view.lineCount = db1.LineCount(1);
-      viewNum += 1;
       return true;
     }
 
@@ -862,9 +859,7 @@
 
     // Account for change in view by clearing style cache
     function myCellRangeRenderer(props) {
-      if (viewNum != lastViewNum)
-        props.styleCache = [];
-      lastViewNum = viewNum;
+      props.styleCache = [];
       return ReactVirtualized.defaultCellRangeRenderer(props);
     }
 
