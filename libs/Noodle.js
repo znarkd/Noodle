@@ -420,8 +420,8 @@ function Noodle(dataArray, labels) {
     if (viewSortFields.length > 0) {
       Roots.mrsort(mData, comparer, viewSortFields, viewPages, viewNextLine);
       first = viewPages[0];
-    } else
-      Roots.seqlst(rowcount, first, viewNextLine);
+    } 
+    else first = Roots.seqlst(rowcount, viewNextLine);
 
     // Drop out records which have been deleted or filtered out
     drop = first;

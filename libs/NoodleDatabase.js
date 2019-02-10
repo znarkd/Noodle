@@ -312,4 +312,82 @@ function NoodleDatabase(stream) {
         throw("NoodleDatabase: Invalid data type");
     }
   }
+
+  // Clean the database and its tables
+
+  this.CleanDataBase = function() {
+    var i, newi, t, used, flds, first, sf=[1];
+    var range=[], firstLine=[], dropLine=[];
+    var map=[], nextLine=[], group=[], rank=[], sorti=[];
+
+    // Remove stale table entries
+
+    // Look at each table
+    for (t=0; t < table.length; t++) {
+      used = false;
+      flds = [];
+      for (i=0; i < field.length; i++) {
+        if (field[i].tindex === t) {
+          used = true;
+          flds.push(blkfld[i]);
+        }
+      }
+      if (!used)
+        continue;
+
+      // Empty database?
+      if (base.nline === 0)
+        table[t].length = 0;
+      if (table[t].length === 0)
+        continue;
+
+      // Make room for mapping
+      Roots.xpand(map, table[t].length);
+      Roots.xpand(nextLine, table[t].length);
+      Roots.xpand(nextLine, base.nline);
+      Roots.xpand(group, table[t].length);
+      Roots.xpand(rank, table[t].length);
+      Roots.xpand(sorti, table[t].length);
+
+      // Generate table entry deletion map
+      Roots.zerout(map);
+      first = Roots.seqlst(base.nline, nextLine);
+      for (i=0; i < flds.length; i++)
+        Roots.idxmap(base.block, base.cpl, flds[i], first, nextLine, map);
+      
+      // Generate old table's sorti
+      Roots.mrsort(table[t], function(list,a,b,f) {
+          return list[a].localeCompare(list[b]);
+        }, sf, group, nextLine, sorti);
+
+      // Delete stale table entries, i.e. map(stale)=0
+      first = Roots.seqlst(table[t].length, nextLine);
+      range[0] = range[1] = 0;
+      firstLine[0] = first;
+      dropLine[0] = 0;
+      Roots.rngprnArray(map, range, firstLine, nextLine, dropLine);
+      Roots.delentArray(table[t], dropline[0], nextLine);
+      
+      // Build rank translation.  old-new : rank(sorti)=newi
+      Roots.zerout(rank);
+      newi = 0;
+      for (i=0; i < table[t].length; i++) {
+        if (map[sorti[i]-1])
+          rank[sorti[i]-1] = ++newi;
+      }
+
+      // Re-arrange the table, i.e. physically sort it
+      Roots.srmoveArray(sorti, table[t]);
+
+      // Update table index values in the database
+      for (i=0; i < flds.length; i++)
+        Roots.lgmap(base.block, base.cpl, base.nline, flds[i], rank);
+    }
+  }
+
+  // Remove duplicate rows from the database
+  this.CanonizeDataBase = function() {
+
+  }
+  
 }

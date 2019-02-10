@@ -81,6 +81,99 @@ Roots.conlst = function(afirst, bfirst, nextLine) {
   bfirst = 0;
 }
 
+// Remove the elements specified by first,nextLine from an array
+
+Roots.delentArray = function(arr, first, nextLine) {
+  if (!Array.isArray(arr))
+    throw ("Roots.delentArray: invalid array");
+
+    if (first === 0)
+      return;
+
+    var check = nextLine.length;
+    var nline = arr.length;
+    var lines = first - 1;
+    var sx, dx, nkeep;
+
+    for (var hole = first; hole >= 0; hole = nextLine[hole-1]) {
+      if (check-- <= 0)
+        throw "Roots.delentArray: Bad input list!";
+
+      // Set the leading destination index
+      dx = lines;
+
+      // Skip sequential holes
+      while (nextLine[hole-1] === hole+1)
+         hole = nextLine[hole-1];
+
+      // Leave if hole is at the bottom
+      if (hole === 0) {
+        arr.length = lines;
+        return;
+      }
+
+      // Identify source length
+      nkeep = nextLine[hole-1] - (hole+1);
+      if (nextLine[hole-1] === 0)
+        nkeep = nline-hole;
+      lines += nkeep;
+
+      // Move keepers up
+      sx = hole;
+      while (nkeep-- > 0)
+        arr[dx++] = arr[sx++];
+    }
+    arr.length = lines;
+}
+
+// Set map entries to 1 where the value at block[field] > 0.
+// The user initializes map.
+
+Roots.idxmap = function(block, cpl, field, first, nextLine, map) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.idxmap: block must be Uint8Array";
+
+  var num;
+  var v = field;
+  var check = nextLine.length;
+
+  for (var line = first; line != 0; line = nextLine[line - 1]) {
+    if (check-- <= 0)
+      throw "Roots.idxmap: Bad input list!";
+    num = bunpac(block, v);
+    if (num != 0)
+      map[num-1] = 1;
+    v[0] += cpl;
+  }
+}
+
+// All index values stored in block[field] are transformed based on the
+// values in the rank column; i.e. for all nline block lines,
+// block[field] is set to rank[block[field]]
+// provided that block[field] is not equal to zero.
+
+Roots.lgmap = function(block, cpl, nline, field, rank) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.lgmap: block must be Uint8Array";
+
+  var i, line, v=[];
+  
+  v[0] = field[0];
+  v[1] = field[1];
+  
+  // Set field to rank value for each record in block
+  for (line = nline; line-- > 0;) {
+
+     // Get the index value from block
+     i = bunpac(block, v);
+     if (i > 0)
+        pacbin(rank[i-1], block, v);
+
+     // Advance to the next record
+     v[0] += cpl;
+  }
+}
+
 // The sort order represented by sorti is converted into a list
 
 Roots.list1 = function(sorti, nline, nextLine) {
@@ -304,6 +397,60 @@ Roots.pacrel = function(rnum, block, field) {
   }
 }
 
+// For all block lines of first/nextLine, the number stored at arr[field]
+// is compared with range.  
+
+// Entries falling within the range are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+Roots.rngprnArray = function(arr, range, first, nextLine, match) {
+  if (!Array.isArray(arr))
+    throw ("Roots.rngprnArray: invalid array");
+
+  var cur_line, prev_line, last_match;
+  var check = nextLine.length;
+
+  match[0] = next_line, prev_line = last_match = 0;
+  cur_line = first[0];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.rngprnArray: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+
+    // Match
+    if (arr[cur_line-1] >= range[0] && arr[cur_line-1] <= range[1]) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
 // Unpack the floating point number stored within block at field.
 
 Roots.runpac = function(block, field) {
@@ -329,8 +476,8 @@ Roots.runpac = function(block, field) {
 
 // Prime a new list
 
-Roots.seqlst = function(nextLine) {
-  var n = nextLine.length;
+Roots.seqlst = function(nline, nextLine) {
+  var n = nline;
   if (n === 0)
     return 0;
 
@@ -343,6 +490,27 @@ Roots.seqlst = function(nextLine) {
   return 1;
 }
 
+// Array elements are physically re-arranged according to the sequence
+// expressed by sorti; i.e. arr[sorti[i]] is moved to block[i].
+//
+// The output array replaces the input array.
+
+Roots.srmoveArray = function(sorti, arr) {
+  if (!Array.isArray(arr))
+    throw ("Roots.srmoveArray: invalid array");
+
+  var output = [];
+  output.length = sorti.length;
+  var n = sorti.length;
+  var i = 0;
+  while (n--) {
+    output[i] = arr[sorti[i]];
+    i += 1;
+  }
+
+  arr = output;
+}
+
 // Extend an array
 
 Roots.xpand = function(arr, newCount) {
@@ -350,4 +518,12 @@ Roots.xpand = function(arr, newCount) {
     throw ("Roots.xpand: invalid array");
   if (newCount > arr.length)
     arr.length = newCount;
+}
+
+// Zero out an array
+
+Roots.zerout = function(arr) {
+  if (!Array.isArray(arr))
+    throw ("Roots.zerout: invalid array");
+  arr.fill(0);
 }
