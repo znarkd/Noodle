@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: January 4, 2019
+ * Release: February 14, 2019
  */
 
 var Roots = Roots || {};
@@ -65,8 +65,8 @@ Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, gro
 // Concatenate two lists
 
 Roots.conlst = function(afirst, bfirst, nextLine) {
-  var line, last = afirst,
-    check = nextLine.length;
+  var line, last = afirst;
+  var check = nextLine.length;
 
   if (afirst === 0)
     afirst = bfirst;
@@ -81,11 +81,15 @@ Roots.conlst = function(afirst, bfirst, nextLine) {
   bfirst = 0;
 }
 
+Roots.delent = function() {
+
+}
+
 // Remove the elements specified by first,nextLine from an array
 
 Roots.delentArray = function(arr, first, nextLine) {
   if (!Array.isArray(arr))
-    throw ("Roots.delentArray: invalid array");
+    throw "Roots.delentArray: invalid array";
 
     if (first === 0)
       return;
@@ -126,18 +130,60 @@ Roots.delentArray = function(arr, first, nextLine) {
     arr.length = lines;
 }
 
+//  Summarize the values of block[numfld].
+//
+//  The sums are distributed by the ngroup block-line groups of lfrstg,lnextl.
+//
+//  For group g:  block lines of lfrstg[g],lnextl are processed.
+//  The sum of block[numfld] is computed and stored in array[g].
+
+Roots.grpcum = function(block, cpl, numfld, groups, nextLine, nGroup, sums) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.grpcum: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.grpcum: cpl < 1";
+  if (numfld[1] <= 0 || numfld[1] > cpl || numfld[0] <= 0)
+    throw "Roots.grpcum: Bad numfld values"
+  if (nGroup <= 0)
+    throw "Roots.grpcum: nGroup < 1"
+
+  var group, line, n, sum, v=[];
+  var check = nextLine.length;
+
+  v[1] = numfld[1];
+  for (group=0; group < nGroup; group++) {
+    sum = 0;
+    for (line = groups[group]; line != 0; line = nextLine[line-1]) {
+      if (check-- <= 0)
+        throw "Roots.grpcum: Bad input list!";
+      v[0] = numfld[0] + (line-1) * cpl;
+      n = bunpac(block, v);
+      sum += n;
+    }
+    sums[group] = sum;
+  }
+}
+
+Roots.grplcm = function() {
+
+}
+
 // Set map entries to 1 where the value at block[field] > 0.
 // The user initializes map.
 
 Roots.idxmap = function(block, cpl, field, first, nextLine, map) {
   if (!(block instanceof Uint8Array))
     throw "Roots.idxmap: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.idxmap: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.idxmap: Bad field values"; 
 
-  var num;
+  var line, num;
   var v = field;
   var check = nextLine.length;
 
-  for (var line = first; line != 0; line = nextLine[line - 1]) {
+  for (line = first; line != 0; line = nextLine[line - 1]) {
     if (check-- <= 0)
       throw "Roots.idxmap: Bad input list!";
     num = bunpac(block, v);
@@ -145,6 +191,10 @@ Roots.idxmap = function(block, cpl, field, first, nextLine, map) {
       map[num-1] = 1;
     v[0] += cpl;
   }
+}
+
+Roots.laybit = function() {
+
 }
 
 // All index values stored in block[field] are transformed based on the
@@ -155,8 +205,12 @@ Roots.idxmap = function(block, cpl, field, first, nextLine, map) {
 Roots.lgmap = function(block, cpl, nline, field, rank) {
   if (!(block instanceof Uint8Array))
     throw "Roots.lgmap: block must be Uint8Array";
-
-  var i, line, v=[];
+  if (cpl <= 0)
+    throw "Roots.lgmap: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.lgmap: Bad field values";
+  
+    var i, line, v=[];
   
   v[0] = field[0];
   v[1] = field[1];
@@ -183,7 +237,7 @@ Roots.list1 = function(sorti, nline, nextLine) {
     return 0;
 
   if (nline < 0)
-    throw("Roots.list1: Bad nline!");
+    throw("Roots.list1: nline < 0");
 
   first = sorti[0];
 	last = first;
@@ -363,6 +417,29 @@ Roots.pacbin = function(num, block, field) {
   }
 }
 
+// For each line in first/nextLine, pack the integer num into 
+// the block position indicated by field.
+
+Roots.paclst = function(num, block, cpl, field, first, nextLine) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.paclst: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.paclst: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.paclst: Bad field values";
+
+  var line, v=[];
+  var check = nextLine.length;
+
+  v[1] = field[1];
+  for (line = first; line != 0; line = nextLine[line - 1]) {
+    if (check-- <= 0)
+      throw "Roots.paclst: Bad input list!";
+    v[0] = field[0] + (line-1) * cpl;
+    pacbin(num, block, v);
+  }
+}
+
 // The floating point number, rnum, is packed into the
 // block position indicated by field
 
@@ -395,6 +472,18 @@ Roots.pacrel = function(rnum, block, field) {
   while (i-- > 0) {
     block[k+i] = u8[--len];
   }
+}
+
+Roots.pcrlst = function() {
+
+}
+
+Roots.rgrprn = function() {
+
+}
+
+Roots.rngprn = function() {
+
 }
 
 // For all block lines of first/nextLine, the number stored at arr[field]
@@ -490,6 +579,75 @@ Roots.seqlst = function(nline, nextLine) {
   return 1;
 }
 
+// Set bitString[line] to "1" for all lines found in first, nextLine
+
+Roots.setbit = function(first, nextLine, bitString) {
+  if (!(bitString instanceof Uint8Array))
+    throw "Roots.setbit: bitString must be Uint8Array";
+
+  tbits = new Uint8Array([0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01]);
+  var check = nextLine.length;
+
+  for (var line = first; line > 0; line = nextLine[line-1]) {
+    if (check-- <= 0)
+      throw "Roots.setbit: Bad input list!";
+    bitString[(line-1) >> 3] |= tbits[(line-1) & 0x7];
+  }
+}
+
+Roots.setprn = function() {
+
+}
+
+// The nf bit fields of bitString are set to all zeros.
+
+Roots.setzer = function(bitString, fields, nf) {
+  if (!(bitString instanceof Uint8Array))
+    throw "Roots.setzer: bitString must be Uint8Array";
+
+  var n, field_start, field_length;
+  var i, f, n, byte1, bit1, bytel, bitl;
+  mask = new Uint8Array(1);
+
+  leftones  = new Uint8Array([0x00,0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE]);
+  rightones = new Uint8Array([0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01,0x00]);
+
+  // Process each bit field
+  f = 0;
+  for (n = nf; n--;) {
+    field_start = fields[f++];
+    --field_start;
+    field_length = fields[f++];
+
+    // Determine the first and last bytes
+    byte1 = field_start >> 3;
+    bit1 = field_start % 8;
+    bytel = (field_start+field_length-1) >> 3;
+    bitl = (field_start+field_length-1) % 8;
+
+    // Bit string is contained in a single byte
+    if (byte1 == bytel) {
+      mask[0] = 0x00;
+      mask[0] |= leftones[bit1];
+      mask[0] |= rightones[bitl];
+      bitString[byte1] &= mask[0];
+    }
+
+    // Bit string spans several bytes
+    else {
+      // Turn on bits in the first byte
+      bitString[byte1] &= leftones[bit1];
+
+      // Turn on bits in the last byte
+      bitString[bytel] &= rightones[bitl];
+
+      // Set in-between bytes to all zeros
+      for (byte1 += 1; byte1 != bytel; byte1 += 1)
+        bitString[byte1] = 0x00;
+    }
+  }
+}
+
 // Array elements are physically re-arranged according to the sequence
 // expressed by sorti; i.e. arr[sorti[i]] is moved to block[i].
 //
@@ -497,7 +655,7 @@ Roots.seqlst = function(nline, nextLine) {
 
 Roots.srmoveArray = function(sorti, arr) {
   if (!Array.isArray(arr))
-    throw ("Roots.srmoveArray: invalid array");
+    throw "Roots.srmoveArray: invalid array";
 
   var output = [];
   output.length = sorti.length;
@@ -511,11 +669,19 @@ Roots.srmoveArray = function(sorti, arr) {
   arr = output;
 }
 
+Roots.ugroup = function() {
+
+}
+
+Roots.uqsort = function() {
+
+}
+
 // Extend an array
 
 Roots.xpand = function(arr, newCount) {
   if (!Array.isArray(arr))
-    throw ("Roots.xpand: invalid array");
+    throw "Roots.xpand: invalid array";
   if (newCount > arr.length)
     arr.length = newCount;
 }
@@ -524,6 +690,6 @@ Roots.xpand = function(arr, newCount) {
 
 Roots.zerout = function(arr) {
   if (!Array.isArray(arr))
-    throw ("Roots.zerout: invalid array");
+    throw "Roots.zerout: invalid array";
   arr.fill(0);
 }
