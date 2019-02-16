@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 14, 2019
+ * Release: February 16, 2019
  */
 
 var Roots = Roots || {};
@@ -130,12 +130,12 @@ Roots.delentArray = function(arr, first, nextLine) {
     arr.length = lines;
 }
 
-//  Summarize the values of block[numfld].
+//  Sum the values of block[numfld].
 //
-//  The sums are distributed by the ngroup block-line groups of lfrstg,lnextl.
+//  The sums are distributed by the block-line groups of groups/nextLine.
 //
-//  For group g:  block lines of lfrstg[g],lnextl are processed.
-//  The sum of block[numfld] is computed and stored in array[g].
+//  For group g:  block lines of groups[g]/nextLine are processed.
+//  The sum of block[numfld] is computed and stored in sums[g].
 
 Roots.grpcum = function(block, cpl, numfld, groups, nextLine, nGroup, sums) {
   if (!(block instanceof Uint8Array))
@@ -164,8 +164,38 @@ Roots.grpcum = function(block, cpl, numfld, groups, nextLine, nGroup, sums) {
   }
 }
 
-Roots.grplcm = function() {
+//  Sum the floating point number values of block[numfld].
+//
+//  The sums are distributed by the block-line groups of groups/nextLine.
+//
+//  For group g:  block lines of groups[g]/nextLine are processed.
+//  The sum of block[numfld] is computed and stored in sums[g].
 
+Roots.grplcm = function(block, cpl, numfld, groups, nextLine, nGroup, sums) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.grplcm: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.grplcm: cpl < 1";
+  if (numfld[1] <= 0 || numfld[1] > cpl || numfld[0] <= 0)
+    throw "Roots.grplcm: Bad numfld values"
+  if (nGroup <= 0)
+    throw "Roots.grplcm: nGroup < 1"
+
+  var group, line, n, sum, v=[];
+  var check = nextLine.length;
+
+  v[1] = numfld[1];
+  for (group=0; group < nGroup; group++) {
+    sum = 0.0;
+    for (line = groups[group]; line != 0; line = nextLine[line-1]) {
+      if (check-- <= 0)
+        throw "Roots.grplcm: Bad input list!";
+      v[0] = numfld[0] + (line-1) * cpl;
+      n = runpac(block, v);
+      sum += n;
+    }
+    sums[group] = sum;
+  }
 }
 
 // Set map entries to 1 where the value at block[field] > 0.
@@ -193,8 +223,89 @@ Roots.idxmap = function(block, cpl, field, first, nextLine, map) {
   }
 }
 
-Roots.laybit = function() {
+// Generate field definitions by scanning bitString.  Each output field
+// points to a sub-string containing concatenated ones.
 
+Roots.laybit = function(bitString, bpl, fields) {
+  if (!(bitString instanceof Uint8Array))
+    throw "Roots.laybit: bitString must be Uint8Array";
+  if (bpl < 1)
+    throw "Roots.laybit: bpl < 1"
+
+  var i=1, cpl, byte, bit, LastBitWasOn=false;
+  const bitmask = new Uint8Array([0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01]);
+  const leftones = new Uint8Array([0xFF, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE]);
+
+  // Compute cpl from the input bpl
+  cpl = bpl/8;
+  if (bpl%8)
+  ++cpl;  
+
+  // Clean up the bits to the right of bpl in bitString
+  byte = bpl;
+  byte &= 7;
+  bitString[cpl-1] &= leftones[byte];
+
+  fields = [];
+  field = [0,0];
+
+  // Look at each byte in string
+  for (byte=0; byte < cpl; ++byte) {
+
+    // All bits are off
+    if (! bitString[byte]) {
+
+      // Set the field length if necessary
+      if (LastBitWasOn) {
+        field[1] = i - field[0];
+
+        // Next field
+        fields.push(field);
+        LastBitWasOn = false;
+      }
+
+      i += 8;
+    }
+
+    // Some bits are on
+    else {  
+
+      // Look at the byte's bits from left to right
+      for (bit=0; bit < 8; ++bit, ++i) {
+
+        // This bit is on
+        if (bitString[byte] & bitmask[bit]) {
+
+          // Start a new field definition if necessary
+          if (!LastBitWasOn) {
+            field[0] = i;
+            LastBitWasOn = true;
+          }
+        }
+
+        // This bit is off
+        else {
+
+          // Set the field length if necessary
+          if (LastBitWasOn) {
+            field[1] = i - field[0];
+
+            // Next field
+            fields.push(field);
+            LastBitWasOn = false;
+          }
+        }
+      }
+    }
+  }
+
+  // Close off the last field definition
+  if (LastBitWasOn) {
+    field[1] = i - field[0];
+    fields.push(field);
+  }
+
+  return fields.length;
 }
 
 // All index values stored in block[field] are transformed based on the
@@ -474,19 +585,154 @@ Roots.pacrel = function(rnum, block, field) {
   }
 }
 
-Roots.pcrlst = function() {
+// For each line in first/nextLine, pack the floating point number
+// rnum into the block position indicated by field.
 
+Roots.pcrlst = function(rnum, block, cpl, field, first, nextLine) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.pcrlst: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.pcrlst: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.pcrlst: Bad field values";
+
+  var line, v=[];
+  var check = nextLine.length;
+
+  v[1] = field[1];
+  for (line = first; line != 0; line = nextLine[line - 1]) {
+    if (check-- <= 0)
+      throw "Roots.pcrlst: Bad input list!";
+    v[0] = field[0] + (line-1) * cpl;
+    pacrel(rnum, block, v);
+  }
 }
 
-Roots.rgrprn = function() {
+// For all block lines of first/nextLine, the floating point number
+// stored at block[field] is compared with range.
 
+// Entries falling within the range are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+Roots.rgrprn = function(block, cpl, field, range, first, nextLine, match) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.rgrprn: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.rgrprn: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.rgrprn: Bad field values";
+
+  var rnum, v=[], cur_line, prev_line, last_match;
+  var check = nextLine.length;
+
+  match[0] = next_line, prev_line = last_match = 0;
+  cur_line = first[0];
+  v[1] = field[1];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.rngprn: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    v[0] = field[0] + (cur_line-1) * cpl;
+    rnum = runpac(block,v);
+
+    // Match
+    if (rnum >= range[0] && rnum <= range[1]) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
 }
 
-Roots.rngprn = function() {
+// For all block lines of first/nextLine, the number stored at block[field]
+// is compared with range.
 
+// Entries falling within the range are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+Roots.rngprn = function(block, cpl, field, range, first, nextLine, match) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.rngprn: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.rngprn: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.rngprn: Bad field values";
+  
+  var num, v=[], cur_line, prev_line, last_match;
+  var check = nextLine.length;
+
+  match[0] = next_line, prev_line = last_match = 0;
+  cur_line = first[0];
+  v[1] = field[1];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.rngprn: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    v[0] = field[0] + (cur_line-1) * cpl;
+    num = bunpac(block,v);
+
+    // Match
+    if (num >= range[0] && num <= range[1]) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
 }
 
-// For all block lines of first/nextLine, the number stored at arr[field]
+// For all lines of first/nextLine, the number stored at arr[line]
 // is compared with range.  
 
 // Entries falling within the range are entered in match/lnextl.
@@ -585,7 +831,7 @@ Roots.setbit = function(first, nextLine, bitString) {
   if (!(bitString instanceof Uint8Array))
     throw "Roots.setbit: bitString must be Uint8Array";
 
-  tbits = new Uint8Array([0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01]);
+  const tbits = new Uint8Array([0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01]);
   var check = nextLine.length;
 
   for (var line = first; line > 0; line = nextLine[line-1]) {
@@ -595,8 +841,53 @@ Roots.setbit = function(first, nextLine, bitString) {
   }
 }
 
-Roots.setprn = function() {
+Roots.setprn = function(bitString, first, nextLine, match) {
+  if (!(bitString instanceof Uint8Array))
+    throw "Roots.setprn: block must be Uint8Array";
+  
+  var cur_line, prev_line, last_match;
+  var check = nextLine.length;
+  const tbits = new Uint8Array([0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01]);
 
+  match[0] = next_line, prev_line = last_match = 0;
+  cur_line = first[0];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.setprn: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    // Match
+    if (bitString[(cur_line-1)>>3] & tbits[(cur_line-1) & 0x7]) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
 }
 
 // The nf bit fields of bitString are set to all zeros.
@@ -609,8 +900,8 @@ Roots.setzer = function(bitString, fields, nf) {
   var i, f, n, byte1, bit1, bytel, bitl;
   mask = new Uint8Array(1);
 
-  leftones  = new Uint8Array([0x00,0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE]);
-  rightones = new Uint8Array([0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01,0x00]);
+  const leftones  = new Uint8Array([0x00,0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE]);
+  const rightones = new Uint8Array([0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01,0x00]);
 
   // Process each bit field
   f = 0;
