@@ -1,6 +1,5 @@
 # Noodle
-Noodle gives JavaScript arrays a pivot table like data view.
-The data is assumed to consist of flat tables (rows and columns).
+Noodle allows one to construct a multi-view data representation for JavaScript arrays. The data is assumed to consist of flat tables (rows and columns). Any combination of columns may be used when creating a data view.
 
 Noodle is built upon *Roots*.  The Roots library provides a foundation for creating an efficient in-memory database. Its unique [list processing structures](http://armr.sourceforge.net/) simplify programming logic and allow the developer to rapidly sort, group, and select data.
 
