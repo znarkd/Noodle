@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 16, 2019
+ * Release: February 18, 2019
  */
 
 var Roots = Roots || {};
@@ -81,11 +81,56 @@ Roots.conlst = function(afirst, bfirst, nextLine) {
   bfirst = 0;
 }
 
-Roots.delent = function() {
+// Remove the elements specified by first/nextLine from block
 
+Roots.delent = function(block, cpl, nline, first, nextLine) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.delent: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.delent: cpl < 1";
+  
+  if (first === 0)
+    return;
+
+  // Initialize the process
+  var check = nextLine.length;
+  var all = cpl * nline;
+  var lines = first - 1;
+  var sf=[0,0], df=[0,0], hole, nkeep;
+
+  for (hole = first; hole >= 0; hole = nextLine[hole-1]) {
+    if (check-- <= 0)
+      throw "Roots.delent: Bad input list!";
+   
+      // Set leading destination byte
+      df[0] = lines * cpl + 1;
+
+      // Skip sequential holes
+      while (nextLine[hole-1] === hole+1)
+         hole = nextLine[hole-1];
+
+      // Leave if hole is at bottom of block
+      if (hole === 0) {
+         nline[0] = lines;
+         return;
+      }
+  
+      // Identify source length in lines and bytes
+      nkeep = nextLine[hole-1] - (hole+1);
+      if (nextLine[hole-1] === 0) 
+        nkeep = nline-hole;
+      lines += nkeep;
+
+      // Move keepers up
+      sf[0] = cpl * hole + 1;
+      sf[1] = cpl * nkeep;
+      df[1] = cpl * nkeep;
+      lgmove(block, all, 1, sf, df, '\0');
+   }
+   nline[0] = lines;
 }
 
-// Remove the elements specified by first,nextLine from an array
+// Remove the elements specified by first/nextLine from an array
 
 Roots.delentArray = function(arr, first, nextLine) {
   if (!Array.isArray(arr))
@@ -336,6 +381,40 @@ Roots.lgmap = function(block, cpl, nline, field, rank) {
 
      // Advance to the next record
      v[0] += cpl;
+  }
+}
+
+// Move bytes from source to dest
+
+Roots.lgmove = function(block, cpl, nline, sfld, dfld, pad) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.lgmove: block must be Uint8Array";
+  if (cpl < 1)
+    throw "Roots.lgmove: cpl < 1";
+  if (sfld[0] <= 0 || sfld[1] <= 0 || sfld[1] > cpl)
+    throw "Roots.lgmove: Bad source field values";
+  if (dfld[0] <= 0 || dfld[1] <= 0 || dfld[1] > cpl)
+    throw "Roots.lgmove: Bad destination field values";
+
+  var s, d, line, move, leftover;
+
+  move = (sfld[1] > dfld[1]) ? dfld[1] : sfld[1];
+  leftover = (move < dfld[1]) ? (dfld[1]-move) : 0;
+  
+  // Perform a move for each record
+  for (line = 0; line < nline; ++line) {
+    s = line*cpl + sfld[0] - 1;
+    d = line*cpl + dfld[0] - 1;
+
+    // Move the data
+    if (move)
+      block.copyWithin(d, s, s+move);
+
+    // Fill leftover destination with pad
+    if (leftover) {
+      d += move;
+      block.fill(pad, d, d+leftover);
+    }
   }
 }
 
@@ -958,14 +1037,6 @@ Roots.srmoveArray = function(sorti, arr) {
   }
 
   arr = output;
-}
-
-Roots.ugroup = function() {
-
-}
-
-Roots.uqsort = function() {
-
 }
 
 // Extend an array
