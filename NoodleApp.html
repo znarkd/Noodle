@@ -618,6 +618,32 @@
       // Load data into the newly created screen page
       FillPage();
     }
+    
+    var headerChange = function (fx, val) {
+      // Ignore changes to Protected or Summary field
+
+      // Add a new page?
+      if (view.curpag > view.npage) {
+        db1.CreateNewPage();
+        view.npage++;
+        document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
+      }
+
+      // Save the value to the database
+      db1.PutValue(val, view.curpag, 0, view.bfihed[fx]);
+    }
+
+    var detailChange = function (props, val) {
+      var refresh = false;
+      var n = db1.LineCount(view.curpag);
+      if (props.line > n) {
+        db1.CreateNewLineOnPage(view.curpag);
+        refresh = true;
+      }
+      db1.PutValue(val, view.curpag, props.line, props.bfi);
+      if (refresh)
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin, true);
+    }
 
     var BuildHeader = function (bfi, attr) {
       var i, s, field, field_input, nline = bfi.length;
@@ -684,46 +710,6 @@
       document.getElementById("pagecount").innerText = "Page " + page + " of " + npage;
     }
 
-    var headerChange = function (fx, val) {
-      // Ignore changes to Protected or Summary field
-
-      // Add a new page?
-      if (view.curpag > view.npage) {
-        db1.CreateNewPage();
-        view.npage++;
-        document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
-      }
-
-      // Save the value to the database
-      db1.PutValue(val, view.curpag, 0, view.bfihed[fx]);
-    }
-
-    var detailChange = function (props, val) {
-      var refresh = false;
-      var n = db1.LineCount(view.curpag);
-      if (props.line > n) {
-        db1.CreateNewLineOnPage(view.curpag);
-        refresh = true;
-      }
-      db1.PutValue(val, view.curpag, props.line, props.bfi);
-      if (refresh)
-        FillColumns(view.curpag, view.npage, view.bficol, view.collin, true);
-    }
-
-    var BuildDetail = function (bfi, attr) {
-      var nline = bfi.length;
-      if (nline === 0) {
-        document.getElementById("detail_labels").classList.toggle("hide", true);
-        document.getElementById("detail").classList.toggle("hide", true);
-        return;
-      }
-
-      // TODO - set the column styles here
-
-      document.getElementById("detail_labels").classList.toggle("hide", false);
-      document.getElementById("detail").classList.toggle("hide", false);
-    }
-
     // Get the width of grid columns
     var getColWidth = function(index) {
       if (index >= view.collin)
@@ -760,6 +746,27 @@
           className: this.props.className
         }, labels);
       }
+    }
+
+    var BuildDetail = function (bfi, attr) {
+      var nline = bfi.length;
+      if (nline === 0) {
+        document.getElementById("detail_labels").classList.toggle("hide", true);
+        document.getElementById("detail").classList.toggle("hide", true);
+        return;
+      }
+
+      // Grid column labels
+      ReactDOM.render(React.createElement(ColumnLabels, {
+        className: "labels",
+        key: refreshNum,
+        bfis: bfi
+      }), document.getElementById('detail_labels'));
+
+      // TODO - set the column styles here
+
+      document.getElementById("detail_labels").classList.toggle("hide", false);
+      document.getElementById("detail").classList.toggle("hide", false);
     }
 
     // React fires a change event for each keystroke.
@@ -874,13 +881,6 @@
         lineCount = db1.LineCount(page);
         rowcount = lineCount + 1;
       }
-
-      // Grid column labels
-      ReactDOM.render(React.createElement(ColumnLabels, {
-        className: "labels",
-        key: refreshNum,
-        bfis: bficol
-      }), document.getElementById('detail_labels'));
 
       // Grid parameters
       var gparms = {};
