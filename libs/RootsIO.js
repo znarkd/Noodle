@@ -1,12 +1,39 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: January 10, 2019
+ * Release: February 23, 2019
  */
  
 var Roots = Roots || {};
 
- 
+// ----- Local file using File API --------------------------------------------
+
+// See: https://www.w3.org/TR/file-upload/
+
+Roots.GetLocalFile = function(fn, callback) {
+  var reader = new FileReader();
+  
+  reader.onerror = function(e) {
+    alert("Error reading: " + fn);
+    callback(undefined);
+  };
+
+  reader.onloadend = function(e) {
+    callback(reader.result);
+  };
+
+  // Read file into memory as UTF-8
+  reader.readAsText(fn, "UTF-8");
+}
+
+Roots.initCSV = function(text) {
+
+}
+
+Roots.parseCSV = function(text) {
+  
+}
+
 // ----- Google Drive ---------------------------------------------------------
 
 // The Client ID obtained from the Google API Console.
@@ -96,5 +123,3 @@ Roots.GDriveGetFile = function(callback) {
   gapi.load('auth2', _onAuthApiLoad);
   gapi.load('picker', _onPickerApiLoad);
 }
-
-// ----------------------------------------------------------------------------

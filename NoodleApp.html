@@ -260,16 +260,21 @@
     .oddCell {
       background-color: white;
     }
+
+    #fileInput {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
-  <div class="app">
+    <div class="app">
     <div id="open-screen" class="open">
       <div class="open__icons">
-        <div class="open__icon open__icon-open">
+        <div class="open__icon open__icon-open" onclick="document.getElementById('fileInput').click()">
           <i class="fa fa-lock open__icon-i"></i>
           <div class="open__icon-text">Open</div>
+          <input type="file" id="fileInput" accept=".csv,.ndl" onChange="fileSelected(this.files)"/>
         </div>
         <div class="open__icon open__icon-new">
           <i class="fa fa-plus open__icon-i"></i>
@@ -432,10 +437,11 @@
       document.getElementById("open-screen").classList.toggle("hide", false);
     }
 
+    // Read a file from Google Drive
+
     var gdrive = function () {
       Roots.GDriveGetFile(onGDriveFileLoaded);
     }
-
     var onGDriveFileLoaded = function (stream) {
       try {
         var ary = new NoodleDatabase(stream);
@@ -446,6 +452,47 @@
       catch(err) {
         alert(err);
       }
+    }
+
+    // Read a file from the local file system
+
+    var _filetype;
+    var fileSelected = function (files) {
+      var file = files[0];
+      if (file) {
+        _filetype = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) || file.name;
+        Roots.GetLocalFile(file, fileLoaded);
+      }
+    }
+    var fileLoaded = function (text) {
+      if (_filetype === "ndl") {
+        try {
+          var ary = new NoodleDatabase(text);
+          db1 = new Noodle(ary);
+          editScreen = ary.getScreens();
+          showEditScreen();
+        }
+        catch(err) {
+          alert(err);
+        }
+      }
+      else if (_filetype === "csv") {
+        try {
+          //var sep = Roots.initCSV(text);
+          //var data = Roots.parseCSV(text);
+          //db1 = new Noodle(data);
+          db1 = undefined;
+
+          // Build 2 sample edit screens
+
+          
+          showEditScreen();
+        }
+        catch(err) {
+          alert(err);
+        }
+      }
+      else alert("Unsupported filetype");
     }
 
     var ScreenGet = function () {
