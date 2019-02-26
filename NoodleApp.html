@@ -478,14 +478,21 @@
       }
       else if (_filetype === "csv") {
         try {
-          //var sep = Roots.initCSV(text);
-          //var data = Roots.parseCSV(text);
-          //db1 = new Noodle(data);
-          db1 = undefined;
+          var sep = Roots.initCSV(text);
+          var data = Roots.parseCSV(text, sep);
+          var labels = data.shift();
+          db1 = new Noodle(data, labels);
 
-          // Build 2 sample edit screens
-
-          
+          // Build a sample edit screen
+          var nf = db1.FieldCount();
+          editScreen = [];
+          editScreen[0] = {};
+          editScreen[0].name = "sample";
+          editScreen[0].columns = [];
+          for (var i=0; i < nf; i++) {
+            editScreen[0].columns[i] = {};
+            editScreen[0].columns[i].field = db1.FieldName(i+1);
+          }
           showEditScreen();
         }
         catch(err) {

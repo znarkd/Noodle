@@ -26,12 +26,126 @@ Roots.GetLocalFile = function(fn, callback) {
   reader.readAsText(fn, "UTF-8");
 }
 
-Roots.initCSV = function(text) {
+// Attempt to determine the seperator character
+// used by a CSV file, either comma or tab.
 
+Roots.initCSV = function(text) {
+  var i; n = text.length;
+  var ch, inquote = false;
+  var tab=0, comma=0, lines=0;
+
+  for (i=0; i < n; i++) {
+    ch = text[i];
+    if (! inquote) {
+      if (ch === '"')
+        inquote = true;
+      if (ch === ',')
+        comma += 1;
+      else if (ch === '\t')
+        tab += 1;
+      else if (ch === '\n') {
+        if (++lines > 3)
+          break;
+      }
+    }
+    else {
+      if (ch === '"')
+        inquote = false;
+      else if (ch === '\n') {
+        if (++lines > 3)
+          break;
+      }
+    }
+  }
+  if (comma > tab)
+    return ',';
+  return '\t';
 }
 
-Roots.parseCSV = function(text) {
+// Turn a CSV file into an array
+
+Roots.parseCSV = function(text, seperator) {
+  var i, ch, test, sb;
+  var inquote = false;
+  var n = text.length;
+  sb = "";
+  var columns = [];
+  var arr = [];
   
+  for (i=0; i < n; i++) {
+     ch = text[i];
+
+     // Not in a quoted string
+     if (!inquote) {
+
+        // End of column
+        if (ch === seperator) {
+          columns.push(sb.toString());
+          sb = "";
+        }
+
+        else {
+
+           // End of line
+           if (ch === '\n') {
+             if (sb.length > 0)
+               columns.push(sb.toString());
+               sb = "";
+               arr.push(columns);
+               columns = [];
+               continue;
+           }
+
+           // Start quote
+           if (ch === '"')
+              inquote = true;
+
+           // Ignore leading white space
+           else if ((ch === ' ' || ch === '\t') && sb.length === 0)
+              continue;
+
+           // Append a character to the column value, ignore carriage return character.
+           else if (ch != '\r')
+              sb += ch;
+        }
+     }
+
+     // Inside a quoted string
+     else {
+
+        // Add to the quoted string
+        if (ch != '"')
+           sb += ch;
+
+        // Closing quote?
+        else {
+
+           // Look at the next character.
+           // Two quotes together are used for embedded quote marks.
+           test = text[i+1];
+
+           // closing quote
+           if (test != '"') {
+              inquote = false;
+           }
+
+           // embedded quote
+           else {
+              ch = text[++i];
+              sb += ch;
+           }
+        }
+     }
+  }
+
+  // Close out the last column
+  if (sb.length > 0)
+    columns.push(sb.toString());
+  
+  if (columns.length > 0)
+    arr.push(columns);
+
+  return arr;
 }
 
 // ----- Google Drive ---------------------------------------------------------

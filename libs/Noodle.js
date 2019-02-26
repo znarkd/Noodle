@@ -23,15 +23,21 @@ function Noodle(dataArray, labels) {
   else if (Array.isArray(dataArray)) {
     if (dataArray.length === 0)
       throw ("Noodle can't work with empty arrays!");
-    if (typeof dataArray[0] === "object")
-      mData = dataArray;
-    else {
+
+    // Array of arrays
+    if (Array.isArray(dataArray[0])) {
+      var n = dataArray[0].length;
       mData = [];
       for (var i=0; i < dataArray.length; i++) {
         mData[i] = [];
-        mData[i][0] = dataArray[i];
+        for (var j=0; j < n; j++)
+          mData[i][j] = dataArray[i][j];
       }
     }
+
+    // Array of objects
+    else mData = dataArray;
+
     mKeys = Object.keys(mData[0]);
   }
 
