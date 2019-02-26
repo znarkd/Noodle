@@ -25,23 +25,27 @@ function Noodle(dataArray, labels) {
       throw ("Noodle can't work with empty arrays!");
 
     // Array of arrays
-    if (Array.isArray(dataArray[0])) {
-      var n = dataArray[0].length;
+    if (Array.isArray(dataArray[0]))
+      mData = dataArray;
+
+    // Array of regular objects
+    else if (typeof dataArray[0] === "object")
+      mData = dataArray;
+
+    // Array of strings or numbers
+    else {
+      var n = dataArray.length;
       mData = [];
-      for (var i=0; i < dataArray.length; i++) {
+      for (var i=0; i < n; i++) {
         mData[i] = [];
-        for (var j=0; j < n; j++)
-          mData[i][j] = dataArray[i][j];
+        mData[i][0] = dataArray[i];
       }
     }
-
-    // Array of objects
-    else mData = dataArray;
 
     mKeys = Object.keys(mData[0]);
   }
 
-  // Invalid
+  // Invalid dataArray type
   else { 
     alert("Noodle: invalid datatype!");
     return;
