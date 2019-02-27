@@ -274,7 +274,7 @@
         <div class="open__icon open__icon-open" onclick="document.getElementById('fileInput').click()">
           <i class="fa fa-lock open__icon-i"></i>
           <div class="open__icon-text">Open</div>
-          <input type="file" id="fileInput" accept=".csv,.ndl" onChange="fileSelected(this.files)"/>
+          <input type="file" id="fileInput" accept=".csv,.ndl" onclick="this.value=null; "onChange="fileSelected(this.files)"/>
         </div>
         <div class="open__icon open__icon-new">
           <i class="fa fa-plus open__icon-i"></i>
