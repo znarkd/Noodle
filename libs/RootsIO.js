@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 23, 2019
+ * Release: February 26, 2019
  */
  
 var Roots = Roots || {};

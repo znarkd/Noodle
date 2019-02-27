@@ -480,7 +480,10 @@
         try {
           var sep = Roots.initCSV(text);
           var data = Roots.parseCSV(text, sep);
+
+          // Assume the 1st row contains the column labels
           var labels = data.shift();
+          
           db1 = new Noodle(data, labels);
 
           // Build a sample edit screen
@@ -721,6 +724,9 @@
         field_input.setAttribute("id", s);
         field_input.setAttribute("type", "text");
 
+        var w = editScreen[currentScreen-1].header[i].width;
+        if (w != undefined)
+          field_input.setAttribute("style", "width: " + w + "px;");
 
         s = "headerChange(" + i + ",this.value)";
         field_input.setAttribute("onchange", s);
