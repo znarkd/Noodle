@@ -1,5 +1,5 @@
 /*
- * Noodle gives JavaScript arrays a pivot table like data view.
+ * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
  * Release: February 26, 2019
