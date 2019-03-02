@@ -16,7 +16,7 @@ var letters = [
 ];
 var noyes = ["No", "Yes"]
 
-for (i = 0; i < 40000; i++) {
+for (i = 0; i < 20000; i++) {
   d = (zData[i] = {});
   d["Seq"] = i + 1;
   d["Char1"] = letters[Math.floor(Math.random() * 26)];
