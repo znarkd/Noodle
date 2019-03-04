@@ -244,6 +244,7 @@
       position: relative;
       display: flex;
       text-align: center;
+      overflow: hidden;
     }
 
     .evenCell,
@@ -267,7 +268,7 @@
     }
 
     .DragHandle {
-      flex: 0 0 16px;
+      flex: 0 0 4px;
       z-index: 2;
       cursor: col-resize;
       color: #0085ff;
@@ -283,16 +284,8 @@
       z-index: 3;
     }
 
-    .DragHandleIcon {
-      flex: 0 0 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
     .column-sizer {
-  		width: 4px;
+  		width: 1px;
   		height: 100%;
   		cursor: col-resize;
   		transform: translate(0px, 0px) !important;
@@ -735,6 +728,8 @@
     }
 
     var detailChange = function(props, val) {
+      if (props.bfi === undefined)
+        return;
       var refresh = false;
       var n = db1.LineCount(view.curpag);
       if (props.line > n) {
@@ -865,7 +860,10 @@
       // The cell lost focus; i.e. was blurred
       onBlur(event) {
         if (this.state.changed) {
-          this.props.cellChange(this.props, event.target.value);
+          if (this.props.bfi === undefined)
+            event.target.value = this.props.defaultValue;
+          else
+            this.props.cellChange(this.props, event.target.value);
           this.setState({
             changed: false
           });
@@ -887,7 +885,16 @@
     }
 
     var resizeRow = function(parms) {
-      return 0;
+      if (parms.index === 0)
+        return;
+      if (parms.index > editScreen[currentScreen-1].columns.length)
+        return;
+      var w = getColumnWidth(parms);
+      w += parms.deltaX;
+      if (w < 10)
+        w = 10;
+      editScreen[currentScreen-1].columns[parms.index-1].width = w;
+      grid.recomputeGridSize({ columnIndex: 0, rowIndex: 0 });
     }
 
     var myCellRenderer = function(parms) {
@@ -917,7 +924,7 @@
             onDrag: function onDrag(event, _ref2) {
               var deltaX = _ref2.deltaX;
               return resizeRow({
-                columnIndex: parms.columnIndex,
+                index: parms.columnIndex,
                 deltaX: deltaX
               });
             },
@@ -935,7 +942,9 @@
             }
           }))
         );
-      } else if (parms.columnIndex === 0) {
+      }
+
+      if (parms.columnIndex === 0) {
         value = "" + parms.rowIndex;
         return React.createElement('div', {
           className: "labelCell",
@@ -944,16 +953,17 @@
         }, React.createElement('div', {
           className: "labelText"
         }, value));
-      } else if (parms.rowIndex > lineCount)
-        value = "";
+      }
 
+      if (parms.rowIndex > lineCount)
+        value = "";
       else if (parms.columnIndex > view.collin) {
         value = db1.RecordCount(view.curpag, parms.rowIndex);
         if (value === 1)
           value = "";
-      } else
+      } 
+      else
         value = db1.GetValue(view.curpag, parms.rowIndex, view.bficol[parms.columnIndex - 1]);
-
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
@@ -999,7 +1009,7 @@
       gparms.columnCount = collin + 2;
       gparms.columnWidth = getColumnWidth;
       gparms.onScroll = handleGridScroll;
-      //gparms.ref = function(ref) { grid = ref; };
+      gparms.ref = function(ref) { grid = ref; };
 
       gparms.fixedColumnCount = 1;
       gparms.fixedRowCount = 1;
