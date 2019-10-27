@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 18, 2019
+ * Release: October 27, 2019
  */
 
 var Roots = Roots || {};
@@ -88,13 +88,15 @@ Roots.delent = function(block, cpl, nline, first, nextLine) {
     throw "Roots.delent: block must be Uint8Array";
   if (cpl <= 0)
     throw "Roots.delent: cpl < 1";
+  if (!Array.isArray(nline))
+    throw "Roots.delent: nline must be Array"
   
   if (first === 0)
     return;
 
   // Initialize the process
   var check = nextLine.length;
-  var all = cpl * nline;
+  var all = cpl * nline[0];
   var lines = first - 1;
   var sf=[0,0], df=[0,0], hole, nkeep;
 

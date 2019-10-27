@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: February 14, 2019
+ * Release: October 27, 2019
  */
 
 function NoodleDatabase(stream) {
@@ -356,7 +356,7 @@ function NoodleDatabase(stream) {
         Roots.idxmap(base.block, base.cpl, flds[i], first, nextLine, map);
       
       // Generate old table's sorti
-      Roots.mrsort(table[t], function(list,a,b,f) {
+      Roots.mrsort(table[t], function(list,a,b) {
           return list[a].localeCompare(list[b]);
         }, sf, group, nextLine, sorti);
 
@@ -386,8 +386,45 @@ function NoodleDatabase(stream) {
   }
 
   // Remove duplicate rows from the database
-  this.CanonizeDataBase = function() {
+  
+  this.RemoveDuplicateRows = function() {
+    var i, first, next, ngroup, sf=[1], bstr;
+    var keep=[0], drop=[0], nline=[base.nline];
+    var group=[], nextLine=[];
+    Roots.xpand(group, base.nline);
+    Roots.xpand(nextLine, base.nline);
 
+    _lineCompare = function(list,a,b) {
+      var k, aval, bval;
+      k = a * base.cpl;
+      aval = base.block.slice(k, k+base.cpl).join('');
+      k = b * base.cpl;
+      bval = base.block.slice(k, k+base.cpl).join('');
+      return aval.localeCompare(bval);    
+    }
+
+    // Determine if there are any duplicate rows
+    Roots.mrsort(base.block, _lineCompare, sf, group, nextLine);
+    first = group[0];
+    ngroup = Roots.colect(base.block, _lineCompare, sf, first, nextLine, group);
+    if (ngroup === base.nline)
+      return;
+
+    // Mark duplicate rows for deletion
+    bstr = new Uint8Array(base.nline/8 + 1);
+    Roots.zerout(bstr);
+    for (i=0; i < ngroup; i++) {
+      first = group[i];
+      next = nextLine[first-1];
+      if (next)
+        Roots.setbit(next, nextLine, bstr);
+    }
+
+    // Keep the rows with zero valued bits, drop those with 1=bits
+    keep[0] = Roots.seqlst(base.nline, nextLine);
+    Roots.setprn(bstr, keep, nextLine, drop);
+    Roots.delent(base.block, base.cpl, nline, drop[0], nextLine);
+    base.nline = nline[0];
   }
   
 }
