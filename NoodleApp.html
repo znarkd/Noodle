@@ -43,22 +43,56 @@
       width: 100%;
     }
 
-    .open {
-      flex: 1;
-      align-self: stretch;
-      align-items: center;
-      flex-direction: column;
+    .open-screen {
+      display: grid;
+      grid-template-columns: auto;
       background: #282c34;
       background: var(--background-color);
     }
 
-    .open,
-    .open__icons {
-      display: flex;
-      justify-content: center
+    .close-open1 {
+      grid-row: 1;
+      text-align: center;
+    }
+
+    .close-open2 {
+      display: inline-block;
+      height: 40px;
+    }
+
+    @media screen and (min-width: 600px) {
+      .close-open2 {
+        width: 600px;
+      }
+    }
+
+    @media screen and (max-width: 600px) {
+      .close-open2 {
+        width: 100%;
+      }
+    }
+
+    .close-button {
+      padding-right: 10px;
+      padding-bottom: 10px;
+      float: right;
+      color: #aaaaaa;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
     }
 
     .open__icons {
+      grid-row: 2;
+      display: flex;
+      justify-content: center;
+      padding-top: 10px;
       align-items: stretch;
       flex-direction: row;
       flex-shrink: 0;
@@ -293,12 +327,43 @@
   		cursor: col-resize;
   		transform: translate(0px, 0px) !important;
   	}
+
+    /* The Modal (background) */
+    .build-screen,
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      padding-top: 100px; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .build-screen-form,
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+    }
   </style>
 </head>
 
 <body>
   <div class="app">
-    <div id="open-screen" class="open">
+    <div id="open-screen" class="open-screen">
+      <div id="close-open1" class="close-open1">
+        <div id="close-open2" class="close-open2">
+          <div id="close-button" class="close-button hide" onclick="closeOpen()">&times;</div>
+        </div>
+      </div>
       <div class="open__icons">
         <div class="open__icon open__icon-open" onclick="document.getElementById('fileInput').click()">
           <i class="fa fa-lock open__icon-i"></i>
@@ -325,6 +390,11 @@
         </div>
       </div>
     </div>
+    <div id="build-screen" class="build-screen">
+      <div id="build-screen-form" class="build-screen-form">
+        <button onclick="HideBuildScreen();">Cancel</button>
+      </div>
+    </div>
     <div id="edit-screen" class="edit-screen hide">
       <div id="navbar" class="navbar">
         <div class="dropdown">
@@ -333,7 +403,10 @@
             <a onclick="ShowOpen();">Home</a>
             <a onclick="doReport();">Export as XML</a>
             <a onclick="doExport();">Export as CSV</a>
-            <a href="#">Link 3</a>
+            <br/>
+            <h2>Screen</h2>
+            <a onclick="ShowBuildScreen();">New Screen</a>
+            <a onclick="ShowBuildScreen();">Revise Screen</a>
           </div>
         </div>
         <a id="next_page" onclick="leftArrowClick();"><i class="fa fa-arrow-left"></i></a>
@@ -491,7 +564,26 @@
     // Show the open screen
     var ShowOpen = function() {
       document.getElementById("edit-screen").classList.toggle("hide", true);
-      document.getElementById("open-screen").classList.toggle("hide", false);
+      document.getElementById("close-button").classList.toggle("hide", false);
+      document.getElementById("open-screen").style.display = "block";
+    }
+
+    var closeOpen = function() {
+      document.getElementById("open-screen").style.display = "none";
+      document.getElementById("edit-screen").classList.toggle("hide", false);
+    }
+
+    // Show the build screen dialog
+    var ShowBuildScreen = function() {
+      document.getElementById("dropdown-content").classList.toggle("hide", true);
+      document.getElementById("build-screen").style.display = "block";
+      document.getElementById("build-screen").focus();
+    }
+
+    // The user canceled build screen changes
+    var HideBuildScreen = function() {
+      document.getElementById("build-screen").style.display = "none";
+      document.getElementById("dropdown-content").classList.toggle("hide", false);
     }
 
     // Read a file from Google Drive
@@ -594,8 +686,10 @@
       if (db1 === undefined)
         return;
 
-      // Hide the open screen  
-      document.getElementById("open-screen").classList.toggle("hide", true);
+      // Hide non-edit screens
+      //document.getElementById("open-screen").classList.toggle("hide", true);
+      document.getElementById("open-screen").style.display = "none";
+      //document.getElementById("build-screen").classList.toggle("hide", true);
 
       // Initialize the screen menu
       RemoveScreensFromMenu();
