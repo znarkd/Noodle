@@ -32,10 +32,21 @@
       overflow: hidden;
       position: fixed;
       scroll-behavior: smooth;
+      /* font-family: Verdana,sans-serif; */
     }
 
     .hide {
       display: none !important
+    }
+
+    .group {
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .highlight {
+      color: white;
+      background: #0085ff;
     }
 
     .app {
@@ -142,7 +153,6 @@
     .navbar {
       width: 100%;
       height: 41px;
-      overflow: hidden;
       white-space: nowrap;
       color: #f1f1f1;
       background-color: #5f5f5f;
@@ -171,7 +181,6 @@
 
     .dropdown {
       float: left;
-      overflow: hidden;
     }
 
     .dropdown .dropbtn {
@@ -192,30 +201,39 @@
     }
 
     .dropdown-content {
-      display: none;
+      display: block;
       position: absolute;
       background-color: #f9f9f9;
-      min-width: 160px;
+      min-width: 190px;
       box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
       z-index: 1;
+      overflow-y: auto;
+      max-height: 80%;
+    }
+
+    .dropdown-content h2 {
+      float: none;
+      color: black;
+      text-decoration: none;
+      display: block;
+      text-align: left;
+      font-size: 1.25em;
+      padding: 20px 2px 2px 10px;
+      margin: -4px 0 4px 0;
     }
 
     .dropdown-content a {
       float: none;
       color: black;
-      padding: 7px 14px;
       text-decoration: none;
       display: block;
       text-align: left;
       font-size: 1em;
+      padding: 3px 2px 3px 18px;
     }
 
     .dropdown-content a:hover {
       background-color: #ddd;
-    }
-
-    .dropdown:hover .dropdown-content {
-      display: block;
     }
 
     .right-nav {
@@ -328,30 +346,111 @@
   		transform: translate(0px, 0px) !important;
   	}
 
-    /* The Modal (background) */
-    .build-screen,
-    .modal {
-      display: none; /* Hidden by default */
-      position: fixed; /* Stay in place */
-      z-index: 1; /* Sit on top */
-      padding-top: 100px; /* Location of the box */
+    /* The modal screen builder */
+    #build-screen {
+      display: block;
+      position: fixed;
+      z-index: 1;
+      padding-top: 10px;
       left: 0;
       top: 0;
-      width: 100%; /* Full width */
-      height: 100%; /* Full height */
-      overflow: auto; /* Enable scroll if needed */
-      background-color: rgb(0,0,0); /* Fallback color */
-      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
     }
 
-    /* Modal Content */
-    .build-screen-form,
-    .modal-content {
-      background-color: #fefefe;
+    .item1 { grid-area: header; }
+    .item2 { grid-area: lists; }
+    .item4 { grid-area: attr; }
+    .item5 { grid-area: footer; text-align: center; }
+
+    #build-screen-form {
+      display: grid;
+      grid:
+      'header header'
+      'lists attr'
+      'footer footer';
+      grid-gap: 0px;
+      background-color: gray;
       margin: auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
+      border: 2px solid black;
+    }
+
+    @media screen and (min-width: 600px) {
+      #build-screen-form {
+        width: 600px;
+      }
+    }
+
+    #build-screen-form > div {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      font-size: 1.25em;
+    }
+
+    .field_list {
+      border: 2px solid dimgray;
+      background-color: white;
+      padding: 2px;
+      height: 120px;
+      overflow: auto;
+    }
+
+    .allfields {
+      position: absolute;
+      z-index: 2;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+      height: 120px;
+    }
+
+    .dbfields {
+      position: relative;
+      height: 120px;
+      width: 120px;
+      border: 2px solid dimgray;
+      background-color: white;
+      overflow: auto;
+    }
+    
+    @media screen and (max-height: 800px) {
+      .field_list,
+      .allfields,
+      .dbfields {
+        height: 80px;
+      }
+    }
+
+    .field_name {
+      padding: 1px;
+      cursor: pointer;
+    }
+
+    #screen-header-selected .field_name:hover {
+      border: 1px solid white;
+    }
+
+    #screen-detail-selected .field_name:hover {
+      border: 1px solid white;
+    }
+
+    .dbfields .field_name:hover {
+      background-color: #ddd;
+    }
+
+    #field-width {
+      width: 80px;
+    }
+
+    #move-field {
+      padding-top: 20px;
+      padding-left: 20px;
+    }
+
+    .item5 > button {
+      width: 100px;
     }
   </style>
 </head>
@@ -361,11 +460,11 @@
     <div id="open-screen" class="open-screen">
       <div id="close-open1" class="close-open1">
         <div id="close-open2" class="close-open2">
-          <div id="close-button" class="close-button hide" onclick="closeOpen()">&times;</div>
+          <div id="close-button" class="close-button hide" onclick="closeOpen();">&times;</div>
         </div>
       </div>
       <div class="open__icons">
-        <div class="open__icon open__icon-open" onclick="document.getElementById('fileInput').click()">
+        <div class="open__icon open__icon-open" onclick="document.getElementById('fileInput').click();">
           <i class="fa fa-lock open__icon-i"></i>
           <div class="open__icon-text">Open</div>
           <input type="file" id="fileInput" accept=".csv,.ndl" onclick="this.value=null; " onChange="fileSelected(this.files)" />
@@ -374,11 +473,11 @@
           <i class="fa fa-plus open__icon-i"></i>
           <div class="open__icon-text">New</div>
         </div>
-        <div class="open__icon open__icon-demo" onclick="showDemo()">
+        <div class="open__icon open__icon-demo" onclick="showDemo();">
           <i class="fa fa-magic open__icon-i"></i>
           <div class="open__icon-text">Demo</div>
         </div>
-        <div class="open__icon open__icon-storage svg-btn" data-storage="gdrive" onclick="gdrive()">
+        <div class="open__icon open__icon-storage svg-btn" data-storage="gdrive" onclick="gdrive();">
           <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
               <path d="M86.657536,76.246208 L47.768064,9 L89.111168,9 L128,76.246208 L86.657536,76.246208 Z M25.010048,119.08 L102.690048,119.08 L123.36256,83.24 L45.68064,83.24 L25.010048,119.08 L25.010048,119.08 Z M38.793088,9.003712 L0,76.30496 L20.671872,112.110016 L59.464704,44.808128 L38.793088,9.003712 Z"></path>
             </svg></div>
@@ -390,29 +489,120 @@
         </div>
       </div>
     </div>
-    <div id="build-screen" class="build-screen">
-      <div id="build-screen-form" class="build-screen-form">
-        <button onclick="HideBuildScreen();">Cancel</button>
+    <div id="build-screen" class="hide">
+      <div id="build-screen-form">
+        <div class="item1">
+          <div style="padding-bottom: 20px;">Identify Header and Detail fields to denote layout sequence</div>
+          <label>Screen Name:</label>
+          <input id="screen-name" type="text" size="40" onchange="ScreenNameChange()"></input>
+        </div>
+        <div class="item2">
+          <div>
+            <p>
+              <label>Screen Header</label> &nbsp;
+              <span class="group">
+                <button title="Add header field" onclick="addScreenHeader();">
+                  <i class="fa fa-plus" aria-hidden="true"></i>
+                </button>
+                <button title="Remove selected header field" onclick="deleteScreenHeader();">
+                  <i class="fa fa-minus" aria-hidden="true"></i>
+                </button>
+              </span>
+            </p>
+            <div id="screen-header" class="field_list">
+              <div id="allfields-header" class="allfields hide">
+                <div id="dbfields-header" class="dbfields">
+                  <div class="field_name">f1</div>
+                </div>
+              </div>
+              <div id="screen-header-selected">
+                <div class="field_name">H1</div>
+              </div>
+            </div>
+            <p>
+              <br/>
+              <label>Screen Detail</label> &nbsp;
+              <span class="group">
+                <button title="Add detail field" onclick="addScreenCol();">
+                  <i class="fa fa-plus" aria-hidden="true"></i>
+                </button>
+                <button title="Remove selected detail field" onclick="deleteScreenCol();">
+                  <i class="fa fa-minus" aria-hidden="true"></i>
+                </button>
+              </span>
+            </p>
+            <div id="screen-detail" class="field_list">
+              <div id="allfields-detail" class="allfields hide">
+                <div id="dbfields-detail" class="dbfields">
+                  <div class="field_name">f1</div>
+                </div>
+              </div>
+              <div id="screen-detail-selected">
+                <div class="field_name">C1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item4">
+          <fieldset>
+            <legend>Field Attributes</legend>
+            <input type="checkbox" id="field-visible" value="visible"> Visible<br>
+            <input type="checkbox" id="field-protected" value="protected"> Protected<br>
+            <input type="checkbox" id="field-summary" value="summary"> Summary<br>
+            <input type="checkbox" id="field-autodate" value="autodate"> Auto-Date<br>
+            <input type="checkbox" id="field-hyperlink" value="hyperlink"> Hyperlink
+            <p>
+              Display Width:
+              <br/>
+              <input type="number" id="field-width" size="4" maxlength="4" max="1200">
+            </p>
+          </fieldset>
+          <div id="move-field">
+            Move Field<br/>
+            <button title="Move selected field up" onclick="moveFieldUp();">
+              <i class="fa fa-arrow-up" aria-hidden="true" ></i>
+            </button>
+            &nbsp; &nbsp;
+            <button title="Move selected field down" onclick="moveFieldDown();">
+              <i class="fa fa-arrow-down" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <div class="item5">
+          <button onclick="SaveScreen();">Save</button>
+          &nbsp; &nbsp;
+          <button onclick="HideBuildScreen();">Cancel</button>
+        </div>
       </div>
     </div>
     <div id="edit-screen" class="edit-screen hide">
       <div id="navbar" class="navbar">
-        <div class="dropdown">
+        <div id="dropdown" class="dropdown" onclick="dropdownClick();">
           <button class="dropbtn"><i class="fa fa-bars"></i></button>
-          <div id="dropdown-content" class="dropdown-content">
-            <a onclick="ShowOpen();">Home</a>
+          <div id="dropdown-content" class="dropdown-content hide">
+            <h2>File</h2>
+            <a onclick="ShowOpen();">Open</a>
+            <a>Save</a>
+            <hr/>
             <a onclick="doReport();">Export as XML</a>
             <a onclick="doExport();">Export as CSV</a>
-            <br/>
+            <h2>Data</h2>
+            <a>Prune</a>
+            <a>Prune by Current Field</a>
+            <a>Drop Current Field Value</a>
+            <a>Invert Prune</a>
+            <a>Remove Prune</a>
             <h2>Screen</h2>
-            <a onclick="ShowBuildScreen();">New Screen</a>
-            <a onclick="ShowBuildScreen();">Revise Screen</a>
+            <a onclick="ShowBuildScreen(true);">New Layout</a>
+            <a onclick="ShowBuildScreen(false);">Revise Layout</a>
+            <hr/>
+            <a onclick="DeleteScreen();">Delete Layout</a>
           </div>
         </div>
         <a id="next_page" onclick="leftArrowClick();"><i class="fa fa-arrow-left"></i></a>
         <a id="prev_page" onclick="rightArrowClick();"><i class="fa fa-arrow-right"></i></a>
         <span id="pagecount">Page nnn of mmm</span>
-        <select id="screentitle" onchange="screenChange()">
+        <select id="screentitle" onchange="screenChange();">
           <option value="1">A description of the screen contents</option>
         </select>
         <div class="right-nav">
@@ -430,6 +620,7 @@
   </div>
 
   <script type="application/javascript">
+    
     // the Database
     var db1;
 
@@ -561,6 +752,10 @@
       showEditScreen();
     }
 
+    var dropdownClick = function() {
+      document.getElementById("dropdown-content").classList.toggle("hide");
+    }
+
     // Show the open screen
     var ShowOpen = function() {
       document.getElementById("edit-screen").classList.toggle("hide", true);
@@ -573,17 +768,199 @@
       document.getElementById("edit-screen").classList.toggle("hide", false);
     }
 
+    var _escreen;
+    var _build_screen_selected_id;
+
+    var copyScreen = function(scr) {
+      return JSON.parse(JSON.stringify(scr));
+    }
+
+    var updateScreenHeader = function() {
+      var i, s, element, field;
+      element = document.getElementById("screen-header-selected");
+      RemoveChildElements("screen-header-selected");
+      if (_escreen.header != undefined) {
+        for (i=0; i < _escreen.header.length; i++) {
+          field = document.createElement("div");
+          field.setAttribute("id", "hed" + i);
+          field.className = "field_name";
+          s = "build_screen_field_click('hed" + i + "');";
+          field.setAttribute("onclick", s);
+          s = encodeURIComponent(_escreen.header[i].field);
+          field.innerHTML = s;
+          element.appendChild(field);
+        }
+      }
+    }
+
+    var updateScreenDetail = function() {
+      var i, s, element, field;
+      element = document.getElementById("screen-detail-selected");
+      RemoveChildElements("screen-detail-selected");
+      if (_escreen.columns != undefined) {
+        for (i=0; i < _escreen.columns.length; i++) {
+          field = document.createElement("div");
+          field.setAttribute("id", "col" + i);
+          field.className = "field_name";
+          s = "build_screen_field_click('col" + i + "');";
+          field.setAttribute("onclick", s);
+          s = encodeURIComponent(_escreen.columns[i].field);
+          field.innerHTML = s;
+          element.appendChild(field);
+        }
+      }
+    }
+
+    var addScreenHeader = function() {
+      document.getElementById("allfields-header").classList.toggle("hide");
+    }
+
+    var newHeaderSelected = function(fieldname) {
+      var o = {};
+      o.field = fieldname;
+      _escreen.header.push(o);
+      document.getElementById("allfields-header").classList.toggle("hide", true);
+      updateScreenHeader();
+      _build_screen_selected_id = undefined;
+    }
+    
+    var deleteScreenHeader = function() {
+      if (_build_screen_selected_id === undefined)
+        return;
+      if (_build_screen_selected_id.startsWith("hed")) {
+        var index = parseInt(_build_screen_selected_id.substring(3));
+        _escreen.header.splice(index,1);
+        updateScreenHeader();
+        _build_screen_selected_id = undefined;
+      }
+    }
+
+    var addScreenCol = function() {
+      document.getElementById("allfields-detail").classList.toggle("hide");
+    }
+
+    var newColumnSelected = function(fieldname) {
+      var o = {};
+      o.field = fieldname;
+      _escreen.columns.push(o);
+      document.getElementById("allfields-detail").classList.toggle("hide", true);
+      updateScreenDetail();
+      _build_screen_selected_id = undefined;  
+    }
+
+    var deleteScreenCol = function() {
+      if (_build_screen_selected_id === undefined)
+        return;
+      if (_build_screen_selected_id.startsWith("col")) {
+        var index = parseInt(_build_screen_selected_id.substring(3));
+        _escreen.columns.splice(index,1);
+        updateScreenDetail();
+        _build_screen_selected_id = undefined;
+      }
+    }
+    
+    var moveFieldUp = function() {
+      if (_build_screen_selected_id === undefined)
+        return;
+      var index = parseInt(_build_screen_selected_id.substring(3));
+      if (index === 0)
+        return;
+      if (_build_screen_selected_id.startsWith("hed")) {
+        [_escreen.header[index-1], _escreen.header[index]] = [_escreen.header[index], _escreen.header[index-1]];
+        updateScreenHeader();
+        _build_screen_selected_id = undefined;
+        build_screen_field_click("hed" + (index-1));
+      }
+      else {
+        [_escreen.columns[index-1], _escreen.columns[index]] = [_escreen.columns[index], _escreen.columns[index-1]];
+        updateScreenDetail();
+        _build_screen_selected_id = undefined;
+        build_screen_field_click("col" + (index-1));
+      }
+    }
+
+    var moveFieldDown = function() {
+      if (_build_screen_selected_id === undefined)
+        return;
+      var index = parseInt(_build_screen_selected_id.substring(3));
+      if (_build_screen_selected_id.startsWith("hed")) {
+        if (index+1 >= _escreen.header.length)
+          return;
+        [_escreen.header[index], _escreen.header[index+1]] = [_escreen.header[index+1], _escreen.header[index]];
+        updateScreenHeader();
+        _build_screen_selected_id = undefined;
+        build_screen_field_click("hed" + (index+1));
+      }
+      else {
+        if (index+1 >= _escreen.columns.length)
+          return;
+        [_escreen.columns[index], _escreen.columns[index+1]] = [_escreen.columns[index+1], _escreen.columns[index]];
+        updateScreenDetail();
+        _build_screen_selected_id = undefined;
+        build_screen_field_click("col" + (index+1));
+      }
+    }
+
+    var ScreenNameChange = function() {
+      _escreen.name = document.getElementById("screen-name").value;
+    }
+
+    var build_screen_field_click = function(id) {
+      if (_build_screen_selected_id != undefined)
+        document.getElementById(_build_screen_selected_id).classList.toggle("highlight", false);
+      document.getElementById(id).classList.toggle("highlight", true);
+      _build_screen_selected_id = id;
+    }
+
     // Show the build screen dialog
-    var ShowBuildScreen = function() {
-      document.getElementById("dropdown-content").classList.toggle("hide", true);
-      document.getElementById("build-screen").style.display = "block";
-      document.getElementById("build-screen").focus();
+    var ShowBuildScreen = function(newscreen) {
+      if (newscreen) {
+        _escreen = {};
+        _escreen.name = "New Screen";
+        _escreen.header = [];
+        _escreen.columns = [];
+      }
+      else
+        _escreen = copyScreen(editScreen[currentScreen-1]);
+
+      document.getElementById("build-screen").classList.toggle("hide", false);
+      
+      var element = document.getElementById("screen-name");
+      element.value = _escreen.name;
+      updateScreenHeader();
+      updateScreenDetail();
+    }
+
+    // Delete the screen which is currently selected
+    var DeleteScreen = function() {
+      RemoveChildElements("screentitle");
+      editScreen.splice(currentScreen-1,1);
+
+      if (editScreen.length === 0)
+        ShowBuildScreen(true);
+
+      ScreenGet();
+      if (currentScreen > editScreen.length)
+        currentScreen = editScreen.length;
+
+      document.getElementById("screentitle").selectedIndex = currentScreen-1;
+      screenChange();
+    }
+
+    // Save user changes to the screen
+    var SaveScreen = function() {
+      editScreen[currentScreen-1] = copyScreen(_escreen);
+      RemoveChildElements("screentitle");
+      ScreenGet();
+      screenChange();
+      document.getElementById("build-screen").classList.toggle("hide", true);
+      _build_screen_selected_id = undefined;
     }
 
     // The user canceled build screen changes
     var HideBuildScreen = function() {
-      document.getElementById("build-screen").style.display = "none";
-      document.getElementById("dropdown-content").classList.toggle("hide", false);
+      document.getElementById("build-screen").classList.toggle("hide", true);
+      _build_screen_selected_id = undefined;
     }
 
     // Read a file from Google Drive
@@ -669,6 +1046,8 @@
 
     var screenChange = function() {
       currentScreen = parseInt(document.getElementById("screentitle").value) + 1;
+      if (isNaN(currentScreen))
+        currentScreen = 0;
 
       // Initialize the data view
       view.hedlin = 0;
@@ -689,10 +1068,9 @@
       // Hide non-edit screens
       //document.getElementById("open-screen").classList.toggle("hide", true);
       document.getElementById("open-screen").style.display = "none";
-      //document.getElementById("build-screen").classList.toggle("hide", true);
 
       // Initialize the screen menu
-      RemoveScreensFromMenu();
+      RemoveChildElements("screentitle");
 
       // Initialize the data view
       view.hedlin = 0;
@@ -701,13 +1079,45 @@
       view.bficol = [];
       view.npage = 0;
       view.curpag = 0;
+      
+      var i, n, s, sel, fragment, elem;
+      
+      // Build a field list for the screen header
+      sel = document.getElementById("dbfields-header");
+      RemoveChildElements("dbfields-header");
+      fragment = document.createDocumentFragment();
+      n = db1.FieldCount();
+      for (i=0; i < n; i++) {
+        elem = document.createElement("div");
+        elem.innerHTML = db1.FieldName(i+1);
+        elem.className = "field_name";
+        s = "newHeaderSelected(this.innerHTML);";
+        elem.setAttribute("onclick", s);
+        fragment.appendChild(elem);
+      }
+      sel.appendChild(fragment);
 
+      // and a field list for the screen detail
+      sel = document.getElementById("dbfields-detail");
+      RemoveChildElements("dbfields-detail");
+      fragment = document.createDocumentFragment();
+      n = db1.FieldCount();
+      for (i=0; i < n; i++) {
+        elem = document.createElement("div");
+        elem.innerHTML = db1.FieldName(i+1);
+        elem.className = "field_name";
+        s = "newColumnSelected(this.innerHTML);";
+        elem.setAttribute("onclick", s);
+        fragment.appendChild(elem);
+      }
+      sel.appendChild(fragment);
+
+      // Show the first screen
       currentScreen = 1;
       ShowNewScreen(SCREEN_GET | SCREEN_SORT);
     }
 
     var coslay = function() {
-
       var i;
 
       if (currentScreen < 1)
@@ -735,7 +1145,6 @@
     }
 
     var BuildView = function() {
-
       var i;
 
       // Translate the screen file
@@ -780,8 +1189,8 @@
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
     }
 
-    var RemoveScreensFromMenu = function() {
-      var sel = document.getElementById("screentitle");
+    var RemoveChildElements = function(name) {
+      var sel = document.getElementById(name);
       while (sel.firstChild !== null) {
         child = sel.firstChild;
         sel.removeChild(child);
@@ -845,10 +1254,7 @@
       var child;
 
       // Delete old header input fields
-      while (header.firstChild !== null) {
-        child = header.firstChild;
-        header.removeChild(child);
-      }
+      RemoveChildElements("header");
 
       // Hide the header when there are no header input fields
       if (nline === 0) {
@@ -876,7 +1282,7 @@
         if (w != undefined)
           field_input.setAttribute("style", "width: " + w + "px;");
 
-        s = "headerChange(" + i + ",this.value)";
+        s = "headerChange(" + i + ",this.value);";
         field_input.setAttribute("onchange", s);
         field.appendChild(field_input);
 
@@ -1099,8 +1505,8 @@
       // Grid parameters
       var gparms = {};
       gparms.className = "detail_grid";
-      gparms.cellRangeRenderer = myCellRangeRenderer,
-        gparms.cellRenderer = myCellRenderer;
+      gparms.cellRangeRenderer = myCellRangeRenderer;
+      gparms.cellRenderer = myCellRenderer;
       gparms.rowCount = rowcount;
       gparms.rowHeight = 30;
       gparms.columnCount = collin + 2;
