@@ -769,6 +769,7 @@
     }
 
     var _escreen;
+    var _newscreen;
     var _build_screen_selected_id;
 
     var copyScreen = function(scr) {
@@ -922,6 +923,7 @@
       }
       else
         _escreen = copyScreen(editScreen[currentScreen-1]);
+      _newscreen = newscreen;
 
       document.getElementById("build-screen").classList.toggle("hide", false);
       
@@ -949,9 +951,15 @@
 
     // Save user changes to the screen
     var SaveScreen = function() {
-      editScreen[currentScreen-1] = copyScreen(_escreen);
+      if (_newscreen) {
+        editScreen.push(_escreen);
+        currentScreen = editScreen.length;
+      }
+      else
+        editScreen[currentScreen-1] = copyScreen(_escreen);
       RemoveChildElements("screentitle");
       ScreenGet();
+      document.getElementById("screentitle").selectedIndex = currentScreen-1;
       screenChange();
       document.getElementById("build-screen").classList.toggle("hide", true);
       _build_screen_selected_id = undefined;
