@@ -236,6 +236,19 @@
       background-color: #ddd;
     }
 
+    #menuFile {
+      padding: 6px 2px 2px 10px;
+    }
+
+    #menuSave {
+      border-bottom: 1px solid black;
+    }
+
+    #menuXML,
+    #menuDeleteScreen {
+      padding-top: 10px;
+    }
+
     .right-nav {
       float: right;
     }
@@ -384,6 +397,10 @@
       }
     }
 
+    #buildform1 {
+      padding-bottom: 20px;
+    }
+
     #build-screen-form > div {
       background-color: rgba(255, 255, 255, 0.8);
       padding: 10px;
@@ -492,7 +509,7 @@
     <div id="build-screen" class="hide">
       <div id="build-screen-form">
         <div class="item1">
-          <div style="padding-bottom: 20px;">Identify Header and Detail fields to denote layout sequence</div>
+          <div id="buildform1">Identify Header and Detail fields to denote layout sequence</div>
           <label>Screen Name:</label>
           <input id="screen-name" type="text" size="40" onchange="ScreenNameChange()"></input>
         </div>
@@ -580,11 +597,10 @@
         <div id="dropdown" class="dropdown" onclick="dropdownClick();">
           <button class="dropbtn"><i class="fa fa-bars"></i></button>
           <div id="dropdown-content" class="dropdown-content hide">
-            <h2>File</h2>
+            <h2 id="menuFile">File</h2>
             <a onclick="ShowOpen();">Open</a>
-            <a>Save</a>
-            <hr/>
-            <a onclick="doReport();">Export as XML</a>
+            <a id="menuSave">Save</a>
+            <a id="menuXML" onclick="doReport();">Export as XML</a>
             <a onclick="doExport();">Export as CSV</a>
             <h2>Data</h2>
             <a>Prune</a>
@@ -594,9 +610,8 @@
             <a>Remove Prune</a>
             <h2>Screen</h2>
             <a onclick="ShowBuildScreen(true);">New Layout</a>
-            <a onclick="ShowBuildScreen(false);">Revise Layout</a>
-            <hr/>
-            <a onclick="DeleteScreen();">Delete Layout</a>
+            <a onclick="ShowBuildScreen(false);" style="border-bottom: 1px solid black;">Revise Layout</a>
+            <a id="menuDeleteScreen" onclick="DeleteScreen();">Delete Layout</a>
           </div>
         </div>
         <a id="next_page" onclick="leftArrowClick();"><i class="fa fa-arrow-left"></i></a>
