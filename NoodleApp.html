@@ -380,11 +380,12 @@
     .item5 { grid-area: footer; text-align: center; }
 
     #build-screen-form {
+      display: -ms-grid;
       display: grid;
-      grid:
-      'header header'
-      'lists attr'
-      'footer footer';
+      grid-template-areas:
+        "header header"
+        "lists attr"
+        "footer footer";
       grid-gap: 0px;
       background-color: gray;
       margin: auto;
@@ -477,7 +478,7 @@
     <div id="open-screen" class="open-screen">
       <div id="close-open1" class="close-open1">
         <div id="close-open2" class="close-open2">
-          <div id="close-button" class="close-button hide" onclick="closeOpen();">&times;</div>
+          <div id="close-button" class="close-button hide">&times;</div>
         </div>
       </div>
       <div class="open__icons">
@@ -490,11 +491,11 @@
           <i class="fa fa-plus open__icon-i"></i>
           <div class="open__icon-text">New</div>
         </div>
-        <div class="open__icon open__icon-demo" onclick="showDemo();">
+        <div id="demo" class="open__icon open__icon-demo">
           <i class="fa fa-magic open__icon-i"></i>
           <div class="open__icon-text">Demo</div>
         </div>
-        <div class="open__icon open__icon-storage svg-btn" data-storage="gdrive" onclick="gdrive();">
+        <div id="gdrive" class="open__icon open__icon-storage svg-btn" data-storage="gdrive">
           <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
               <path d="M86.657536,76.246208 L47.768064,9 L89.111168,9 L128,76.246208 L86.657536,76.246208 Z M25.010048,119.08 L102.690048,119.08 L123.36256,83.24 L45.68064,83.24 L25.010048,119.08 L25.010048,119.08 Z M38.793088,9.003712 L0,76.30496 L20.671872,112.110016 L59.464704,44.808128 L38.793088,9.003712 Z"></path>
             </svg></div>
@@ -511,17 +512,17 @@
         <div class="item1">
           <div id="buildform1">Identify Header and Detail fields to denote layout sequence</div>
           <label>Screen Name:</label>
-          <input id="screen-name" type="text" size="40" onchange="ScreenNameChange()"></input>
+          <input id="screen-name" type="text" size="40"></input>
         </div>
         <div class="item2">
           <div>
             <p>
               <label>Screen Header</label> &nbsp;
               <span class="group">
-                <button title="Add header field" onclick="addScreenHeader();">
+                <button id="addheader" title="Add header field">
                   <i class="fa fa-plus" aria-hidden="true"></i>
                 </button>
-                <button title="Remove selected header field" onclick="deleteScreenHeader();">
+                <button id="deleteheader" title="Remove selected header field">
                   <i class="fa fa-minus" aria-hidden="true"></i>
                 </button>
               </span>
@@ -540,10 +541,10 @@
               <br/>
               <label>Screen Detail</label> &nbsp;
               <span class="group">
-                <button title="Add detail field" onclick="addScreenCol();">
+                <button id="addcolumn" title="Add detail field">
                   <i class="fa fa-plus" aria-hidden="true"></i>
                 </button>
-                <button title="Remove selected detail field" onclick="deleteScreenCol();">
+                <button id="deletecolumn" title="Remove selected detail field">
                   <i class="fa fa-minus" aria-hidden="true"></i>
                 </button>
               </span>
@@ -576,32 +577,32 @@
           </fieldset>
           <div id="move-field">
             Move Field<br/>
-            <button title="Move selected field up" onclick="moveFieldUp();">
+            <button id="moveup" title="Move selected field up">
               <i class="fa fa-arrow-up" aria-hidden="true" ></i>
             </button>
             &nbsp; &nbsp;
-            <button title="Move selected field down" onclick="moveFieldDown();">
+            <button id="movedown" title="Move selected field down">
               <i class="fa fa-arrow-down" aria-hidden="true"></i>
             </button>
           </div>
         </div>
         <div class="item5">
-          <button onclick="SaveScreen();">Save</button>
+          <button id="savescreenchange">Save</button>
           &nbsp; &nbsp;
-          <button onclick="HideBuildScreen();">Cancel</button>
+          <button id="cancelscreenchange">Cancel</button>
         </div>
       </div>
     </div>
     <div id="edit-screen" class="edit-screen hide">
       <div id="navbar" class="navbar">
-        <div id="dropdown" class="dropdown" onclick="dropdownClick();">
+        <div id="dropdown" class="dropdown">
           <button class="dropbtn"><i class="fa fa-bars"></i></button>
           <div id="dropdown-content" class="dropdown-content hide">
             <h2 id="menuFile">File</h2>
-            <a onclick="ShowOpen();">Open</a>
+            <a id="menuopen">Open</a>
             <a id="menuSave">Save</a>
-            <a id="menuXML" onclick="doReport();">Export as XML</a>
-            <a onclick="doExport();">Export as CSV</a>
+            <a id="menuXML">Export as XML</a>
+            <a id="menuCSV">Export as CSV</a>
             <h2>Data</h2>
             <a>Prune</a>
             <a>Prune by Current Field</a>
@@ -609,20 +610,20 @@
             <a>Invert Prune</a>
             <a>Remove Prune</a>
             <h2>Screen</h2>
-            <a onclick="ShowBuildScreen(true);">New Layout</a>
-            <a onclick="ShowBuildScreen(false);" style="border-bottom: 1px solid black;">Revise Layout</a>
-            <a id="menuDeleteScreen" onclick="DeleteScreen();">Delete Layout</a>
+            <a id="menuNewScreen">New Layout</a>
+            <a id="menuReviseScreen" style="border-bottom: 1px solid black;">Revise Layout</a>
+            <a id="menuDeleteScreen">Delete Layout</a>
           </div>
         </div>
-        <a id="next_page" onclick="leftArrowClick();"><i class="fa fa-arrow-left"></i></a>
-        <a id="prev_page" onclick="rightArrowClick();"><i class="fa fa-arrow-right"></i></a>
+        <a id="prev_page"><i class="fa fa-arrow-left"></i></a>
+        <a id="next_page"><i class="fa fa-arrow-right"></i></a>
         <span id="pagecount">Page nnn of mmm</span>
-        <select id="screentitle" onchange="screenChange();">
+        <select id="screentitle">
           <option value="1">A description of the screen contents</option>
         </select>
         <div class="right-nav">
-          <a id="trash" onclick="trashClick();"><i class="fa fa-trash"></i></a>
-          <a id="search" onclick="searchClick();"><i class="fa fa-search"></i></a>
+          <a id="trash"><i class="fa fa-trash"></i></a>
+          <a id="search"><i class="fa fa-search"></i></a>
         </div>
       </div>
       <div id="edit-display" class="edit-display">
@@ -653,8 +654,38 @@
     var refreshNum = 0;
     var lineCount = 0;
 
+    // Set up app events
+
     window.onbeforeunload = function(event) {
       event.returnValue = "Are you sure you want to leave this page?";
+    }
+
+    window.onload = function() {
+      document.getElementById("close-button").addEventListener("click", closeOpen);
+      document.getElementById("demo").addEventListener("click", showDemo);
+      document.getElementById("gdrive").addEventListener("click", gdrive);
+      document.getElementById("screen-name").addEventListener("change", ScreenNameChange);
+      document.getElementById("addheader").addEventListener("click", addScreenHeader);
+      document.getElementById("deleteheader").addEventListener("click", deleteScreenHeader);
+      document.getElementById("addcolumn").addEventListener("click", addScreenCol);
+      document.getElementById("deletecolumn").addEventListener("click", deleteScreenCol);
+      document.getElementById("field-width").addEventListener("change", widthChange);
+      document.getElementById("moveup").addEventListener("click", moveFieldUp);
+      document.getElementById("movedown").addEventListener("click", moveFieldDown);
+      document.getElementById("savescreenchange").addEventListener("click", SaveScreen);
+      document.getElementById("cancelscreenchange").addEventListener("click", HideBuildScreen);
+      document.getElementById("dropdown").addEventListener("click", dropdownClick);
+      document.getElementById("menuopen").addEventListener("click", ShowOpen);
+      document.getElementById("menuXML").addEventListener("click", doReport);
+      document.getElementById("menuCSV").addEventListener("click", doExport);
+      document.getElementById("menuNewScreen").addEventListener("click", function() { ShowBuildScreen(true); });
+      document.getElementById("menuReviseScreen").addEventListener("click", function() { ShowBuildScreen(false); });
+      document.getElementById("menuDeleteScreen").addEventListener("click", DeleteScreen);
+      document.getElementById("prev_page").addEventListener("click", leftArrowClick);
+      document.getElementById("next_page").addEventListener("click", rightArrowClick);
+      document.getElementById("screentitle").addEventListener("change", screenChange);
+      document.getElementById("trash").addEventListener("click", trashClick);
+      document.getElementById("search").addEventListener("click", searchClick);
     }
 
     var showDemo = function() {
@@ -800,8 +831,7 @@
           field = document.createElement("div");
           field.setAttribute("id", "hed" + i);
           field.className = "field_name";
-          s = "build_screen_field_click('hed" + i + "');";
-          field.setAttribute("onclick", s);
+          field.onclick = build_screen_field_click;
           s = encodeURIComponent(_escreen.header[i].field);
           field.innerHTML = s;
           element.appendChild(field);
@@ -818,8 +848,7 @@
           field = document.createElement("div");
           field.setAttribute("id", "col" + i);
           field.className = "field_name";
-          s = "build_screen_field_click('col" + i + "');";
-          field.setAttribute("onclick", s);
+          field.onclick = build_screen_field_click;
           s = encodeURIComponent(_escreen.columns[i].field);
           field.innerHTML = s;
           element.appendChild(field);
@@ -834,6 +863,8 @@
     var newHeaderSelected = function(fieldname) {
       var o = {};
       o.field = fieldname;
+      if (_escreen.header === undefined)
+        _escreen.header = [];
       _escreen.header.push(o);
       document.getElementById("allfields-header").classList.toggle("hide", true);
       updateScreenHeader();
@@ -858,6 +889,8 @@
     var newColumnSelected = function(fieldname) {
       var o = {};
       o.field = fieldname;
+      if (_escreen.columns === undefined)
+        _escreen.columns = [];
       _escreen.columns.push(o);
       document.getElementById("allfields-detail").classList.toggle("hide", true);
       updateScreenDetail();
@@ -917,15 +950,41 @@
       }
     }
 
-    var ScreenNameChange = function() {
-      _escreen.name = document.getElementById("screen-name").value;
+    var ScreenNameChange = function(event) {
+      _escreen.name = event.target.value;
     }
 
-    var build_screen_field_click = function(id) {
+    var widthChange = function(event) {
+      if (_build_screen_selected_id === undefined)
+        return false;
+      var val = parseInt(event.target.value);
+      if (isNaN(val))
+        return false;
+        
+      var i = parseInt(_build_screen_selected_id.substring(3));
+      if (_build_screen_selected_id.startsWith("hed"))
+        _escreen.header[i].width = val;
+      else
+        _escreen.columns[i].width = val;  
+      return true;
+    }
+
+    var build_screen_field_click = function(event) {
       if (_build_screen_selected_id != undefined)
         document.getElementById(_build_screen_selected_id).classList.toggle("highlight", false);
-      document.getElementById(id).classList.toggle("highlight", true);
-      _build_screen_selected_id = id;
+      document.getElementById(event.target.id).classList.toggle("highlight", true);
+      _build_screen_selected_id = event.target.id;
+
+      var i = parseInt(_build_screen_selected_id.substring(3));
+      var val;
+      if (_build_screen_selected_id.startsWith("hed"))
+        val = _escreen.header[i].width;
+      else
+        val = _escreen.columns[i].width;
+      if (val === undefined)
+        val = "";
+      document.getElementById("field-width").value = val;
+      return true;
     }
 
     // Show the build screen dialog
