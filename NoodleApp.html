@@ -482,10 +482,10 @@
         </div>
       </div>
       <div class="open__icons">
-        <div class="open__icon open__icon-open" onclick="document.getElementById('fileInput').click();">
+        <div id="fileIcon" class="open__icon open__icon-open">
           <i class="fa fa-lock open__icon-i"></i>
           <div class="open__icon-text">Open</div>
-          <input type="file" id="fileInput" accept=".csv,.ndl" onclick="this.value=null; " onChange="fileSelected(this.files)" />
+          <input type="file" id="fileInput" accept=".csv,.ndl"/>
         </div>
         <div class="open__icon open__icon-new">
           <i class="fa fa-plus open__icon-i"></i>
@@ -512,7 +512,7 @@
         <div class="item1">
           <div id="buildform1">Identify Header and Detail fields to denote layout sequence</div>
           <label>Screen Name:</label>
-          <input id="screen-name" type="text" size="40"></input>
+          <input id="screen-name" type="text" size="40"/>
         </div>
         <div class="item2">
           <div>
@@ -564,15 +564,15 @@
         <div class="item4">
           <fieldset>
             <legend>Field Attributes</legend>
-            <input type="checkbox" id="field-visible" value="visible"> Visible<br>
-            <input type="checkbox" id="field-protected" value="protected"> Protected<br>
-            <input type="checkbox" id="field-summary" value="summary"> Summary<br>
-            <input type="checkbox" id="field-autodate" value="autodate"> Auto-Date<br>
-            <input type="checkbox" id="field-hyperlink" value="hyperlink"> Hyperlink
+            <input type="checkbox" id="field-visible" value="visible"/> Visible<br>
+            <input type="checkbox" id="field-protected" value="protected"/> Protected<br>
+            <input type="checkbox" id="field-summary" value="summary"/> Summary<br>
+            <input type="checkbox" id="field-autodate" value="autodate"/> Auto-Date<br>
+            <input type="checkbox" id="field-hyperlink" value="hyperlink"/> Hyperlink
             <p>
               Display Width:
               <br/>
-              <input type="number" id="field-width" size="4" maxlength="4" max="1200">
+              <input type="number" id="field-width" size="4" maxlength="4" max="1200"/>
             </p>
           </fieldset>
           <div id="move-field">
@@ -662,6 +662,11 @@
 
     window.onload = function() {
       document.getElementById("close-button").addEventListener("click", closeOpen);
+      document.getElementById("fileIcon").addEventListener("click", function() {
+        document.getElementById('fileInput').click();
+      });
+      document.getElementById("fileInput").addEventListener("click", function() { this.value=null; });
+      document.getElementById("fileInput").addEventListener("change", function() { fileSelected(this.files); });
       document.getElementById("demo").addEventListener("click", showDemo);
       document.getElementById("gdrive").addEventListener("click", gdrive);
       document.getElementById("screen-name").addEventListener("change", ScreenNameChange);
@@ -831,7 +836,7 @@
           field = document.createElement("div");
           field.setAttribute("id", "hed" + i);
           field.className = "field_name";
-          field.onclick = build_screen_field_click;
+          field.onclick = function() { build_screen_field_click(this.id); };
           s = encodeURIComponent(_escreen.header[i].field);
           field.innerHTML = s;
           element.appendChild(field);
@@ -848,7 +853,7 @@
           field = document.createElement("div");
           field.setAttribute("id", "col" + i);
           field.className = "field_name";
-          field.onclick = build_screen_field_click;
+          field.onclick = function() { build_screen_field_click(this.id); };
           s = encodeURIComponent(_escreen.columns[i].field);
           field.innerHTML = s;
           element.appendChild(field);
@@ -969,11 +974,11 @@
       return true;
     }
 
-    var build_screen_field_click = function(event) {
+    var build_screen_field_click = function(id) {
       if (_build_screen_selected_id != undefined)
         document.getElementById(_build_screen_selected_id).classList.toggle("highlight", false);
-      document.getElementById(event.target.id).classList.toggle("highlight", true);
-      _build_screen_selected_id = event.target.id;
+      document.getElementById(id).classList.toggle("highlight", true);
+      _build_screen_selected_id = id;
 
       var i = parseInt(_build_screen_selected_id.substring(3));
       var val;
@@ -1162,7 +1167,7 @@
       view.npage = 0;
       view.curpag = 0;
       
-      var i, n, s, sel, fragment, elem;
+      var i, n, sel, fragment, elem;
       
       // Build a field list for the screen header
       sel = document.getElementById("dbfields-header");
@@ -1173,8 +1178,7 @@
         elem = document.createElement("div");
         elem.innerHTML = db1.FieldName(i+1);
         elem.className = "field_name";
-        s = "newHeaderSelected(this.innerHTML);";
-        elem.setAttribute("onclick", s);
+        elem.onclick = function() { newHeaderSelected(this.innerHTML); };
         fragment.appendChild(elem);
       }
       sel.appendChild(fragment);
@@ -1188,8 +1192,7 @@
         elem = document.createElement("div");
         elem.innerHTML = db1.FieldName(i+1);
         elem.className = "field_name";
-        s = "newColumnSelected(this.innerHTML);";
-        elem.setAttribute("onclick", s);
+        elem.onclick = function() { newColumnSelected(this.innerHTML); };
         fragment.appendChild(elem);
       }
       sel.appendChild(fragment);
