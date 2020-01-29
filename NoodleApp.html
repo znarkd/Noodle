@@ -1027,6 +1027,9 @@
 
     // Delete the screen which is currently selected
     var DeleteScreen = function() {
+      if (!confirm("Delete layout: " + editScreen[currentScreen-1].name + "?"))
+        return;
+
       RemoveChildElements("screentitle");
       editScreen.splice(currentScreen - 1, 1);
 
