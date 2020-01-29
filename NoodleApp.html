@@ -353,13 +353,14 @@
     }
 
     .column-sizer {
-  		width: 1px;
-  		height: 100%;
-  		cursor: col-resize;
-  		transform: translate(0px, 0px) !important;
-  	}
+      width: 1px;
+      height: 100%;
+      cursor: col-resize;
+      transform: translate(0px, 0px) !important;
+    }
 
     /* The modal screen builder */
+
     #build-screen {
       display: block;
       position: fixed;
@@ -370,22 +371,31 @@
       width: 100%;
       height: 100%;
       overflow: auto;
-      background-color: rgb(0,0,0);
-      background-color: rgba(0,0,0,0.4);
+      background-color: rgb(0, 0, 0);
+      background-color: rgba(0, 0, 0, 0.4);
     }
 
-    .item1 { grid-area: header; }
-    .item2 { grid-area: lists; }
-    .item4 { grid-area: attr; }
-    .item5 { grid-area: footer; text-align: center; }
+    .item1 {
+      grid-area: header;
+    }
+
+    .item2 {
+      grid-area: lists;
+    }
+
+    .item4 {
+      grid-area: attr;
+    }
+
+    .item5 {
+      grid-area: footer;
+      text-align: center;
+    }
 
     #build-screen-form {
       display: -ms-grid;
       display: grid;
-      grid-template-areas:
-        "header header"
-        "lists attr"
-        "footer footer";
+      grid-template-areas: "header header" "lists attr" "footer footer";
       grid-gap: 0px;
       background-color: gray;
       margin: auto;
@@ -402,7 +412,7 @@
       padding-bottom: 20px;
     }
 
-    #build-screen-form > div {
+    #build-screen-form>div {
       background-color: rgba(255, 255, 255, 0.8);
       padding: 10px;
       font-size: 1.25em;
@@ -419,8 +429,8 @@
     .allfields {
       position: absolute;
       z-index: 2;
-      background-color: rgb(0,0,0);
-      background-color: rgba(0,0,0,0.4);
+      background-color: rgb(0, 0, 0);
+      background-color: rgba(0, 0, 0, 0.4);
       height: 120px;
     }
 
@@ -432,7 +442,7 @@
       background-color: white;
       overflow: auto;
     }
-    
+
     @media screen and (max-height: 800px) {
       .field_list,
       .allfields,
@@ -467,7 +477,7 @@
       padding-left: 20px;
     }
 
-    .item5 > button {
+    .item5>button {
       width: 100px;
     }
   </style>
@@ -485,7 +495,7 @@
         <div id="fileIcon" class="open__icon open__icon-open">
           <i class="fa fa-lock open__icon-i"></i>
           <div class="open__icon-text">Open</div>
-          <input type="file" id="fileInput" accept=".csv,.ndl"/>
+          <input type="file" id="fileInput" accept=".csv,.ndl" />
         </div>
         <div class="open__icon open__icon-new">
           <i class="fa fa-plus open__icon-i"></i>
@@ -512,7 +522,7 @@
         <div class="item1">
           <div id="buildform1">Identify Header and Detail fields to denote layout sequence</div>
           <label>Screen Name:</label>
-          <input id="screen-name" type="text" size="40"/>
+          <input id="screen-name" type="text" size="40" />
         </div>
         <div class="item2">
           <div>
@@ -564,31 +574,29 @@
         <div class="item4">
           <fieldset>
             <legend>Field Attributes</legend>
-            <input type="checkbox" id="field-visible" value="visible"/> Visible<br>
-            <input type="checkbox" id="field-protected" value="protected"/> Protected<br>
-            <input type="checkbox" id="field-summary" value="summary"/> Summary<br>
-            <input type="checkbox" id="field-autodate" value="autodate"/> Auto-Date<br>
-            <input type="checkbox" id="field-hyperlink" value="hyperlink"/> Hyperlink
+            <input type="checkbox" id="field-visible" value="visible" /> Visible<br>
+            <input type="checkbox" id="field-protected" value="protected" /> Protected<br>
+            <input type="checkbox" id="field-summary" value="summary" /> Summary<br>
+            <input type="checkbox" id="field-autodate" value="autodate" /> Auto-Date<br>
+            <input type="checkbox" id="field-hyperlink" value="hyperlink" /> Hyperlink
             <p>
               Display Width:
               <br/>
-              <input type="number" id="field-width" size="4" maxlength="4" max="1200"/>
+              <input type="number" id="field-width" size="4" maxlength="4" max="1200" />
             </p>
           </fieldset>
           <div id="move-field">
             Move Field<br/>
             <button id="moveup" title="Move selected field up">
               <i class="fa fa-arrow-up" aria-hidden="true" ></i>
-            </button>
-            &nbsp; &nbsp;
+            </button> &nbsp; &nbsp;
             <button id="movedown" title="Move selected field down">
               <i class="fa fa-arrow-down" aria-hidden="true"></i>
             </button>
           </div>
         </div>
         <div class="item5">
-          <button id="savescreenchange">Save</button>
-          &nbsp; &nbsp;
+          <button id="savescreenchange">Save</button> &nbsp; &nbsp;
           <button id="cancelscreenchange">Cancel</button>
         </div>
       </div>
@@ -636,7 +644,6 @@
   </div>
 
   <script type="application/javascript">
-    
     // the Database
     var db1;
 
@@ -650,7 +657,6 @@
     var view = {};
 
     // for Grid hacks
-    //var grid;
     var refreshNum = 0;
     var lineCount = 0;
 
@@ -665,8 +671,12 @@
       document.getElementById("fileIcon").addEventListener("click", function() {
         document.getElementById('fileInput').click();
       });
-      document.getElementById("fileInput").addEventListener("click", function() { this.value=null; });
-      document.getElementById("fileInput").addEventListener("change", function() { fileSelected(this.files); });
+      document.getElementById("fileInput").addEventListener("click", function() {
+        this.value = null;
+      });
+      document.getElementById("fileInput").addEventListener("change", function() {
+        fileSelected(this.files);
+      });
       document.getElementById("demo").addEventListener("click", showDemo);
       document.getElementById("gdrive").addEventListener("click", gdrive);
       document.getElementById("screen-name").addEventListener("change", ScreenNameChange);
@@ -683,8 +693,12 @@
       document.getElementById("menuopen").addEventListener("click", ShowOpen);
       document.getElementById("menuXML").addEventListener("click", doReport);
       document.getElementById("menuCSV").addEventListener("click", doExport);
-      document.getElementById("menuNewScreen").addEventListener("click", function() { ShowBuildScreen(true); });
-      document.getElementById("menuReviseScreen").addEventListener("click", function() { ShowBuildScreen(false); });
+      document.getElementById("menuNewScreen").addEventListener("click", function() {
+        ShowBuildScreen(true);
+      });
+      document.getElementById("menuReviseScreen").addEventListener("click", function() {
+        ShowBuildScreen(false);
+      });
       document.getElementById("menuDeleteScreen").addEventListener("click", DeleteScreen);
       document.getElementById("prev_page").addEventListener("click", leftArrowClick);
       document.getElementById("next_page").addEventListener("click", rightArrowClick);
@@ -828,34 +842,36 @@
     }
 
     var updateScreenHeader = function() {
-      var i, s, element, field;
+      var i, element, field;
       element = document.getElementById("screen-header-selected");
       RemoveChildElements("screen-header-selected");
       if (_escreen.header != undefined) {
-        for (i=0; i < _escreen.header.length; i++) {
+        for (i = 0; i < _escreen.header.length; i++) {
           field = document.createElement("div");
           field.setAttribute("id", "hed" + i);
           field.className = "field_name";
-          field.onclick = function() { build_screen_field_click(this.id); };
-          s = encodeURIComponent(_escreen.header[i].field);
-          field.innerHTML = s;
+          field.onclick = function() {
+            build_screen_field_click(this.id);
+          };
+          field.innerText = _escreen.header[i].field;
           element.appendChild(field);
         }
       }
     }
 
     var updateScreenDetail = function() {
-      var i, s, element, field;
+      var i, element, field;
       element = document.getElementById("screen-detail-selected");
       RemoveChildElements("screen-detail-selected");
       if (_escreen.columns != undefined) {
-        for (i=0; i < _escreen.columns.length; i++) {
+        for (i = 0; i < _escreen.columns.length; i++) {
           field = document.createElement("div");
           field.setAttribute("id", "col" + i);
           field.className = "field_name";
-          field.onclick = function() { build_screen_field_click(this.id); };
-          s = encodeURIComponent(_escreen.columns[i].field);
-          field.innerHTML = s;
+          field.onclick = function() {
+            build_screen_field_click(this.id);
+          };
+          field.innerText = _escreen.columns[i].field;
           element.appendChild(field);
         }
       }
@@ -875,13 +891,13 @@
       updateScreenHeader();
       _build_screen_selected_id = undefined;
     }
-    
+
     var deleteScreenHeader = function() {
       if (_build_screen_selected_id === undefined)
         return;
       if (_build_screen_selected_id.startsWith("hed")) {
         var index = parseInt(_build_screen_selected_id.substring(3));
-        _escreen.header.splice(index,1);
+        _escreen.header.splice(index, 1);
         updateScreenHeader();
         _build_screen_selected_id = undefined;
       }
@@ -899,7 +915,7 @@
       _escreen.columns.push(o);
       document.getElementById("allfields-detail").classList.toggle("hide", true);
       updateScreenDetail();
-      _build_screen_selected_id = undefined;  
+      _build_screen_selected_id = undefined;
     }
 
     var deleteScreenCol = function() {
@@ -907,12 +923,12 @@
         return;
       if (_build_screen_selected_id.startsWith("col")) {
         var index = parseInt(_build_screen_selected_id.substring(3));
-        _escreen.columns.splice(index,1);
+        _escreen.columns.splice(index, 1);
         updateScreenDetail();
         _build_screen_selected_id = undefined;
       }
     }
-    
+
     var moveFieldUp = function() {
       if (_build_screen_selected_id === undefined)
         return;
@@ -920,16 +936,15 @@
       if (index === 0)
         return;
       if (_build_screen_selected_id.startsWith("hed")) {
-        [_escreen.header[index-1], _escreen.header[index]] = [_escreen.header[index], _escreen.header[index-1]];
+        [_escreen.header[index - 1], _escreen.header[index]] = [_escreen.header[index], _escreen.header[index - 1]];
         updateScreenHeader();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("hed" + (index-1));
-      }
-      else {
-        [_escreen.columns[index-1], _escreen.columns[index]] = [_escreen.columns[index], _escreen.columns[index-1]];
+        build_screen_field_click("hed" + (index - 1));
+      } else {
+        [_escreen.columns[index - 1], _escreen.columns[index]] = [_escreen.columns[index], _escreen.columns[index - 1]];
         updateScreenDetail();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("col" + (index-1));
+        build_screen_field_click("col" + (index - 1));
       }
     }
 
@@ -938,20 +953,19 @@
         return;
       var index = parseInt(_build_screen_selected_id.substring(3));
       if (_build_screen_selected_id.startsWith("hed")) {
-        if (index+1 >= _escreen.header.length)
+        if (index + 1 >= _escreen.header.length)
           return;
-        [_escreen.header[index], _escreen.header[index+1]] = [_escreen.header[index+1], _escreen.header[index]];
+        [_escreen.header[index], _escreen.header[index + 1]] = [_escreen.header[index + 1], _escreen.header[index]];
         updateScreenHeader();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("hed" + (index+1));
-      }
-      else {
-        if (index+1 >= _escreen.columns.length)
+        build_screen_field_click("hed" + (index + 1));
+      } else {
+        if (index + 1 >= _escreen.columns.length)
           return;
-        [_escreen.columns[index], _escreen.columns[index+1]] = [_escreen.columns[index+1], _escreen.columns[index]];
+        [_escreen.columns[index], _escreen.columns[index + 1]] = [_escreen.columns[index + 1], _escreen.columns[index]];
         updateScreenDetail();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("col" + (index+1));
+        build_screen_field_click("col" + (index + 1));
       }
     }
 
@@ -965,12 +979,12 @@
       var val = parseInt(event.target.value);
       if (isNaN(val))
         return false;
-        
+
       var i = parseInt(_build_screen_selected_id.substring(3));
       if (_build_screen_selected_id.startsWith("hed"))
         _escreen.header[i].width = val;
       else
-        _escreen.columns[i].width = val;  
+        _escreen.columns[i].width = val;
       return true;
     }
 
@@ -999,13 +1013,12 @@
         _escreen.name = "New Screen";
         _escreen.header = [];
         _escreen.columns = [];
-      }
-      else
-        _escreen = copyScreen(editScreen[currentScreen-1]);
+      } else
+        _escreen = copyScreen(editScreen[currentScreen - 1]);
       _newscreen = newscreen;
 
       document.getElementById("build-screen").classList.toggle("hide", false);
-      
+
       var element = document.getElementById("screen-name");
       element.value = _escreen.name;
       updateScreenHeader();
@@ -1015,7 +1028,7 @@
     // Delete the screen which is currently selected
     var DeleteScreen = function() {
       RemoveChildElements("screentitle");
-      editScreen.splice(currentScreen-1,1);
+      editScreen.splice(currentScreen - 1, 1);
 
       if (editScreen.length === 0)
         ShowBuildScreen(true);
@@ -1024,7 +1037,7 @@
       if (currentScreen > editScreen.length)
         currentScreen = editScreen.length;
 
-      document.getElementById("screentitle").selectedIndex = currentScreen-1;
+      document.getElementById("screentitle").selectedIndex = currentScreen - 1;
       screenChange();
     }
 
@@ -1033,12 +1046,11 @@
       if (_newscreen) {
         editScreen.push(_escreen);
         currentScreen = editScreen.length;
-      }
-      else
-        editScreen[currentScreen-1] = copyScreen(_escreen);
+      } else
+        editScreen[currentScreen - 1] = copyScreen(_escreen);
       RemoveChildElements("screentitle");
       ScreenGet();
-      document.getElementById("screentitle").selectedIndex = currentScreen-1;
+      document.getElementById("screentitle").selectedIndex = currentScreen - 1;
       screenChange();
       document.getElementById("build-screen").classList.toggle("hide", true);
       _build_screen_selected_id = undefined;
@@ -1123,7 +1135,7 @@
 
       editScreen.forEach(function(scr, index) {
         var opt = document.createElement("option");
-        opt.innerHTML = scr.name;
+        opt.text = scr.name;
         opt.value = index;
         fragment.appendChild(opt);
       });
@@ -1153,7 +1165,6 @@
         return;
 
       // Hide non-edit screens
-      //document.getElementById("open-screen").classList.toggle("hide", true);
       document.getElementById("open-screen").style.display = "none";
 
       // Initialize the screen menu
@@ -1166,19 +1177,21 @@
       view.bficol = [];
       view.npage = 0;
       view.curpag = 0;
-      
+
       var i, n, sel, fragment, elem;
-      
+
       // Build a field list for the screen header
       sel = document.getElementById("dbfields-header");
       RemoveChildElements("dbfields-header");
       fragment = document.createDocumentFragment();
       n = db1.FieldCount();
-      for (i=0; i < n; i++) {
+      for (i = 0; i < n; i++) {
         elem = document.createElement("div");
-        elem.innerHTML = db1.FieldName(i+1);
+        elem.innerText = db1.FieldName(i + 1);
         elem.className = "field_name";
-        elem.onclick = function() { newHeaderSelected(this.innerHTML); };
+        elem.onclick = function() {
+          newHeaderSelected(this.innerText);
+        };
         fragment.appendChild(elem);
       }
       sel.appendChild(fragment);
@@ -1188,11 +1201,13 @@
       RemoveChildElements("dbfields-detail");
       fragment = document.createDocumentFragment();
       n = db1.FieldCount();
-      for (i=0; i < n; i++) {
+      for (i = 0; i < n; i++) {
         elem = document.createElement("div");
-        elem.innerHTML = db1.FieldName(i+1);
+        elem.innerText = db1.FieldName(i + 1);
         elem.className = "field_name";
-        elem.onclick = function() { newColumnSelected(this.innerHTML); };
+        elem.onclick = function() {
+          newColumnSelected(this.innerText);
+        };
         fragment.appendChild(elem);
       }
       sel.appendChild(fragment);
@@ -1287,9 +1302,6 @@
       if (nFlags & SCREEN_GET)
         ScreenGet();
 
-      //if (screen.layblk.nline)
-      //	screen.quiet = false;
-
       // Sort the data based on the screen layout
       if (nFlags & SCREEN_SORT)
         BuildView();
@@ -1297,7 +1309,6 @@
       // Create a form for displaying the data view and display the first page of data.
       BuildForm();
 
-      //document.getElementById("screentitle").innerText = editScreen[currentScreen - 1].name;
       document.getElementById("edit-screen").classList.toggle("hide", false);
 
       // Load data into the newly created screen page
@@ -1354,13 +1365,9 @@
       for (i = 0; i < nline; i++) {
         field = document.createElement("span");
         field.className = "header_field";
-
-        s = encodeURIComponent(db1.FieldName(bfi[i])) + " ";
-        field.innerHTML = s;
-
+        field.innerText = db1.FieldName(bfi[i]) + " ";
         field_input = document.createElement("input");
-        s = "hedit" + i;
-        field_input.setAttribute("id", s);
+        field_input.setAttribute("id", "hedit" + i);
         field_input.setAttribute("type", "text");
 
         var w = editScreen[currentScreen - 1].header[i].width;
@@ -1475,14 +1482,17 @@
     var resizeRow = function(parms) {
       if (parms.index === 0)
         return;
-      if (parms.index > editScreen[currentScreen-1].columns.length)
+      if (parms.index > editScreen[currentScreen - 1].columns.length)
         return;
       var w = getColumnWidth(parms);
       w += parms.deltaX;
       if (w < 10)
         w = 10;
-      editScreen[currentScreen-1].columns[parms.index-1].width = w;
-      grid.recomputeGridSize({ columnIndex: 0, rowIndex: 0 });
+      editScreen[currentScreen - 1].columns[parms.index - 1].width = w;
+      grid.recomputeGridSize({
+        columnIndex: 0,
+        rowIndex: 0
+      });
     }
 
     var myCellRenderer = function(parms) {
@@ -1521,7 +1531,7 @@
             },
             zIndex: 999
           }, React.createElement("div", {
-            className:"column-sizer",
+            className: "column-sizer",
             style: {
               backgroundColor: "lightgray",
               borderTop: "2px solid #949494",
@@ -1549,8 +1559,7 @@
         value = db1.RecordCount(view.curpag, parms.rowIndex);
         if (value === 1)
           value = "";
-      } 
-      else
+      } else
         value = db1.GetValue(view.curpag, parms.rowIndex, view.bficol[parms.columnIndex - 1]);
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
@@ -1597,7 +1606,9 @@
       gparms.columnCount = collin + 2;
       gparms.columnWidth = getColumnWidth;
       gparms.onScroll = handleGridScroll;
-      gparms.ref = function(ref) { grid = ref; };
+      gparms.ref = function(ref) {
+        grid = ref;
+      };
 
       gparms.fixedColumnCount = 1;
       gparms.fixedRowCount = 1;
