@@ -657,6 +657,7 @@
     var view = {};
 
     // for Grid hacks
+    var grid;
     var refreshNum = 0;
     var lineCount = 0;
 
@@ -936,15 +937,15 @@
       if (index === 0)
         return;
       if (_build_screen_selected_id.startsWith("hed")) {
-        [_escreen.header[index - 1], _escreen.header[index]] = [_escreen.header[index], _escreen.header[index - 1]];
+        [_escreen.header[index-1], _escreen.header[index]] = [_escreen.header[index], _escreen.header[index-1]];
         updateScreenHeader();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("hed" + (index - 1));
+        build_screen_field_click("hed" + (index-1));
       } else {
-        [_escreen.columns[index - 1], _escreen.columns[index]] = [_escreen.columns[index], _escreen.columns[index - 1]];
+        [_escreen.columns[index-1], _escreen.columns[index]] = [_escreen.columns[index], _escreen.columns[index-1]];
         updateScreenDetail();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("col" + (index - 1));
+        build_screen_field_click("col" + (index-1));
       }
     }
 
@@ -1014,7 +1015,7 @@
         _escreen.header = [];
         _escreen.columns = [];
       } else
-        _escreen = copyScreen(editScreen[currentScreen - 1]);
+        _escreen = copyScreen(editScreen[currentScreen-1]);
       _newscreen = newscreen;
 
       document.getElementById("build-screen").classList.toggle("hide", false);
@@ -1031,7 +1032,7 @@
         return;
 
       RemoveChildElements("screentitle");
-      editScreen.splice(currentScreen - 1, 1);
+      editScreen.splice(currentScreen-1, 1);
 
       if (editScreen.length === 0)
         ShowBuildScreen(true);
@@ -1040,7 +1041,7 @@
       if (currentScreen > editScreen.length)
         currentScreen = editScreen.length;
 
-      document.getElementById("screentitle").selectedIndex = currentScreen - 1;
+      document.getElementById("screentitle").selectedIndex = currentScreen-1;
       screenChange();
     }
 
@@ -1050,11 +1051,15 @@
         editScreen.push(_escreen);
         currentScreen = editScreen.length;
       } else
-        editScreen[currentScreen - 1] = copyScreen(_escreen);
+        editScreen[currentScreen-1] = copyScreen(_escreen);
       RemoveChildElements("screentitle");
       ScreenGet();
-      document.getElementById("screentitle").selectedIndex = currentScreen - 1;
+      document.getElementById("screentitle").selectedIndex = currentScreen-1;
       screenChange();
+      if (editScreen[currentScreen-1].columns != undefined) {
+        if (editScreen[currentScreen-1].columns.length > 0)
+          refreshGrid();
+      }
       document.getElementById("build-screen").classList.toggle("hide", true);
       _build_screen_selected_id = undefined;
     }
@@ -1227,21 +1232,21 @@
         return false;
 
       // Extract header fields
-      if (editScreen[currentScreen - 1].header != undefined)
-        view.hedlin = editScreen[currentScreen - 1].header.length;
+      if (editScreen[currentScreen-1].header != undefined)
+        view.hedlin = editScreen[currentScreen-1].header.length;
       else
         view.hedlin = 0;
       for (i = 0; i < view.hedlin; i++) {
-        view.bfihed[i] = db1.BFI(editScreen[currentScreen - 1].header[i].field);
+        view.bfihed[i] = db1.BFI(editScreen[currentScreen-1].header[i].field);
       }
 
       // Extract columnar fields
-      if (editScreen[currentScreen - 1].columns != undefined)
-        view.collin = editScreen[currentScreen - 1].columns.length;
+      if (editScreen[currentScreen-1].columns != undefined)
+        view.collin = editScreen[currentScreen-1].columns.length;
       else
         view.collin = 0;
       for (i = 0; i < view.collin; i++) {
-        view.bficol[i] = db1.BFI(editScreen[currentScreen - 1].columns[i].field);
+        view.bficol[i] = db1.BFI(editScreen[currentScreen-1].columns[i].field);
       }
 
       return true;
@@ -1373,7 +1378,7 @@
         field_input.setAttribute("id", "hedit" + i);
         field_input.setAttribute("type", "text");
 
-        var w = editScreen[currentScreen - 1].header[i].width;
+        var w = editScreen[currentScreen-1].header[i].width;
         if (w != undefined)
           field_input.setAttribute("style", "width: " + w + "px;");
 
@@ -1411,7 +1416,7 @@
     var getColumnWidth = function(parms) {
       if (parms.index === 0 || parms.index > view.collin)
         return 60;
-      var w = editScreen[currentScreen - 1].columns[parms.index - 1].width;
+      var w = editScreen[currentScreen-1].columns[parms.index-1].width;
       if (w === undefined)
         w = 300;
       return w;
@@ -1482,20 +1487,24 @@
       }
     }
 
+    var refreshGrid = function() {
+      grid.recomputeGridSize({
+        columnIndex: 0,
+        rowIndex: 0
+      });
+    }
+
     var resizeRow = function(parms) {
       if (parms.index === 0)
         return;
-      if (parms.index > editScreen[currentScreen - 1].columns.length)
+      if (parms.index > editScreen[currentScreen-1].columns.length)
         return;
       var w = getColumnWidth(parms);
       w += parms.deltaX;
       if (w < 10)
         w = 10;
-      editScreen[currentScreen - 1].columns[parms.index - 1].width = w;
-      grid.recomputeGridSize({
-        columnIndex: 0,
-        rowIndex: 0
-      });
+      editScreen[currentScreen-1].columns[parms.index-1].width = w;
+      refreshGrid();
     }
 
     var myCellRenderer = function(parms) {
@@ -1510,7 +1519,7 @@
         else if (parms.columnIndex > view.collin)
           value = "*";
         else
-          value = db1.FieldName(view.bficol[parms.columnIndex - 1]);
+          value = db1.FieldName(view.bficol[parms.columnIndex-1]);
         return React.createElement('div', {
             className: "labelCell",
             style: parms.style,
@@ -1563,7 +1572,7 @@
         if (value === 1)
           value = "";
       } else
-        value = db1.GetValue(view.curpag, parms.rowIndex, view.bficol[parms.columnIndex - 1]);
+        value = db1.GetValue(view.curpag, parms.rowIndex, view.bficol[parms.columnIndex-1]);
       return React.createElement(CellInput, {
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
@@ -1572,7 +1581,7 @@
         defaultValue: value,
         cellChange: detailChange,
         line: parms.rowIndex,
-        bfi: view.bficol[parms.columnIndex - 1]
+        bfi: view.bficol[parms.columnIndex-1]
       });
     }
 
@@ -1668,7 +1677,7 @@
     }
 
     var doReport = function() {
-      db1.XMLReport(editScreen[currentScreen - 1].name);
+      db1.XMLReport(editScreen[currentScreen-1].name);
     }
 
     var doExport = function() {
