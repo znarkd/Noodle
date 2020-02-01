@@ -670,7 +670,7 @@
     window.onload = function() {
       document.getElementById("close-button").addEventListener("click", closeOpen);
       document.getElementById("fileIcon").addEventListener("click", function() {
-        document.getElementById('fileInput').click();
+        document.getElementById("fileInput").click();
       });
       document.getElementById("fileInput").addEventListener("click", function() {
         this.value = null;
@@ -713,27 +713,41 @@
       // Prepare a large data set
 
       var zData = [];
-      var i, d;
-      var letters = [
+      var i, k, d;
+      var Letter = [
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
         'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
       ];
-      var noyes = ["No", "Yes"];
+      var Animal = [
+        "Bird", "Cat", "Dog", "Lion","Elephant","Tiger","Bear","Snake","Monkey","Horse","Cow",
+        "Turtle","Deer","Rabbit","Giraffe","Wolf","Sheep","Pig","Rhinoceros","Fox","Fish","Squirrel",
+        "Insect","Otter","Frog","Bat","Whale","Kangaroo","Eagle","Shark","Lizard","Hippopotamus",
+        "Zebra","Antelope"
+      ];
+      var Vegetable = [
+        "Flower", "Cactus", "Tree", "Moss", "Algae", "Fern", "Grass"
+      ];
+      var Mineral = [
+        "Diamond", "Quarts", "Ruby", "Gold", "Silver", "Lead", "Jade"
+      ];
+      var Answer = ["No", "Maybe", "Yes", "True", "False"];
+      var Sets = [Animal, Vegetable, Mineral];
+      var setNames = ["Animal", "Vegetable", "Mineral"];
 
       var randomDate = function(start, end) {
         return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
       }
-      var _startdate = new Date(1970, 0, 1);
+      var _startdate = new Date(new Date().getFullYear(), 0, 1);
       var _enddate = new Date();
 
       for (i = 0; i < 20000; i++) {
         d = (zData[i] = {});
         d["Seq"] = i + 1;
-        d["Char1"] = letters[Math.floor(Math.random() * 26)];
-        d["YN"] = noyes[Math.floor(Math.random() * 2)];
-        d["String3"] = letters[Math.floor(Math.random() * 26)] +
-          letters[Math.floor(Math.random() * 26)] +
-          letters[Math.floor(Math.random() * 26)];
+        d["Letter"] = Letter[Math.floor(Math.random() * Letter.length)];
+        d["Answer"] = Answer[Math.floor(Math.random() * Answer.length)];
+        k = Math.floor((Math.random() * setNames.length));
+        d["Item"] = Sets[k][Math.floor(Math.random() * Sets[k].length)];
+        d["Category"] = setNames[k];
         d["RNum"] = Math.random() * 10000;
         d["Num"] = Math.floor((Math.random() * 100) + 1);
         d["Date"] = randomDate(_startdate, _enddate);
@@ -750,11 +764,11 @@
         for (i=0; i < sortColumns.length; i++) {
           fx = zData.keys[sortColumns[i]-1];
           switch(fx) {
-            case 'Seq':
-            case 'RNum':
-            case 'Num':
-            case 'Count':
-            case 'Date':
+            case "Seq":
+            case "RNum":
+            case "Num":
+            case "Count":
+            case "Date":
               rc = aRow[fx] - bRow[fx];
               if (rc != 0)
                 return rc;
@@ -774,13 +788,13 @@
       // Create a sample edit screen for the demo
 
       editScreen[0] = {
-        "name": "Rows by Char1 and YN",
+        "name": "Items by Category and Answer",
         "header": [{
-            "field": "Char1"
+            "field": "Category"
           },
           {
-            "field": "YN",
-            "width": 40
+            "field": "Answer",
+            "width": 80
           },
           {
             "field": "Count",
@@ -800,11 +814,11 @@
           }
         ],
         "columns": [{
-            "field": "String3",
+            "field": "Item",
             "width": 80
           },
           {
-            "field": "Seq",
+            "field": "Letter",
             "width": 80
           },
           {
@@ -813,38 +827,38 @@
           },
           {
             "field": "Date",
-            "width": 250
+            "width": 440
           }
         ]
       };
       editScreen[1] = {
-        "name": "Char1 values by YN",
+        "name": "Letter values by Answer",
         "header": [{
-          "field": "YN",
+          "field": "Answer",
           "width": 80
         }],
         "columns": [{
-          "field": "Char1",
+          "field": "Letter",
           "width": 80
         }]
       };
       editScreen[2] = {
         "name": "All header",
         "header": [{
-            "field": "Char1"
+            "field": "Item"
           },
           {
-            "field": "String3"
+            "field": "Category"
           }
         ]
       };
       editScreen[3] = {
         "name": "No header",
         "columns": [{
-            "field": "String3"
+            "field": "Item"
           },
           {
-            "field": "Char1"
+            "field": "Category"
           }
         ]
       };
@@ -1680,7 +1694,7 @@
           gparms.height = params.height;
           gparms.width = params.width;
           return React.createElement(ReactVirtualized.MultiGrid, gparms);
-        }), document.getElementById('detail'));
+        }), document.getElementById("detail"));
     }
 
     // Previous page
