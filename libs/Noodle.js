@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 26, 2019
+ * Release: February 1, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -22,7 +22,7 @@ function Noodle(dataArray, labels) {
   // Array
   else if (Array.isArray(dataArray)) {
     if (dataArray.length === 0)
-      throw ("Noodle can't work with empty arrays!");
+      throw("Noodle can't work with empty arrays!");
 
     // Array of arrays
     if (Array.isArray(dataArray[0]))
@@ -46,10 +46,8 @@ function Noodle(dataArray, labels) {
   }
 
   // Invalid dataArray type
-  else { 
-    alert("Noodle: invalid datatype!");
-    return;
-  }
+  else 
+    throw("Noodle: invalid datatype!");
 
   if (labels != undefined)
     mLabels = labels;
