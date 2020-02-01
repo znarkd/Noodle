@@ -495,7 +495,7 @@
         <div id="fileIcon" class="open__icon open__icon-open">
           <i class="fa fa-lock open__icon-i"></i>
           <div class="open__icon-text">Open</div>
-          <input type="file" id="fileInput" accept=".csv,.ndl" />
+          <input type="file" id="fileInput" accept=".csv,.json,.ndl" />
         </div>
         <div class="open__icon open__icon-new">
           <i class="fa fa-plus open__icon-i"></i>
@@ -1179,6 +1179,23 @@
         } catch (err) {
           alert(err);
         }
+      } else if (_filetype === "json") {
+        try {
+          var data = JSON.parse(text);
+          db1 = new Noodle(data);
+          var nf = db1.FieldCount();
+          editScreen = [];
+          editScreen[0] = {};
+          editScreen[0].name = "sample";
+          editScreen[0].columns = [];
+          for (var i = 0; i < nf; i++) {
+            editScreen[0].columns[i] = {};
+            editScreen[0].columns[i].field = db1.FieldName(i + 1);
+          }
+          showEditScreen();
+        } catch (err) {
+          alert(err);
+        }
       } else alert("Unsupported filetype");
     }
 
@@ -1277,7 +1294,9 @@
     var coslay = function() {
       var i;
 
-      if (currentScreen < 1)
+      if (editScreen === undefined)
+        return false;
+      if (editScreen.length === 0 || currentScreen < 1)
         return false;
 
       // Extract header fields
