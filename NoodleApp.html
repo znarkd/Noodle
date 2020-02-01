@@ -574,10 +574,10 @@
         <div class="item4">
           <fieldset>
             <legend>Field Attributes</legend>
-            <input type="checkbox" id="field-visible" value="visible" /> Visible<br>
-            <input type="checkbox" id="field-protected" value="protected" /> Protected<br>
-            <input type="checkbox" id="field-summary" value="summary" /> Summary<br>
-            <input type="checkbox" id="field-autodate" value="autodate" /> Auto-Date<br>
+            <input type="checkbox" id="field-number" value="number" /> Number<br/>
+            <input type="checkbox" id="field-date" value="date" /> Date<br/>
+            <input type="checkbox" id="field-summary" value="summary" /> Summary<br/>
+            <input type="checkbox" id="field-protected" value="protected" /> Protected<br/>
             <input type="checkbox" id="field-hyperlink" value="hyperlink" /> Hyperlink
             <p>
               Display Width:
@@ -718,7 +718,13 @@
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
         'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
       ];
-      var noyes = ["No", "Yes"]
+      var noyes = ["No", "Yes"];
+
+      var randomDate = function(start, end) {
+        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+      }
+      var _startdate = new Date(1970, 0, 1);
+      var _enddate = new Date();
 
       for (i = 0; i < 20000; i++) {
         d = (zData[i] = {});
@@ -730,8 +736,37 @@
           letters[Math.floor(Math.random() * 26)];
         d["RNum"] = Math.random() * 10000;
         d["Num"] = Math.floor((Math.random() * 100) + 1);
-        d["Date"] = Date.now();
+        d["Date"] = randomDate(_startdate, _enddate);
         d["Count"] = 1;
+      }
+
+      zData.keys = Object.keys(zData[0]);
+
+      // Compare function for the demo data
+      
+      zData.Compare = function(list, a, b, sortColumns) {
+        var i, fx, rc;
+        var aRow = list[a], bRow = list[b];
+        for (i=0; i < sortColumns.length; i++) {
+          fx = zData.keys[sortColumns[i]-1];
+          switch(fx) {
+            case 'Seq':
+            case 'RNum':
+            case 'Num':
+            case 'Count':
+            case 'Date':
+              rc = aRow[fx] - bRow[fx];
+              if (rc != 0)
+                return rc;
+              break;
+            default:
+              rc = aRow[fx].toString().localeCompare(bRow[fx].toString());
+              if (rc != 0)
+                return rc;
+              break;
+          }
+        }
+        return 0;
       }
 
       db1 = new Noodle(zData);
