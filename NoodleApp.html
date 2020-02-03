@@ -719,10 +719,11 @@
         'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
       ];
       var Animal = [
-        "Bird", "Cat", "Dog", "Lion","Elephant","Tiger","Bear","Snake","Monkey","Horse","Cow",
-        "Turtle","Deer","Rabbit","Giraffe","Wolf","Sheep","Pig","Rhinoceros","Fox","Fish","Squirrel",
-        "Insect","Otter","Frog","Bat","Whale","Kangaroo","Eagle","Shark","Lizard","Hippopotamus",
-        "Zebra","Antelope"
+        "Cougar", "Bird", "Cat", "Dog", "Lion", "Elephant", "Tiger", "Bear", "Snake",
+        "Monkey", "Horse", "Cow", "Turtle", "Deer", "Rabbit", "Giraffe", "Wolf", "Sheep",
+        "Pig", "Rhinoceros", "Fox", "Fish", "Squirrel", "Insect", "Otter", "Frog", "Bat",
+        "Whale", "Kangaroo", "Eagle", "Shark", "Lizard", "Hippopotamus", "Zebra",
+        "Antelope", "Beaver", "Duck"
       ];
       var Vegetable = [
         "Flower", "Cactus", "Tree", "Moss", "Algae", "Fern", "Grass"
@@ -730,7 +731,7 @@
       var Mineral = [
         "Diamond", "Quarts", "Ruby", "Gold", "Silver", "Lead", "Jade"
       ];
-      var Answer = ["No", "Maybe", "Yes", "True", "False"];
+      var Answer = ["No", "Maybe", "Yes", "True", "False", "So"];
       var Sets = [Animal, Vegetable, Mineral];
       var setNames = ["Animal", "Vegetable", "Mineral"];
 
@@ -1105,10 +1106,6 @@
       ScreenGet();
       document.getElementById("screentitle").selectedIndex = currentScreen-1;
       screenChange();
-      if (editScreen[currentScreen-1].columns != undefined) {
-        if (editScreen[currentScreen-1].columns.length > 0)
-          refreshGrid();
-      }
       document.getElementById("build-screen").classList.toggle("hide", true);
       _build_screen_selected_id = undefined;
     }
@@ -1146,17 +1143,14 @@
       }
     }
     var fileLoaded = function(text) {
-      if (_filetype === "ndl") {
-        try {
+      try {
+        if (_filetype === "ndl") {
           var ary = new NoodleDatabase(text);
           db1 = new Noodle(ary);
           editScreen = ary.getScreens();
           showEditScreen();
-        } catch (err) {
-          alert(err);
         }
-      } else if (_filetype === "csv") {
-        try {
+        else if (_filetype === "csv") {
           var sep = Roots.initCSV(text);
           var data = Roots.parseCSV(text, sep);
 
@@ -1176,11 +1170,8 @@
             editScreen[0].columns[i].field = db1.FieldName(i + 1);
           }
           showEditScreen();
-        } catch (err) {
-          alert(err);
         }
-      } else if (_filetype === "json") {
-        try {
+        else if (_filetype === "json") {
           var data = JSON.parse(text);
           db1 = new Noodle(data);
           var nf = db1.FieldCount();
@@ -1193,10 +1184,12 @@
             editScreen[0].columns[i].field = db1.FieldName(i + 1);
           }
           showEditScreen();
-        } catch (err) {
-          alert(err);
         }
-      } else alert("Unsupported filetype");
+        else alert("Unsupported filetype");
+      }
+      catch(err) {
+        alert(err);
+      }
     }
 
     var ScreenGet = function() {
@@ -1345,7 +1338,6 @@
 
       view.npage = db1.PageCount();
       view.curpag = 1;
-      //view.lineCount = db1.LineCount(1);
       return true;
     }
 
@@ -1389,6 +1381,11 @@
 
       // Load data into the newly created screen page
       FillPage();
+
+      if (editScreen[currentScreen-1].columns != undefined) {
+        if (editScreen[currentScreen-1].columns.length > 0)
+          refreshGrid();
+      }
     }
 
     var headerChange = function(fx, val) {
@@ -1689,7 +1686,6 @@
       gparms.ref = function(ref) {
         grid = ref;
       };
-
       gparms.fixedColumnCount = 1;
       gparms.fixedRowCount = 1;
       gparms.overscanColumnCount = 10;
@@ -1702,7 +1698,6 @@
       if (!refresh) {
         gparms.scrollToRow = 0;
         gparms.scrollToColumn = 0;
-        //gparms.scrollLeft = 0;
         refreshNum += 1;
       }
       gparms.refresh = refreshNum;

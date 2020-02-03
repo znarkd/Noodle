@@ -2,11 +2,11 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 1, 2020
+ * Release: February 2, 2020
  */
 
 function Noodle(dataArray, labels) {
-  var mData;
+  var mData = undefined;
   var mKeys;
   var mLabels;
   var mNumFields;
@@ -19,35 +19,45 @@ function Noodle(dataArray, labels) {
     mKeys = mData.GetFieldLabels();
   }
 
-  // Array
-  else if (Array.isArray(dataArray)) {
-    if (dataArray.length === 0)
+  // Data is an array or contains an array
+  else {
+    if (Array.isArray(dataArray))
+      mData = dataArray;
+    else {
+      for (var k in dataArray) {
+        if (Array.isArray(dataArray[k])) {
+          mData = dataArray[k];
+          break;
+        }
+      }
+    }
+    if (mData === undefined)
+      throw("Noodle: Data does not contain an array!");
+    
+    if (mData.length === 0)
       throw("Noodle can't work with empty arrays!");
 
     // Array of arrays
-    if (Array.isArray(dataArray[0]))
-      mData = dataArray;
+    if (Array.isArray(mData[0]))
+      ;
 
     // Array of regular objects
-    else if (typeof dataArray[0] === "object")
-      mData = dataArray;
+    else if (typeof mData[0] === "object")
+      ;
 
     // Array of strings or numbers
     else {
-      var n = dataArray.length;
-      mData = [];
+      var n = mData.length;
+      var zdata = [];
       for (var i=0; i < n; i++) {
-        mData[i] = [];
-        mData[i][0] = dataArray[i];
+        zdata[i] = [];
+        zdata[i][0] = mData[i];
       }
+      mData = zdata;
     }
 
     mKeys = Object.keys(mData[0]);
   }
-
-  // Invalid dataArray type
-  else 
-    throw("Noodle: invalid datatype!");
 
   if (labels != undefined)
     mLabels = labels;
