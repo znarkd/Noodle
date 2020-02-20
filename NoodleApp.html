@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
@@ -16,7 +16,7 @@
   <script src="libs/node_modules/react/umd/react.production.min.js"></script>
   <script src="libs/node_modules/react-dom/umd/react-dom.production.min.js"></script>
   <script src="libs/node_modules/react-virtualized/dist/umd/react-virtualized.js"></script>
-  <script src="libs/node_modules/react-draggable/dist/react-draggable.min.js"></script>
+  <script src="libs/node_modules/react-draggable/web/react-draggable.min.js"></script>
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
@@ -613,10 +613,10 @@
             <a id="menuCSV">Export as CSV</a>
             <h2>Data</h2>
             <a>Prune</a>
-            <a>Prune by Current Field</a>
+            <a id="menuPruneCurrent">Prune by Current Field</a>
             <a>Drop Current Field Value</a>
             <a>Invert Prune</a>
-            <a>Remove Prune</a>
+            <a id="menuRemovePrune">Remove Prune</a>
             <h2>Screen</h2>
             <a id="menuNewScreen">New Layout</a>
             <a id="menuReviseScreen" style="border-bottom: 1px solid black;">Revise Layout</a>
@@ -655,6 +655,8 @@
 
     // Data view - initialized in showEditScreen()
     var view = {};
+    var focusField;
+    var pruneSet = 0;
 
     // for Grid hacks
     var grid;
@@ -694,6 +696,8 @@
       document.getElementById("menuopen").addEventListener("click", ShowOpen);
       document.getElementById("menuXML").addEventListener("click", doReport);
       document.getElementById("menuCSV").addEventListener("click", doExport);
+      document.getElementById("menuPruneCurrent").addEventListener("click", PruneCurrent);
+      document.getElementById("menuRemovePrune").addEventListener("click", RemovePrune);
       document.getElementById("menuNewScreen").addEventListener("click", function() {
         ShowBuildScreen(true);
       });
@@ -729,7 +733,7 @@
         "Flower", "Cactus", "Tree", "Moss", "Algae", "Fern", "Grass"
       ];
       var Mineral = [
-        "Diamond", "Quarts", "Ruby", "Gold", "Silver", "Lead", "Jade"
+        "Diamond", "Quartz", "Ruby", "Gold", "Silver", "Lead", "Jade"
       ];
       var Answer = ["No", "Maybe", "Yes", "True", "False", "So"];
       var Sets = [Animal, Vegetable, Mineral];
@@ -749,7 +753,7 @@
         k = Math.floor((Math.random() * setNames.length));
         d["Item"] = Sets[k][Math.floor(Math.random() * Sets[k].length)];
         d["Category"] = setNames[k];
-        d["RNum"] = Math.random() * 10000;
+        d["RNum"] = (Math.random() * 100).toFixed(2);
         d["Num"] = Math.floor((Math.random() * 100) + 1);
         d["Date"] = randomDate(_startdate, _enddate);
         d["Count"] = 1;
@@ -757,7 +761,7 @@
 
       zData.keys = Object.keys(zData[0]);
 
-      // Compare function for the demo data
+      // Optional compare function for the demo data
       
       zData.Compare = function(list, a, b, sortColumns) {
         var i, fx, rc;
@@ -824,7 +828,7 @@
           },
           {
             "field": "RNum",
-            "width": 250
+            "width": 100
           },
           {
             "field": "Date",
@@ -859,6 +863,13 @@
             "field": "Item"
           },
           {
+            "field": "Category"
+          }
+        ]
+      };
+      editScreen[4] = {
+        "name": "Categories",
+        "columns": [{
             "field": "Category"
           }
         ]
@@ -1388,7 +1399,12 @@
       }
     }
 
-    var headerChange = function(fx, val) {
+    // Save the id of the edit field that just got the focus
+    var fieldFocus = function(e) {
+      focusField = e.target.id;
+    }
+
+    var headerChange = function(e) {
       // Ignore changes to Protected or Summary field
 
       // Add a new page?
@@ -1398,8 +1414,9 @@
         document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
       }
 
-      // Save the value to the database
-      db1.PutValue(val, view.curpag, 0, view.bfihed[fx]);
+      // Save the value to the database (id starts with "hedit")
+      var num = parseInt(e.target.id.substring(5));
+      db1.PutValue(e.target.value, view.curpag, 0, view.bfihed[num]);
     }
 
     var detailChange = function(props, val) {
@@ -1442,16 +1459,19 @@
         field_input = document.createElement("input");
         field_input.setAttribute("id", "hedit" + i);
         field_input.setAttribute("type", "text");
+        field_input.setAttribute("data-fx", i);
 
         var w = editScreen[currentScreen-1].header[i].width;
         if (w != undefined)
           field_input.setAttribute("style", "width: " + w + "px;");
 
-        s = "headerChange(" + i + ",this.value);";
-        field_input.setAttribute("onchange", s);
+        //s = "headerChange(" + i + ",this.value);";
+        //field_input.setAttribute("onchange", s);
         field.appendChild(field_input);
 
         header.appendChild(field);
+        document.getElementById("hedit" + i).addEventListener("focus", fieldFocus);
+        document.getElementById("hedit" + i).addEventListener("change", headerChange);
       }
 
       document.getElementById("header").classList.toggle("hide", false);
@@ -1471,8 +1491,10 @@
         if (page <= npage) {
           text = db1.GetValue(page, 0, bfihed[i]);
           document.getElementById(id).value = text;
-        } else
+        }
+        else {
           document.getElementById(id).value = "";
+        }
       }
       document.getElementById("pagecount").innerText = "Page " + page + " of " + npage;
     }
@@ -1525,6 +1547,11 @@
         return false;
       }
 
+      // The cell has gained focus
+      onFocus(event) {
+        focusField = event.target.id;
+      }
+
       // The cell lost focus; i.e. was blurred
       onBlur(event) {
         if (this.state.changed) {
@@ -1547,6 +1574,7 @@
           defaultValue: this.props.defaultValue,
           onChange: this.onChange.bind(this),
           onKeyPress: this.onKeyPress.bind(this),
+          onFocus: this.onFocus.bind(this),
           onBlur: this.onBlur.bind(this)
         });
       }
@@ -1639,6 +1667,7 @@
       } else
         value = db1.GetValue(view.curpag, parms.rowIndex, view.bficol[parms.columnIndex-1]);
       return React.createElement(CellInput, {
+        id: parms.rowIndex + ',' + parms.columnIndex,
         className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
         style: parms.style,
         key: 'K' + refreshNum + ',' + parms.rowIndex + ',' + parms.columnIndex,
@@ -1745,6 +1774,35 @@
 
     var doExport = function() {
       db1.WriteCsvFile("output.csv", ',');
+    }
+
+    var PruneCurrent = function() {
+      if (focusField === undefined)
+        return;
+      var num, bfi, val=[];
+      if (focusField.startsWith("hedit")) {
+        num = parseInt(focusField.substring(5));
+        bfi = view.bfihed[num];
+      }
+      else {
+        var k = focusField.split(',');
+        num = parseInt(k[1]);
+        bfi = view.bficol[num-1];
+      }
+      val[0] = document.getElementById(focusField).value;
+      if (db1.PruneBracket(pruneSet, "value", bfi, val, {"match": "keep"}))
+        return;
+      if (db1.ApplyPrune("keep"))
+        return;
+      
+      pruneSet = "keep";
+      screenChange();
+    }
+
+    var RemovePrune = function() {
+      db1.ResetPrune();
+      pruneSet = 0;
+      screenChange();
     }
   </script>
 </body>

@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 27, 2019
+ * Release: February 18, 2020
  */
 
 var Roots = Roots || {};
@@ -420,6 +420,70 @@ Roots.lgmove = function(block, cpl, nline, sfld, dfld, pad) {
   }
 }
 
+// The union of seta with setb replaces setb
+Roots.lgor = function(seta, cpl, setb) {
+  if (cpl < 0)
+    throw("Roots.lgor: cpl < 0");
+  if (!(seta instanceof Uint8Array))
+    throw "Roots.lgor: seta must be Uint8Array";
+  if (!(setb instanceof Uint8Array))
+    throw "Roots.lgor: setb must be Uint8Array";
+
+  var i;
+  for (i=0; i < cpl; i++)
+    setb[i] |= seta[i];
+
+  // Determine if the output set is empty
+  for (i=0; i < cpl; i++) {
+    if (setb[i])
+      return false;
+  }
+  return true;
+}
+
+// The intersection of seta with setb replaces setb
+Roots.lgand = function(seta, cpl, setb) {
+  if (cpl < 0)
+    throw("Roots.lgand: cpl < 0");
+  if (!(seta instanceof Uint8Array))
+    throw "Roots.lgand: seta must be Uint8Array";
+  if (!(setb instanceof Uint8Array))
+    throw "Roots.lgand: setb must be Uint8Array";
+
+  var i;
+  for (i=0; i < cpl; i++)
+    setb[i] &= seta[i];
+  
+  // Determine if the output set is empty
+  for (i=0; i < cpl; i++) {
+    if (setb[i])
+      return false;
+  }
+  return true;
+}
+
+// The members (on-bits) of seta are removed from setb.
+// The result replaces setb.
+Roots.lgexcl = function(seta, cpl, setb) {
+  if (cpl < 0)
+    throw("Roots.lgexcl: cpl < 0");
+  if (!(seta instanceof Uint8Array))
+    throw "Roots.lgexcl: seta must be Uint8Array";
+  if (!(setb instanceof Uint8Array))
+    throw "Roots.lgexcl: setb must be Uint8Array";
+
+  var i;
+  for (i=0; i < cpl; i++)
+    setb[i] &= ~(seta[i]);
+  
+  // Determine if the output set is empty
+  for (i=0; i < cpl; i++) {
+    if (setb[i])
+      return false;
+  }
+  return true;
+}
+
 // The sort order represented by sorti is converted into a list
 
 Roots.list1 = function(sorti, nline, nextLine) {
@@ -632,6 +696,21 @@ Roots.paclst = function(num, block, cpl, field, first, nextLine) {
   }
 }
 
+// For each array entry in first/nextLine, set its value to num.
+
+Roots.paclstArray = function(num, arr, first, nextLine) {
+  if (!Array.isArray(arr))
+    throw ("Roots.paclstArray: invalid array");
+
+  var line, check = nextLine.length;
+
+  for (line = first; line != 0; line = nextLine[line - 1]) {
+    if (check-- <= 0)
+      throw "Roots.paclstArray: Bad input list!";
+    arr[line - 1] = num;
+  }
+}
+
 // The floating point number, rnum, is packed into the
 // block position indicated by field
 
@@ -703,10 +782,10 @@ Roots.rgrprn = function(block, cpl, field, range, first, nextLine, match) {
   if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
     throw "Roots.rgrprn: Bad field values";
 
-  var rnum, v=[], cur_line, prev_line, last_match;
+  var rnum, v=[], cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
 
-  match[0] = next_line, prev_line = last_match = 0;
+  match[0] = next_line = prev_line = last_match = 0;
   cur_line = first[0];
   v[1] = field[1];
 
@@ -765,10 +844,10 @@ Roots.rngprn = function(block, cpl, field, range, first, nextLine, match) {
   if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
     throw "Roots.rngprn: Bad field values";
   
-  var num, v=[], cur_line, prev_line, last_match;
+  var num, v=[], cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
 
-  match[0] = next_line, prev_line = last_match = 0;
+  match[0] = next_line = prev_line = last_match = 0;
   cur_line = first[0];
   v[1] = field[1];
 
@@ -823,10 +902,10 @@ Roots.rngprnArray = function(arr, range, first, nextLine, match) {
   if (!Array.isArray(arr))
     throw ("Roots.rngprnArray: invalid array");
 
-  var cur_line, prev_line, last_match;
+  var cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
 
-  match[0] = next_line, prev_line = last_match = 0;
+  match[0] = next_line = prev_line = last_match = 0;
   cur_line = first[0];
 
   while (cur_line != 0) {
@@ -837,6 +916,60 @@ Roots.rngprnArray = function(arr, range, first, nextLine, match) {
 
     // Match
     if (arr[cur_line-1] >= range[0] && arr[cur_line-1] <= range[1]) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
+// For all lines of first/nextLine, the value stored at arr[line][col]
+// is compared with an array of values.  
+
+// Entries which match one of the values are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
+  if (!Array.isArray(arr))
+    throw ("Roots.txtprnArrayCol: invalid array");
+
+  var cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.txtprnArrayCol: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+
+    // Match
+    if (values.indexOf(arr[cur_line-1][col].toString()) >= 0) {
 
       // Disconnect current line from top of input list
       if (prev_line === 0)
@@ -922,6 +1055,9 @@ Roots.setbit = function(first, nextLine, bitString) {
   }
 }
 
+// The input list first/nextLine is split into 2 lists.
+// Members whose bitString(line) contains a "1" are moved to output sub-list match/nextLine.
+// Members whose bitString(line) contains a "0" remain in first/nextLine.
 Roots.setprn = function(bitString, first, nextLine, match) {
   if (!(bitString instanceof Uint8Array))
     throw "Roots.setprn: block must be Uint8Array";
@@ -930,7 +1066,7 @@ Roots.setprn = function(bitString, first, nextLine, match) {
   var check = nextLine.length;
   const tbits = new Uint8Array([0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01]);
 
-  match[0] = next_line, prev_line = last_match = 0;
+  match[0] = next_line = prev_line = last_match = 0;
   cur_line = first[0];
 
   while (cur_line != 0) {
@@ -1041,19 +1177,37 @@ Roots.srmoveArray = function(sorti, arr) {
   arr = output;
 }
 
+// This function can be removed once browsers support ArrayBuffer.transfer.
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/transfer
+
+// Extend an Uint8Array
+
+Roots.transfer = function(source, length) {
+  if (!(source instanceof Uint8Array))
+    throw("Roots.transfer: Source must be an instance of Uint8Array");
+  if (length <= source.length)
+    return source.slice(0, length);
+  var destView = new Uint8Array(length);
+  destView.set(source);
+  return destView;
+}
+
 // Extend an array
 
 Roots.xpand = function(arr, newCount) {
   if (!Array.isArray(arr))
     throw "Roots.xpand: invalid array";
-  if (newCount > arr.length)
-    arr.length = newCount;
+  var n = arr.length;
+  if (newCount <= n)
+    return;
+  arr.length = newCount;
+  arr.fill(0,n);
 }
 
 // Zero out an array
 
 Roots.zerout = function(arr) {
-  if (!Array.isArray(arr))
+  if (!Array.isArray(arr) && !(arr instanceof Uint8Array))
     throw "Roots.zerout: invalid array";
   arr.fill(0);
 }

@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 27, 2019
+ * Release: February 18, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -31,18 +31,6 @@ function NoodleDatabase(stream) {
     return b_str;
   }
   
-  // This function can be removed once browsers support ArrayBuffer.transfer.
-  // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/transfer
-  transfer = function(source, length) {
-    if (!(source instanceof Uint8Array))
-      throw("Source must be an instance of Uint8Array");
-    if (length <= source.length)
-      return source.slice(0, length);
-    var destView = new Uint8Array(length);
-    destView.set(source);
-    return destView;
-  }
-
   validateField = function(i) {
     if (field[i].width <= 0)
       throw("display width < 1");
@@ -225,7 +213,7 @@ function NoodleDatabase(stream) {
     // Allocate memory if needed.  Allow room for additional growth.
     var need = base.cpl * (base.nline+1);
     if (need > base.block.length)
-      base.block = transfer(base.block, base.cpl * (base.nline+200));
+      base.block = Roots.transfer(base.block, base.cpl * (base.nline+200));
     
     // Add the new line
     base.nline += 1;
@@ -311,6 +299,27 @@ function NoodleDatabase(stream) {
       default:
         throw("NoodleDatabase: Invalid data type");
     }
+  }
+
+  // Select database rows
+
+  this.PruneValues = function(pruneData) {
+    switch (pruneData.operation) {
+      case "value":
+        break;
+      case "range":
+        break;
+      case "scan":
+        break;
+      case "mask":
+        break;
+      case "compare":
+        break;
+      default:
+        alert("Can't do PruneValues.  Invalid prune operation!");
+        return -1;
+    }
+    return 0;
   }
 
   // Clean the database and its tables

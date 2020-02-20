@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 2, 2020
+ * Release: February 19, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -10,6 +10,7 @@ function Noodle(dataArray, labels) {
   var mKeys;
   var mLabels;
   var mNumFields;
+  var mType = undefined;
   
   // Setup
   
@@ -17,6 +18,7 @@ function Noodle(dataArray, labels) {
   if (typeof NoodleDatabase === "function" && dataArray instanceof NoodleDatabase) {
     mData = dataArray;
     mKeys = mData.GetFieldLabels();
+    mType = "NoodleDatabase";
   }
 
   // Data is an array or contains an array
@@ -32,18 +34,18 @@ function Noodle(dataArray, labels) {
       }
     }
     if (mData === undefined)
-      throw("Noodle: Data does not contain an array!");
+      SOS("Noodle: Data does not contain an array!");
     
     if (mData.length === 0)
-      throw("Noodle can't work with empty arrays!");
+      SOS("Noodle can't work with empty arrays!");
 
     // Array of arrays
     if (Array.isArray(mData[0]))
-      ;
+      mType = "array";
 
     // Array of regular objects
     else if (typeof mData[0] === "object")
-      ;
+      mType = "object";
 
     // Array of strings or numbers
     else {
@@ -54,6 +56,7 @@ function Noodle(dataArray, labels) {
         zdata[i][0] = mData[i];
       }
       mData = zdata;
+      mType = "array";
     }
 
     mKeys = Object.keys(mData[0]);
@@ -126,8 +129,10 @@ function Noodle(dataArray, labels) {
   var ACTIVE_ROW = 0;
   var DELETED_ROW = 1;
   var PRUNED_ROW = 2;
-  var NEW_ROW = 4;
 
+  // Prune bracket storage
+  var prune = {};
+  
   ErrorMsg = function(msg) {
     alert(msg);
   }
@@ -371,6 +376,13 @@ function Noodle(dataArray, labels) {
 
     for (i = 0; i < sortColumns.length; i++) {
       fx = mKeys[sortColumns[i] - 1];
+      if (aRow[fx] === undefined) {
+        if (bRow[fx] === undefined)
+          continue;
+        return -1;
+      }
+      if (bRow[fx] === undefined)
+        return 1;
       rc = aRow[fx].toString().localeCompare(bRow[fx].toString());
       if (rc != 0)
         return rc;
@@ -381,8 +393,8 @@ function Noodle(dataArray, labels) {
   this.GenerateView = function(compareFunc) {
     var i, v = [],
       dsum;
-    var bfi, first, drop, prev, page, ngroup = 0,
-      g, member, line;
+    var bfi, first=[], drop=[], prev, page,
+      ngroup=0, g, member, line;
     var comparer;
 
     if (!viewInitialized)
@@ -399,7 +411,7 @@ function Noodle(dataArray, labels) {
     
     // Prime a new data set if necessary
     if (rowcount === 0) {
-      mData.push({});
+      mData.push([]);
       PrimeNewLine(1);
       rowcount = 1;
     }
@@ -437,15 +449,15 @@ function Noodle(dataArray, labels) {
 
     if (viewSortFields.length > 0) {
       Roots.mrsort(mData, comparer, viewSortFields, viewPages, viewNextLine);
-      first = viewPages[0];
+      first[0] = viewPages[0];
     } 
-    else first = Roots.seqlst(rowcount, viewNextLine);
+    else first[0] = Roots.seqlst(rowcount, viewNextLine);
 
     // Drop out records which have been deleted or filtered out
-    drop = first;
+    drop[0] = first[0];
     v[0] = v[1] = ACTIVE_ROW;
-    //Roots.rangePruneArray<byte>(viewState, v, drop, viewNextLine, first);
-    if (first === 0) {
+    Roots.rngprnArray(viewState, v, drop, viewNextLine, first);
+    if (first[0] === 0) {
       ErrorMsg("Empty dataset.");
       return false;
     }
@@ -454,20 +466,21 @@ function Noodle(dataArray, labels) {
     if (viewNumHead > 0) {
       viewNumPages = Roots.colect(mData, comparer,
         viewSortFields.slice(0, viewNumHead),
-        first, viewNextLine, viewPages);
-    } else {
+        first[0], viewNextLine, viewPages);
+    } 
+    else {
       viewNumPages = 1;
-      viewPages[0] = first;
+      viewPages[0] = first[0];
     }
 
     // Build header sums
     for (g = 0; g < viewNumPages; g++) {
-      first = viewPages[g];
+      first[0] = viewPages[g];
       for (i = 0; i < viewHeaderSumFields.length; i++) {
         bfi = viewHeaderSumFields[i];
-        dsum = groupSum(bfi, first, viewNextLine);
+        dsum = groupSum(bfi, first[0], viewNextLine);
         member = viewSum[bfi - 1];
-        for (line = first; line > 0; line = viewNextLine[line - 1]) {
+        for (line = first[0]; line > 0; line = viewNextLine[line - 1]) {
           viewSums[member - 1][line - 1] = dsum;
         }
       }
@@ -478,24 +491,25 @@ function Noodle(dataArray, labels) {
     for (page = 0; page < viewNumPages; page++) {
 
       // Build the groups for current page's detail sublist
-      first = viewPages[page];
+      first[0] = viewPages[page];
       if (viewNumCol > 0) {
         ngroup = Roots.colect(mData, comparer,
           viewSortFields.slice(viewNumHead, viewSortFields.length),
-          first, viewNextLine, viewFirstDetail);
-      } else {
-        viewFirstDetail[0] = first;
+          first[0], viewNextLine, viewFirstDetail);
+      }
+      else {
+        viewFirstDetail[0] = first[0];
         ngroup = 1;
       }
 
       // Build columnar sums
       for (g = 0; g < ngroup; g++) {
-        first = viewFirstDetail[g];
+        first[0] = viewFirstDetail[g];
         for (i = 0; i < viewColumnarSumFields.length; i++) {
           bfi = viewColumnarSumFields[i];
-          dsum = groupSum(bfi, first, viewNextLine);
+          dsum = groupSum(bfi, first[0], viewNextLine);
           member = viewSum[bfi - 1];
-          for (line = first; line > 0; line = viewNextLine[line - 1]) {
+          for (line = first[0]; line > 0; line = viewNextLine[line - 1]) {
             viewSums[member - 1][line - 1] = dsum;
           }
         }
@@ -610,18 +624,19 @@ function Noodle(dataArray, labels) {
       PutLineValue("", line, i);
   }
 
-  AdjustPruneBitMatrix = function() {
-  }
-
   this.CreateNewPage = function() {
     if (!viewGenerated)
-      throw("Noodle: View was not generated!");
+      SOS("Noodle: View was not generated!");
 
     if (!viewNumHead)
-      throw("Noodle: View has no header fields.");
+      SOS("Noodle: View has no header fields.");
     
     // Add a new row to the dataset
-    var nline = mData.push({});
+    var nline;
+    if (mType === "array")
+      nline = mData.push([]);
+    else
+      nline = mData.push({});
     PrimeNewLine(nline);
     for (var i = 0; i < viewSums.length; i++)
       viewSums[i].push(0.0);
@@ -640,9 +655,9 @@ function Noodle(dataArray, labels) {
     viewPrevLine[newLine] = 0;
     viewFirstDetail[newLine] = 0;
     viewNextDetail[newLine] = 0;
-    viewState[newLine] = NEW_ROW;
+    viewState[newLine] = ACTIVE_ROW;
 
-	  AdjustPruneBitMatrix();
+	  AdjustPruneBitMatrix(nline);
 
 	  return viewNumPages;
   }
@@ -660,7 +675,6 @@ function Noodle(dataArray, labels) {
      }
   }
 
-  
   this.CreateNewLineOnPage = function(page) {
     if (!viewGenerated)
       SOS("View was not generated.");
@@ -672,7 +686,11 @@ function Noodle(dataArray, labels) {
       SOS("Page number " + page + " not in current view!");
 
     // Add a new row to the dataset
-    var newLine = mData.push({});
+    var newLine;
+    if (mType === "array")
+      newLine = mData.push([]);
+    else
+      newLine = mData.push({});
     for (var i = 0; i < viewSums.length; i++)
       viewSums[i].push(0.0);
 
@@ -684,23 +702,215 @@ function Noodle(dataArray, labels) {
     var last = firstOf(page, nlineOf(page));
 
     // Update lists
-    Roots.xpand(viewNextLine, mData.Count);
-    Roots.xpand(viewPrevLine, mData.Count);
-    Roots.xpand(viewFirstDetail, mData.Count);
-    Roots.xpand(viewNextDetail, mData.Count);
-    Roots.xpand(viewState, mData.Count);
+    Roots.xpand(viewNextLine, newLine);
+    Roots.xpand(viewPrevLine, newLine);
+    Roots.xpand(viewFirstDetail, newLine);
+    Roots.xpand(viewNextDetail, newLine);
+    Roots.xpand(viewState, newLine);
     viewNextLine[last-1] = newLine;
     viewNextLine[newLine-1] = 0;
     viewPrevLine[newLine-1] = last;
     viewFirstDetail[newLine-1] = 0;
     viewNextDetail[newLine-1] = 0;
-    viewState[newLine - 1] = NEW_ROW;
+    viewState[newLine - 1] = ACTIVE_ROW;
 
-    AdjustPruneBitMatrix();
+    AdjustPruneBitMatrix(newLine);
 
     // Update recent and return
     ++recentNline;
     return recentNline;
+  }
+
+  var PruneValues;
+  _prunevalues = function(pruneData) {
+    switch (pruneData.operation) {
+      case "value":
+        Roots.txtprnArrayCol(mData, pruneData.fx, pruneData.values,
+          pruneData.first, pruneData.nextLine, pruneData.match);
+        break;
+      case "range":
+        break;
+      case "scan":
+        break;
+      case "mask":
+        break;
+      case "compare":
+        break;
+      default:
+        alert("Can't do PruneValues.  Invalid prune operation!");
+        return -1;
+    }
+    return 0;
+  }
+  if (mData.PruneValues != undefined)
+    PruneValues = mData.PruneValues;
+  else
+    PruneValues = _prunevalues;
+
+  AdjustPruneBitMatrix = function(nline) {
+    if ("sets" in prune === false)
+      return;
+    var keys = Object.keys(prune.sets);
+    var need = Math.ceil(nline/8);
+    for (var key in keys) {
+      if (need > prune.sets[keys[key]].length)
+        prune.sets[keys[key]] = Roots.transfer(prune.sets[keys[key]], need+25);
+    }
+  }
+
+  // Create a prune set
+  this.PruneBracket = function(inputs, operation, bfi, values, outputs) {
+    var i, v=[];
+
+    // first time in?
+    if ("nline" in prune === false) {
+      prune.first = [0];
+      prune.match = [0];
+      prune.greaterthan = [0];
+      prune.lessthan = [0];
+      prune.nline = this.Nline();
+      prune.nextLine = [];
+      Roots.xpand(prune.nextLine, prune.nline);
+      prune.sets = {};
+    }
+
+    if (prune.nline != this.Nline()) {
+      alert("Data nline has changed since last prune!\nCall ResetPrune!");
+      return -1;
+    }
+
+    // Remove "Deleted" rows
+    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    v[0] = v[1] = DELETED_ROW;
+    Roots.rngprnArray(viewState, v, prune.first, prune.nextLine, prune.match);
+
+    // Select rows that match the input sets
+    if (inputs != 0) {
+      if (!Array.isArray(inputs)) {
+        if (inputs in prune.sets === false) {
+          alert("Can't do PruneBracket.  Input set doesn't exist!");
+          return -1;          
+        }
+        prune.work = prune.sets[inputs].slice();
+      }
+      else {
+        for (i=0; i < inputs.length; i++) {
+          if (inputs[i] in prune.sets === false) {
+            alert("Can't do PruneBracket.  Input set doesn't exist!");
+            return -1;          
+          }
+          if (i === 0)
+            prune.work = prune.sets.inputs[i].slice();
+          else
+            Roots.lgor(prune.sets.inputs[i], prune.work.length, prune.work);
+        }
+      }
+      Roots.setprn(prune.work, prune.first, prune.nextLine, prune.match);
+      prune.first[0] = prune.match[0];
+    }
+
+    // Perform the requested prune operation
+    prune.operation = operation;
+    prune.fx = mKeys[bfi-1];
+    prune.values = values;
+    if (PruneValues(prune) === -1)
+      return -1;
+
+    // Save the output sets as bit strings
+    if ("match" in outputs && outputs.match != 0) {
+      prune.sets[outputs.match] = new Uint8Array(Math.ceil(prune.nline/8));
+      Roots.zerout(prune.sets[outputs.match]);
+      Roots.setbit(prune.match, prune.nextLine, prune.sets[outputs.match]);
+    }
+    if ("leftover" in outputs && outputs.leftover != 0) {
+      prune.sets[outputs.leftover] = new Uint8Array(Math.ceil(prune.nline/8));
+      Roots.zerout(prune.sets[outputs.leftover]);
+      Roots.setbit(prune.first, prune.nextLine, prune.sets[outputs.leftover]);      
+    }
+    if ("greaterthan" in outputs && outputs.greaterthan != 0) {
+      prune.sets[outputs.greaterthan] = new Uint8Array(Math.ceil(prune.nline/8));
+      Roots.zerout(prune.sets[outputs.greaterthan]);
+      Roots.setbit(prune.greaterthan, prune.nextLine, prune.sets[outputs.greaterthan]);       
+    }
+    if ("lessthan" in outputs && outputs.lessthan != 0) {
+      prune.sets[outputs.lessthan] = new Uint8Array(Math.ceil(prune.nline/8));
+      Roots.zerout(prune.sets[outputs.lessthan]);
+      Roots.setbit(prune.lessthan, prune.nextLine, prune.sets[outputs.lessthan]);       
+    }
+    return 0;
+  }
+
+  // Filter the data for the specified sets.
+  // Mark non-selected rows as "Pruned" out.
+  this.ApplyPrune = function(inputs) {
+    if ("sets" in prune === false) {
+      alert("Noodle: No prune sets have been defined.");
+      return -1;
+    }
+
+    // Remove old prune flags first
+    Roots.xpand(viewState, this.Nline());
+    var val=[];
+    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    val[0] = val[1] = PRUNED_ROW;
+    Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
+    val[0] = ACTIVE_ROW;
+    Roots.paclstArray(val[0], viewState, prune.match, prune.nextLine);
+
+    // Get "Active" rows (ignore "Deleted" rows)
+    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    val[0] = val[1] = ACTIVE_ROW;
+    Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
+    prune.first[0] = prune.match[0];
+
+    // Select the requested input sets
+    if (!Array.isArray(inputs)) {
+      if (inputs in prune.sets === false) {
+        alert("Can't do ApplyPrune.  Input set doesn't exist!");
+        return -1;          
+      }
+      prune.work = prune.sets[inputs].slice();
+    }
+    else {
+      for (i=0; i < inputs.length; i++) {
+        if (inputs[i] in prune.sets === false) {
+          alert("Can't do ApplyPrune.  Input set doesn't exist!");
+          return -1;          
+        }
+        if (i === 0)
+          prune.work = prune.sets.inputs[i].slice();
+        else
+          Roots.lgor(prune.sets.inputs[i], prune.work.length, prune.work);
+      }
+    }
+    Roots.setprn(prune.work, prune.first, prune.nextLine, prune.match);
+
+    // No match
+    if (prune.match[0] === 0)
+      return -1;
+
+    // Discard non-selected rows by marking them as "Pruned"
+    val[0] = PRUNED_ROW;
+    Roots.paclstArray(val[0], viewState, prune.first, prune.nextLine);
+    return 0;
+  }
+
+  // Remove prune brackets
+  this.ResetPrune = function() {
+
+    // Ignore if no prune brackets were set up
+    if ("nline" in prune === false)
+      return;
+
+    // Set all rows to "Active"
+    var val=[];
+    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    val[0] = val[1] = PRUNED_ROW;
+    Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
+    val[0] = ACTIVE_ROW;
+    Roots.paclstArray(val[0], viewState, prune.match, prune.nextLine);
+
+    prune = {};
   }
   
   // Output encode XML special characters
@@ -760,7 +970,7 @@ function Noodle(dataArray, labels) {
       if (viewColumnarFields.length > 0) {
         xmldata += "<detail>\n";
 
-        var nline = this.LineCount(page);
+        var nline = LineCount(page);
         for (line = 1; line <= nline; line++) {
           xmldata += "<line>\n";
 
@@ -814,7 +1024,7 @@ function Noodle(dataArray, labels) {
   }
 
   this.WriteCsvFile = function(fn, separator) {
-     var i, page, line, output, sep;
+     var i, page, line, output, sep, blob;
 
     //StreamWriter writer = new StreamWriter(path);
 
@@ -835,7 +1045,7 @@ function Noodle(dataArray, labels) {
 
     // Save the current view data
     for (page = 1; page <= viewNumPages; page++) {
-      for (line = 1; line <= this.LineCount(page); line++) {
+      for (line = 1; line <= LineCount(page); line++) {
         sep = "";
         for (i = 0; i < viewHeaderFields.length; i++) {
           output += sep;
