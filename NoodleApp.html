@@ -739,11 +739,17 @@
       var Sets = [Animal, Vegetable, Mineral];
       var setNames = ["Animal", "Vegetable", "Mineral"];
 
+      //const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      //var d = new Date();
+      //var n = d.toLocaleDateString(undefined, options);
+
       var randomDate = function(start, end) {
-        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        var date1 = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        return new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
       }
-      var _startdate = new Date(new Date().getFullYear(), 0, 1);
       var _enddate = new Date();
+      var _startdate = new Date(Date.parse(_enddate));
+      _startdate.setDate(_startdate.getDate() - 30);
 
       for (i = 0; i < 20000; i++) {
         d = (zData[i] = {});
@@ -761,8 +767,7 @@
 
       zData.keys = Object.keys(zData[0]);
 
-      // Optional compare function for the demo data
-      
+      // Compare function for the demo data (optional)
       zData.Compare = function(list, a, b, sortColumns) {
         var i, fx, rc;
         var aRow = list[a], bRow = list[b];
@@ -820,10 +825,14 @@
         ],
         "columns": [{
             "field": "Item",
-            "width": 80
+            "width": 140
           },
           {
             "field": "Letter",
+            "width": 80
+          },
+          {
+            "field": "Num",
             "width": 80
           },
           {
@@ -832,7 +841,7 @@
           },
           {
             "field": "Date",
-            "width": 440
+            "width": 424
           }
         ]
       };
