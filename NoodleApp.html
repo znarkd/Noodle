@@ -614,8 +614,7 @@
             <h2>Data</h2>
             <a>Prune</a>
             <a id="menuPruneCurrent">Prune by Current Field</a>
-            <a>Drop Current Field Value</a>
-            <a>Invert Prune</a>
+            <a id="menuInvertPrune">Invert Prune</a>
             <a id="menuRemovePrune">Remove Prune</a>
             <h2>Screen</h2>
             <a id="menuNewScreen">New Layout</a>
@@ -697,6 +696,7 @@
       document.getElementById("menuXML").addEventListener("click", doReport);
       document.getElementById("menuCSV").addEventListener("click", doExport);
       document.getElementById("menuPruneCurrent").addEventListener("click", PruneCurrent);
+      document.getElementById("menuInvertPrune").addEventListener("click", InvertPrune);
       document.getElementById("menuRemovePrune").addEventListener("click", RemovePrune);
       document.getElementById("menuNewScreen").addEventListener("click", function() {
         ShowBuildScreen(true);
@@ -1803,9 +1803,19 @@
         return;
       if (db1.ApplyPrune("keep"))
         return;
-      
       pruneSet = "keep";
+      
       screenChange();
+    }
+
+    var InvertPrune = function() {
+      if (pruneSet === 0)
+        return;
+      if (db1.LineSetInvert(pruneSet))
+        return;
+      if (db1.ApplyPrune(pruneSet))
+        return;
+      screenChange();      
     }
 
     var RemovePrune = function() {
