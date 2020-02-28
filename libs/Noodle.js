@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 23, 2020
+ * Release: February 25, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -130,8 +130,9 @@ function Noodle(dataArray, labels) {
   var DELETED_ROW = 1;
   var PRUNED_ROW = 2;
 
-  // Prune bracket storage
+  // Prune bracket and locate storage
   var prune = {};
+  var locate = {};
   
   ErrorMsg = function(msg) {
     alert(msg);
@@ -895,6 +896,7 @@ function Noodle(dataArray, labels) {
     return 0;
   }
 
+  // Reverse the position of all bits in an input set
   this.LineSetInvert = function(set) {
     if ("sets" in prune === false) {
       alert("LineSetInvert: No prune sets have been defined.");
@@ -909,6 +911,84 @@ function Noodle(dataArray, labels) {
       prune.sets[set][i] = 0xFF;
     Roots.lgexcl(prune.work, prune.work.length, prune.sets[set]);
     return 0;
+  }
+
+  // Find matching lines in a set
+  this.Locate = function(locateData) {
+    if ("sets" in prune === false) {
+      alert("Locate: No prune sets have been defined.");
+      return -1;
+    }
+    if (locateData.set in prune.sets === false) {
+      alert("Can't do Locate.  Input set doesn't exist!");
+      return -1;          
+    }
+    if ("starthere" in locateData === false)
+      locateData.starthere = false;
+
+    var page, line, first, last, index, byte;
+    const tbits = new Uint8Array([0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01]);
+    
+    // Find the next matching line
+    if (locateData.operation === "Next") {
+      for (page=locateData.page; page <= viewNumPages; ++page) {
+        first = viewPages[page-1];
+        line = 0;
+        for( ; first > 0; first = viewNextLine[first-1]) {
+          if (viewNumCol)
+            ++line;
+          if (page === locateData.page) {
+            if (locateData.starthere && line < locateData.line)
+              continue;
+            if (!locateData.starthere && line <= locateData.line)
+              continue;
+          }
+          index = first-1;
+          byte = Math.floor(index/8);
+          if (prune.sets[locateData.set][byte] & tbits[index%8]) {
+            locateData.page = page;
+            locateData.line = line;
+            return 0;
+          }
+        }
+      }
+      // No match
+      return -1;
+    }
+
+    // Find the previous matching line (row)
+    else if (locateData.operation === "Previous") {
+      for (page=locateData.page; page > 0; --page) {
+        line = nlineOf(page);
+        last = firstOf(page, line);
+        if (!viewNumCol)
+          line = 0;
+        else
+          ++line;
+        for ( ; last > 0; last = viewPrevLine[last-1]) {
+          if (viewNumPages)
+            --line;
+          if (page === locateData.page) {
+            if (locateData.starthere && line > locateData.line)
+              continue;
+            if (!locateData.starthere && line >= locateData.line)
+              continue;
+          }            
+          index = last-1;
+          byte = Math.floor(index/8);
+          if (prune.sets[locateData.set][byte] & tbits[index%8]) {
+            locateData.page = page;
+            locateData.line = line;
+            return 0;
+          }
+        }
+      }
+      // No match
+      return -1;
+    }
+
+    alert("Invalid Locate operation.");
+    return -1;
   }
 
   // Remove prune brackets

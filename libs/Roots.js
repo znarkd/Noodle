@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 18, 2020
+ * Release: February 25, 2020
  */
 
 var Roots = Roots || {};
@@ -278,15 +278,15 @@ Roots.laybit = function(bitString, bpl, fields) {
     throw "Roots.laybit: bitString must be Uint8Array";
   if (bpl < 1)
     throw "Roots.laybit: bpl < 1"
+  if (bpl != Math.ceil(bpl))
+    throw "Roots.laybit: bpl not an integer"
 
   var i=1, cpl, byte, bit, LastBitWasOn=false;
   const bitmask = new Uint8Array([0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01]);
   const leftones = new Uint8Array([0xFF, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE]);
 
   // Compute cpl from the input bpl
-  cpl = bpl/8;
-  if (bpl%8)
-  ++cpl;  
+  cpl = Math.ceil(bpl/8);
 
   // Clean up the bits to the right of bpl in bitString
   byte = bpl;
