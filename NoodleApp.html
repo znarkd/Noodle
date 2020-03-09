@@ -15,9 +15,10 @@
   <link rel="stylesheet" href="libs/node_modules/font-awesome/css/font-awesome.min.css">
   <script src="libs/node_modules/react/umd/react.production.min.js"></script>
   <script src="libs/node_modules/react-dom/umd/react-dom.production.min.js"></script>
+  <script src="libs/node_modules/react-window/dist/index-prod.umd.js"></script>
   <script src="libs/node_modules/react-virtualized/dist/umd/react-virtualized.js"></script>
   <script src="libs/node_modules/react-draggable/web/react-draggable.min.js"></script>
-  <script src="https://apis.google.com/js/api.js"></script>
+  <script crossorigin src="https://apis.google.com/js/api.js"></script>
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
   <script src="libs/RootsIO.js"></script>
@@ -33,6 +34,10 @@
       position: fixed;
       scroll-behavior: smooth;
       /* font-family: Verdana,sans-serif; */
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     .hide {
@@ -290,13 +295,11 @@
       background-color: lightgray;
       width: auto;
       height: calc(100% - 120px);
-      padding-left: 2px;
-      padding-right: 2px;
     }
 
     .detail_grid {
-      border-top: 2px solid white;
-      border-bottom: 2px solid white;
+      border-top: 1px solid white;
+      border-bottom: 1px solid white;
       background-color: lightgray;
     }
 
@@ -319,8 +322,7 @@
     .oddCell {
       display: flex;
       align-items: center;
-      border-right: 1px solid #d9dddd;
-      border-bottom: 1px solid #d9dddd;
+      border: 1px solid #d9dddd;
     }
 
     .evenCell {
@@ -329,6 +331,74 @@
 
     .oddCell {
       background-color: white;
+    }
+
+    .sticky-grid__header {
+      position: sticky;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: row;
+      z-index: 3;
+    }
+
+    .sticky-grid__header__base {
+      z-index: 3;
+      background-color: #b9b7b7;
+      position: sticky;
+      left: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding-left: 4px;
+      border-right: 1px solid gray;
+      border-bottom: 1px solid gray;
+    }
+
+    .sticky-grid__header__scrollable {
+      position: absolute;
+    }
+
+    .sticky-grid__header__scrollable__column {
+      position: absolute;
+      background-color: lightgray;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding-left: 4px;
+      border-bottom: 1px solid gray;
+      border-right: 1px solid gray;
+    }
+
+    .sticky-grid__sticky-columns__container {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: lightgray;
+      width: min-content;
+    }
+
+    .sticky-grid__sticky-columns__row {
+      position: absolute;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding-left: 4px;
+      border-bottom: 1px solid gray;
+      border-right: 1px solid gray;
+    }
+
+    .sticky-grid__data__container {
+      position: absolute;
+    }
+
+    .sticky-grid__data__column {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding-left: 4px;
+      border-right: 1px solid gray;
+      border-bottom: 1px solid gray;
     }
 
     #fileInput {
@@ -395,7 +465,7 @@
     #build-screen-form {
       display: -ms-grid;
       display: grid;
-      grid-template-areas: "header header" "lists attr" "footer footer";
+      grid-template-areas: "header header""lists attr""footer footer";
       grid-gap: 0px;
       background-color: gray;
       margin: auto;
@@ -444,6 +514,7 @@
     }
 
     @media screen and (max-height: 800px) {
+
       .field_list,
       .allfields,
       .dbfields {
@@ -506,8 +577,11 @@
           <div class="open__icon-text">Demo</div>
         </div>
         <div id="gdrive" class="open__icon open__icon-storage svg-btn" data-storage="gdrive">
-          <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-              <path d="M86.657536,76.246208 L47.768064,9 L89.111168,9 L128,76.246208 L86.657536,76.246208 Z M25.010048,119.08 L102.690048,119.08 L123.36256,83.24 L45.68064,83.24 L25.010048,119.08 L25.010048,119.08 Z M38.793088,9.003712 L0,76.30496 L20.671872,112.110016 L59.464704,44.808128 L38.793088,9.003712 Z"></path>
+          <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"
+              viewBox="0 0 128 128">
+              <path
+                d="M86.657536,76.246208 L47.768064,9 L89.111168,9 L128,76.246208 L86.657536,76.246208 Z M25.010048,119.08 L102.690048,119.08 L123.36256,83.24 L45.68064,83.24 L25.010048,119.08 L25.010048,119.08 Z M38.793088,9.003712 L0,76.30496 L20.671872,112.110016 L59.464704,44.808128 L38.793088,9.003712 Z">
+              </path>
             </svg></div>
           <div class="open__icon-text">Google Drive</div>
         </div>
@@ -588,7 +662,7 @@
           <div id="move-field">
             Move Field<br>
             <button id="moveup" title="Move selected field up">
-              <i class="fa fa-arrow-up" aria-hidden="true" ></i>
+              <i class="fa fa-arrow-up" aria-hidden="true"></i>
             </button> &nbsp; &nbsp;
             <button id="movedown" title="Move selected field down">
               <i class="fa fa-arrow-down" aria-hidden="true"></i>
@@ -611,6 +685,12 @@
             <a id="menuSave">Save</a>
             <a id="menuXML">Export as XML</a>
             <a id="menuCSV">Export as CSV</a>
+            <h2>Edit</h2>
+            <!--a id="menuCut">Cut</a>
+            <a id="menuCopy">Copy</a>
+            <a id="menuPaste">Paste</a-->
+            <a id="menuFind">Find</a>
+            <a id="menuFindNext">Find Next</a>
             <h2>Data</h2>
             <a>Prune</a>
             <a id="menuPruneCurrent">Prune by Current Field</a>
@@ -656,27 +736,29 @@
     var view = {};
     var focusField;
     var pruneSet = 0;
+    var locate = {};
 
     // for Grid hacks
-    var grid;
+    var gridRef = React.createRef();
+    var keyValue = Number.MAX_SAFE_INTEGER;
     var refreshNum = 0;
     var lineCount = 0;
 
     // Set up app events
 
-    window.onbeforeunload = function(event) {
+    window.onbeforeunload = function (event) {
       event.returnValue = "Are you sure you want to leave this page?";
     }
 
-    window.onload = function() {
+    window.onload = function () {
       document.getElementById("close-button").addEventListener("click", closeOpen);
-      document.getElementById("fileIcon").addEventListener("click", function() {
+      document.getElementById("fileIcon").addEventListener("click", function () {
         document.getElementById("fileInput").click();
       });
-      document.getElementById("fileInput").addEventListener("click", function() {
+      document.getElementById("fileInput").addEventListener("click", function () {
         this.value = null;
       });
-      document.getElementById("fileInput").addEventListener("change", function() {
+      document.getElementById("fileInput").addEventListener("change", function () {
         fileSelected(this.files);
       });
       document.getElementById("demo").addEventListener("click", showDemo);
@@ -695,13 +777,15 @@
       document.getElementById("menuopen").addEventListener("click", ShowOpen);
       document.getElementById("menuXML").addEventListener("click", doReport);
       document.getElementById("menuCSV").addEventListener("click", doExport);
+      document.getElementById("menuFind").addEventListener("click", Find);
+      document.getElementById("menuFindNext").addEventListener("click", FindNext);
       document.getElementById("menuPruneCurrent").addEventListener("click", PruneCurrent);
       document.getElementById("menuInvertPrune").addEventListener("click", InvertPrune);
       document.getElementById("menuRemovePrune").addEventListener("click", RemovePrune);
-      document.getElementById("menuNewScreen").addEventListener("click", function() {
+      document.getElementById("menuNewScreen").addEventListener("click", function () {
         ShowBuildScreen(true);
       });
-      document.getElementById("menuReviseScreen").addEventListener("click", function() {
+      document.getElementById("menuReviseScreen").addEventListener("click", function () {
         ShowBuildScreen(false);
       });
       document.getElementById("menuDeleteScreen").addEventListener("click", DeleteScreen);
@@ -709,10 +793,10 @@
       document.getElementById("next_page").addEventListener("click", rightArrowClick);
       document.getElementById("screentitle").addEventListener("change", screenChange);
       document.getElementById("trash").addEventListener("click", trashClick);
-      document.getElementById("search").addEventListener("click", searchClick);
+      document.getElementById("search").addEventListener("click", Find);
     }
 
-    var showDemo = function() {
+    var showDemo = function () {
 
       // Prepare a large data set
 
@@ -743,7 +827,7 @@
       //var d = new Date();
       //var n = d.toLocaleDateString(undefined, options);
 
-      var randomDate = function(start, end) {
+      var randomDate = function (start, end) {
         var date1 = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
         return new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
       }
@@ -768,12 +852,13 @@
       zData.keys = Object.keys(zData[0]);
 
       // Compare function for the demo data (optional)
-      zData.Compare = function(list, a, b, sortColumns) {
+      zData.Compare = function (list, a, b, sortColumns) {
         var i, fx, rc;
-        var aRow = list[a], bRow = list[b];
-        for (i=0; i < sortColumns.length; i++) {
-          fx = zData.keys[sortColumns[i]-1];
-          switch(fx) {
+        var aRow = list[a],
+          bRow = list[b];
+        for (i = 0; i < sortColumns.length; i++) {
+          fx = zData.keys[sortColumns[i] - 1];
+          switch (fx) {
             case "Seq":
             case "RNum":
             case "Num":
@@ -800,49 +885,49 @@
       editScreen[0] = {
         "name": "Items by Category and Answer",
         "header": [{
-            "field": "Category"
-          },
-          {
-            "field": "Answer",
-            "width": 80
-          },
-          {
-            "field": "Count",
-            "width": 100
-          },
-          {
-            "field": "Count",
-            "width": 100
-          },
-          {
-            "field": "Count",
-            "width": 100
-          },
-          {
-            "field": "Count",
-            "width": 100
-          }
+          "field": "Category"
+        },
+        {
+          "field": "Answer",
+          "width": 80
+        },
+        {
+          "field": "Count",
+          "width": 100
+        },
+        {
+          "field": "Count",
+          "width": 100
+        },
+        {
+          "field": "Count",
+          "width": 100
+        },
+        {
+          "field": "Count",
+          "width": 100
+        }
         ],
         "columns": [{
-            "field": "Item",
-            "width": 140
-          },
-          {
-            "field": "Letter",
-            "width": 80
-          },
-          {
-            "field": "Num",
-            "width": 80
-          },
-          {
-            "field": "RNum",
-            "width": 100
-          },
-          {
-            "field": "Date",
-            "width": 424
-          }
+          "field": "Item",
+          "width": 140
+        },
+        {
+          "field": "Letter",
+          "width": 80
+        },
+        {
+          "field": "Num",
+          "width": 80
+        },
+        {
+          "field": "RNum",
+          "width": 100
+        },
+        {
+          "field": "Date",
+          "width": 424
+        }
         ]
       };
       editScreen[1] = {
@@ -859,47 +944,46 @@
       editScreen[2] = {
         "name": "All header",
         "header": [{
-            "field": "Item"
-          },
-          {
-            "field": "Category"
-          }
+          "field": "Item"
+        },
+        {
+          "field": "Category"
+        }
         ]
       };
       editScreen[3] = {
         "name": "No header",
         "columns": [{
-            "field": "Item"
-          },
-          {
-            "field": "Category"
-          }
+          "field": "Item"
+        },
+        {
+          "field": "Category"
+        }
         ]
       };
       editScreen[4] = {
         "name": "Categories",
         "columns": [{
-            "field": "Category"
-          }
-        ]
+          "field": "Category"
+        }]
       };
 
       // Show the screen of data
       showEditScreen();
     }
 
-    var dropdownClick = function() {
+    var dropdownClick = function () {
       document.getElementById("dropdown-content").classList.toggle("hide");
     }
 
     // Show the open screen
-    var ShowOpen = function() {
+    var ShowOpen = function () {
       document.getElementById("edit-screen").classList.toggle("hide", true);
       document.getElementById("close-button").classList.toggle("hide", false);
       document.getElementById("open-screen").style.display = "block";
     }
 
-    var closeOpen = function() {
+    var closeOpen = function () {
       document.getElementById("open-screen").style.display = "none";
       document.getElementById("edit-screen").classList.toggle("hide", false);
     }
@@ -908,11 +992,11 @@
     var _newscreen;
     var _build_screen_selected_id;
 
-    var copyScreen = function(scr) {
+    var copyScreen = function (scr) {
       return JSON.parse(JSON.stringify(scr));
     }
 
-    var updateScreenHeader = function() {
+    var updateScreenHeader = function () {
       var i, element, field;
       element = document.getElementById("screen-header-selected");
       RemoveChildElements("screen-header-selected");
@@ -921,7 +1005,7 @@
           field = document.createElement("div");
           field.setAttribute("id", "hed" + i);
           field.className = "field_name";
-          field.onclick = function() {
+          field.onclick = function () {
             build_screen_field_click(this.id);
           };
           field.innerText = _escreen.header[i].field;
@@ -930,7 +1014,7 @@
       }
     }
 
-    var updateScreenDetail = function() {
+    var updateScreenDetail = function () {
       var i, element, field;
       element = document.getElementById("screen-detail-selected");
       RemoveChildElements("screen-detail-selected");
@@ -939,7 +1023,7 @@
           field = document.createElement("div");
           field.setAttribute("id", "col" + i);
           field.className = "field_name";
-          field.onclick = function() {
+          field.onclick = function () {
             build_screen_field_click(this.id);
           };
           field.innerText = _escreen.columns[i].field;
@@ -948,11 +1032,11 @@
       }
     }
 
-    var addScreenHeader = function() {
+    var addScreenHeader = function () {
       document.getElementById("allfields-header").classList.toggle("hide");
     }
 
-    var newHeaderSelected = function(fieldname) {
+    var newHeaderSelected = function (fieldname) {
       var o = {};
       o.field = fieldname;
       if (_escreen.header === undefined)
@@ -963,7 +1047,7 @@
       _build_screen_selected_id = undefined;
     }
 
-    var deleteScreenHeader = function() {
+    var deleteScreenHeader = function () {
       if (_build_screen_selected_id === undefined)
         return;
       if (_build_screen_selected_id.startsWith("hed")) {
@@ -974,11 +1058,11 @@
       }
     }
 
-    var addScreenCol = function() {
+    var addScreenCol = function () {
       document.getElementById("allfields-detail").classList.toggle("hide");
     }
 
-    var newColumnSelected = function(fieldname) {
+    var newColumnSelected = function (fieldname) {
       var o = {};
       o.field = fieldname;
       if (_escreen.columns === undefined)
@@ -989,7 +1073,7 @@
       _build_screen_selected_id = undefined;
     }
 
-    var deleteScreenCol = function() {
+    var deleteScreenCol = function () {
       if (_build_screen_selected_id === undefined)
         return;
       if (_build_screen_selected_id.startsWith("col")) {
@@ -1000,26 +1084,26 @@
       }
     }
 
-    var moveFieldUp = function() {
+    var moveFieldUp = function () {
       if (_build_screen_selected_id === undefined)
         return;
       var index = parseInt(_build_screen_selected_id.substring(3));
       if (index === 0)
         return;
       if (_build_screen_selected_id.startsWith("hed")) {
-        [_escreen.header[index-1], _escreen.header[index]] = [_escreen.header[index], _escreen.header[index-1]];
+        [_escreen.header[index - 1], _escreen.header[index]] = [_escreen.header[index], _escreen.header[index - 1]];
         updateScreenHeader();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("hed" + (index-1));
+        build_screen_field_click("hed" + (index - 1));
       } else {
-        [_escreen.columns[index-1], _escreen.columns[index]] = [_escreen.columns[index], _escreen.columns[index-1]];
+        [_escreen.columns[index - 1], _escreen.columns[index]] = [_escreen.columns[index], _escreen.columns[index - 1]];
         updateScreenDetail();
         _build_screen_selected_id = undefined;
-        build_screen_field_click("col" + (index-1));
+        build_screen_field_click("col" + (index - 1));
       }
     }
 
-    var moveFieldDown = function() {
+    var moveFieldDown = function () {
       if (_build_screen_selected_id === undefined)
         return;
       var index = parseInt(_build_screen_selected_id.substring(3));
@@ -1040,11 +1124,11 @@
       }
     }
 
-    var ScreenNameChange = function(event) {
+    var ScreenNameChange = function (event) {
       _escreen.name = event.target.value;
     }
 
-    var widthChange = function(event) {
+    var widthChange = function (event) {
       if (_build_screen_selected_id === undefined)
         return false;
       var val = parseInt(event.target.value);
@@ -1059,7 +1143,7 @@
       return true;
     }
 
-    var build_screen_field_click = function(id) {
+    var build_screen_field_click = function (id) {
       if (_build_screen_selected_id != undefined)
         document.getElementById(_build_screen_selected_id).classList.toggle("highlight", false);
       document.getElementById(id).classList.toggle("highlight", true);
@@ -1078,31 +1162,31 @@
     }
 
     // Show the build screen dialog
-    var ShowBuildScreen = function(newscreen) {
+    var ShowBuildScreen = function (newscreen) {
       if (newscreen) {
         _escreen = {};
         _escreen.name = "New Screen";
         _escreen.header = [];
         _escreen.columns = [];
       } else
-        _escreen = copyScreen(editScreen[currentScreen-1]);
+        _escreen = copyScreen(editScreen[currentScreen - 1]);
       _newscreen = newscreen;
 
       document.getElementById("build-screen").classList.toggle("hide", false);
+      document.getElementById("screen-name").value = _escreen.name;
+      document.getElementById("field-width").value = "";
 
-      var element = document.getElementById("screen-name");
-      element.value = _escreen.name;
       updateScreenHeader();
       updateScreenDetail();
     }
 
     // Delete the screen which is currently selected
-    var DeleteScreen = function() {
-      if (!confirm("Delete layout: " + editScreen[currentScreen-1].name + "?"))
+    var DeleteScreen = function () {
+      if (!confirm("Delete layout: " + editScreen[currentScreen - 1].name + "?"))
         return;
 
       RemoveChildElements("screentitle");
-      editScreen.splice(currentScreen-1, 1);
+      editScreen.splice(currentScreen - 1, 1);
 
       if (editScreen.length === 0)
         ShowBuildScreen(true);
@@ -1111,37 +1195,37 @@
       if (currentScreen > editScreen.length)
         currentScreen = editScreen.length;
 
-      document.getElementById("screentitle").selectedIndex = currentScreen-1;
+      document.getElementById("screentitle").selectedIndex = currentScreen - 1;
       screenChange();
     }
 
     // Save user changes to the screen
-    var SaveScreen = function() {
+    var SaveScreen = function () {
       if (_newscreen) {
         editScreen.push(_escreen);
         currentScreen = editScreen.length;
       } else
-        editScreen[currentScreen-1] = copyScreen(_escreen);
+        editScreen[currentScreen - 1] = copyScreen(_escreen);
       RemoveChildElements("screentitle");
       ScreenGet();
-      document.getElementById("screentitle").selectedIndex = currentScreen-1;
+      document.getElementById("screentitle").selectedIndex = currentScreen - 1;
       screenChange();
       document.getElementById("build-screen").classList.toggle("hide", true);
       _build_screen_selected_id = undefined;
     }
 
     // The user canceled build screen changes
-    var HideBuildScreen = function() {
+    var HideBuildScreen = function () {
       document.getElementById("build-screen").classList.toggle("hide", true);
       _build_screen_selected_id = undefined;
     }
 
     // Read a file from Google Drive
 
-    var gdrive = function() {
+    var gdrive = function () {
       Roots.GDriveGetFile(onGDriveFileLoaded);
     }
-    var onGDriveFileLoaded = function(stream) {
+    var onGDriveFileLoaded = function (stream) {
       try {
         var ary = new NoodleDatabase(stream);
         db1 = new Noodle(ary);
@@ -1155,22 +1239,21 @@
     // Read a file from the local file system
 
     var _filetype;
-    var fileSelected = function(files) {
+    var fileSelected = function (files) {
       var file = files[0];
       if (file) {
         _filetype = file.name.substring(file.name.lastIndexOf('.') + 1, file.name.length) || file.name;
         Roots.GetLocalFile(file, fileLoaded);
       }
     }
-    var fileLoaded = function(text) {
+    var fileLoaded = function (text) {
       try {
         if (_filetype === "ndl") {
           var ary = new NoodleDatabase(text);
           db1 = new Noodle(ary);
           editScreen = ary.getScreens();
           showEditScreen();
-        }
-        else if (_filetype === "csv") {
+        } else if (_filetype === "csv") {
           var sep = Roots.initCSV(text);
           var data = Roots.parseCSV(text, sep);
 
@@ -1190,8 +1273,7 @@
             editScreen[0].columns[i].field = db1.FieldName(i + 1);
           }
           showEditScreen();
-        }
-        else if (_filetype === "json") {
+        } else if (_filetype === "json") {
           var data = JSON.parse(text);
           db1 = new Noodle(data);
           var nf = db1.FieldCount();
@@ -1204,15 +1286,13 @@
             editScreen[0].columns[i].field = db1.FieldName(i + 1);
           }
           showEditScreen();
-        }
-        else alert("Unsupported filetype");
-      }
-      catch(err) {
+        } else alert("Unsupported filetype");
+      } catch (err) {
         alert(err);
       }
     }
 
-    var ScreenGet = function() {
+    var ScreenGet = function () {
       //if (db1.GetEditScreens != undefined)
       //  editScreen = db1.GetEditScreens();
 
@@ -1220,7 +1300,7 @@
       var sel = document.getElementById("screentitle");
       var fragment = document.createDocumentFragment();
 
-      editScreen.forEach(function(scr, index) {
+      editScreen.forEach(function (scr, index) {
         var opt = document.createElement("option");
         opt.text = scr.name;
         opt.value = index;
@@ -1230,7 +1310,7 @@
       sel.appendChild(fragment);
     }
 
-    var screenChange = function() {
+    var screenChange = function () {
       currentScreen = parseInt(document.getElementById("screentitle").value) + 1;
       if (isNaN(currentScreen))
         currentScreen = 0;
@@ -1247,7 +1327,7 @@
       ShowNewScreen(SCREEN_SORT);
     }
 
-    var showEditScreen = function() {
+    var showEditScreen = function () {
       if (db1 === undefined)
         return;
 
@@ -1276,7 +1356,7 @@
         elem = document.createElement("div");
         elem.innerText = db1.FieldName(i + 1);
         elem.className = "field_name";
-        elem.onclick = function() {
+        elem.onclick = function () {
           newHeaderSelected(this.innerText);
         };
         fragment.appendChild(elem);
@@ -1292,7 +1372,7 @@
         elem = document.createElement("div");
         elem.innerText = db1.FieldName(i + 1);
         elem.className = "field_name";
-        elem.onclick = function() {
+        elem.onclick = function () {
           newColumnSelected(this.innerText);
         };
         fragment.appendChild(elem);
@@ -1304,7 +1384,7 @@
       ShowNewScreen(SCREEN_GET | SCREEN_SORT);
     }
 
-    var coslay = function() {
+    var coslay = function () {
       var i;
 
       if (editScreen === undefined)
@@ -1313,27 +1393,27 @@
         return false;
 
       // Extract header fields
-      if (editScreen[currentScreen-1].header != undefined)
-        view.hedlin = editScreen[currentScreen-1].header.length;
+      if (editScreen[currentScreen - 1].header != undefined)
+        view.hedlin = editScreen[currentScreen - 1].header.length;
       else
         view.hedlin = 0;
       for (i = 0; i < view.hedlin; i++) {
-        view.bfihed[i] = db1.BFI(editScreen[currentScreen-1].header[i].field);
+        view.bfihed[i] = db1.BFI(editScreen[currentScreen - 1].header[i].field);
       }
 
       // Extract columnar fields
-      if (editScreen[currentScreen-1].columns != undefined)
-        view.collin = editScreen[currentScreen-1].columns.length;
+      if (editScreen[currentScreen - 1].columns != undefined)
+        view.collin = editScreen[currentScreen - 1].columns.length;
       else
         view.collin = 0;
       for (i = 0; i < view.collin; i++) {
-        view.bficol[i] = db1.BFI(editScreen[currentScreen-1].columns[i].field);
+        view.bficol[i] = db1.BFI(editScreen[currentScreen - 1].columns[i].field);
       }
 
       return true;
     }
 
-    var BuildView = function() {
+    var BuildView = function () {
       var i;
 
       // Translate the screen file
@@ -1361,23 +1441,25 @@
       return true;
     }
 
-    var BuildForm = function() {
+    var BuildForm = function () {
       BuildHeader(view.bfihed, 0);
       BuildDetail(view.bficol, 0);
     }
 
-    var FillPage = function() {
+    var FillPage = function () {
 
       //	Fill the header portion
       if (view.hedlin)
         FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
 
       //	Fill the columnar portion
-      if (view.collin)
+      if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
+        gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+      }
     }
 
-    var RemoveChildElements = function(name) {
+    var RemoveChildElements = function (name) {
       var sel = document.getElementById(name);
       while (sel.firstChild !== null) {
         child = sel.firstChild;
@@ -1385,7 +1467,7 @@
       }
     }
 
-    var ShowNewScreen = function(nFlags) {
+    var ShowNewScreen = function (nFlags) {
       // Get the currently selected screen to display
       if (nFlags & SCREEN_GET)
         ScreenGet();
@@ -1402,18 +1484,18 @@
       // Load data into the newly created screen page
       FillPage();
 
-      if (editScreen[currentScreen-1].columns != undefined) {
-        if (editScreen[currentScreen-1].columns.length > 0)
+      if (editScreen[currentScreen - 1].columns != undefined) {
+        if (editScreen[currentScreen - 1].columns.length > 0)
           refreshGrid();
       }
     }
 
     // Save the id of the edit field that just got the focus
-    var fieldFocus = function(e) {
+    var fieldFocus = function (e) {
       focusField = e.target.id;
     }
 
-    var headerChange = function(e) {
+    var headerChange = function (e) {
       // Ignore changes to Protected or Summary field
 
       // Add a new page?
@@ -1428,7 +1510,7 @@
       db1.PutValue(e.target.value, view.curpag, 0, view.bfihed[num]);
     }
 
-    var detailChange = function(props, val) {
+    var detailChange = function (props, val) {
       if (props.bfi === undefined)
         return;
       var refresh = false;
@@ -1442,7 +1524,7 @@
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, true);
     }
 
-    var BuildHeader = function(bfi, attr) {
+    var BuildHeader = function (bfi, attr) {
       var i, s, field, field_input, nline = bfi.length;
       var header = document.getElementById("header");
       var detail = document.getElementById("detail");
@@ -1470,7 +1552,7 @@
         field_input.setAttribute("type", "text");
         field_input.setAttribute("data-fx", i);
 
-        var w = editScreen[currentScreen-1].header[i].width;
+        var w = editScreen[currentScreen - 1].header[i].width;
         if (w != undefined)
           field_input.setAttribute("style", "width: " + w + "px;");
 
@@ -1489,7 +1571,7 @@
       document.getElementById("pagecount").classList.toggle("hide", false);
     }
 
-    var FillHeader = function(page, npage, bfihed, hedlin) {
+    var FillHeader = function (page, npage, bfihed, hedlin) {
       if (db1 === undefined)
         return;
 
@@ -1500,25 +1582,30 @@
         if (page <= npage) {
           text = db1.GetValue(page, 0, bfihed[i]);
           document.getElementById(id).value = text;
-        }
-        else {
+        } else {
           document.getElementById(id).value = "";
         }
       }
       document.getElementById("pagecount").innerText = "Page " + page + " of " + npage;
     }
 
+    var getRowHeight = function(index) {
+      return 30;
+    }
+
     // Get the width of grid columns
-    var getColumnWidth = function(parms) {
-      if (parms.index === 0 || parms.index > view.collin)
+    var getColumnWidth = function(index) {
+      if (index >= view.collin)
         return 60;
-      var w = editScreen[currentScreen-1].columns[parms.index-1].width;
-      if (w === undefined)
-        w = 300;
+      var w = editScreen[currentScreen - 1].columns[index].width;
+      if (w === undefined) {
+        w = 140;
+        editScreen[currentScreen -1].columns[index].width = w;
+      }
       return w;
     }
 
-    var BuildDetail = function(bfi, attr) {
+    var BuildDetail = function (bfi, attr) {
       var nline = bfi.length;
       if (nline === 0) {
         document.getElementById("detail").classList.toggle("hide", true);
@@ -1589,238 +1676,503 @@
       }
     }
 
-    var refreshGrid = function() {
-      grid.recomputeGridSize({
-        columnIndex: 0,
-        rowIndex: 0
-      });
+    var refreshGrid = function () {
+      if (gridRef.current != null)
+        gridRef.current.resetAfterIndices({ columnIndex: 0, rowIndex: 0, shouldForceUpdate: true });
     }
 
-    var resizeRow = function(parms) {
+    var resizeRow = function (parms) {
       if (parms.index === 0)
         return;
-      if (parms.index > editScreen[currentScreen-1].columns.length)
+      if (parms.index > editScreen[currentScreen - 1].columns.length)
         return;
       var w = getColumnWidth(parms);
       w += parms.deltaX;
       if (w < 10)
         w = 10;
-      editScreen[currentScreen-1].columns[parms.index-1].width = w;
+      editScreen[currentScreen - 1].columns[parms.index - 1].width = w;
       refreshGrid();
-    }
-
-    var myCellRenderer = function(parms) {
-      if (db1 === undefined)
-        return;
-
-      var value;
-
-      if (parms.rowIndex === 0) {
-        if (parms.columnIndex === 0)
-          value = "+";
-        else if (parms.columnIndex > view.collin)
-          value = "*";
-        else
-          value = db1.FieldName(view.bficol[parms.columnIndex-1]);
-        return React.createElement('div', {
-            className: "labelCell",
-            style: parms.style,
-            key: 'L' + refreshNum + ',' + parms.rowIndex + ',' + parms.columnIndex
-          }, React.createElement('div', {
-            className: "labelText"
-          }, value),
-          React.createElement(window.ReactDraggable, {
-            axis: "x",
-            defaultClassName: "DragHandle",
-            defaultClassNameDragging: "DragHandleActive",
-            onDrag: function onDrag(event, _ref2) {
-              var deltaX = _ref2.deltaX;
-              return resizeRow({
-                index: parms.columnIndex,
-                deltaX: deltaX
-              });
-            },
-            position: {
-              x: 0
-            },
-            zIndex: 999
-          }, React.createElement("div", {
-            className: "column-sizer",
-            style: {
-              backgroundColor: "lightgray",
-              borderTop: "2px solid #949494",
-              borderRight: "2px solid #949494",
-              borderBottom: "2px solid #949494"
-            }
-          }))
-        );
-      }
-
-      if (parms.columnIndex === 0) {
-        value = "" + parms.rowIndex;
-        return React.createElement('div', {
-          className: "labelCell",
-          style: parms.style,
-          key: 'L' + refreshNum + ',' + parms.rowIndex + ',' + parms.columnIndex
-        }, React.createElement('div', {
-          className: "labelText"
-        }, value));
-      }
-
-      if (parms.rowIndex > lineCount)
-        value = "";
-      else if (parms.columnIndex > view.collin) {
-        value = db1.RecordCount(view.curpag, parms.rowIndex);
-        if (value === 1)
-          value = "";
-      } else
-        value = db1.GetValue(view.curpag, parms.rowIndex, view.bficol[parms.columnIndex-1]);
-      return React.createElement(CellInput, {
-        id: parms.rowIndex + ',' + parms.columnIndex,
-        className: ((parms.rowIndex % 2) === 0) ? "evenCell" : "oddCell",
-        style: parms.style,
-        key: 'K' + refreshNum + ',' + parms.rowIndex + ',' + parms.columnIndex,
-        type: "text",
-        defaultValue: value,
-        cellChange: detailChange,
-        line: parms.rowIndex,
-        bfi: view.bficol[parms.columnIndex-1]
-      });
     }
 
     // Cause the grid's current input cell to lose focus when scrolling.
     // This allows any changes to be saved.
-    var handleGridScroll = function(parms) {
+    var handleGridScroll = function (parms) {
       document.activeElement.blur();
     }
 
-    // Account for change in view by clearing style cache
-    function myCellRangeRenderer(props) {
-      props.styleCache = [];
-      return ReactVirtualized.defaultCellRangeRenderer(props);
+    // From Babel, https://babeljs.io/
+    function _extends() {
+      _extends =
+        Object.assign ||
+        function (target) {
+          for (var i = 1; i < arguments.length; i++) {
+            var source = arguments[i];
+            for (var key in source) {
+              if (Object.prototype.hasOwnProperty.call(source, key)) {
+                target[key] = source[key];
+              }
+            }
+          }
+          return target;
+        };
+      return _extends.apply(this, arguments);
     }
 
+    // react-window by Brian Vaughn, https://github.com/bvaughn/react-window
+    // StickyGrid by Andrew Storchous, https://codesandbox.io/s/react-window-sticky-grid-liwsd
+
+    const getRenderedCursor = children =>
+      children.reduce(
+        (
+          [minRow, maxRow, minColumn, maxColumn], {
+            props: {
+              columnIndex,
+              rowIndex
+            }
+          }
+        ) => {
+          if (rowIndex < minRow) {
+            minRow = rowIndex;
+          }
+
+          if (rowIndex > maxRow) {
+            maxRow = rowIndex;
+          }
+
+          if (columnIndex < minColumn) {
+            minColumn = columnIndex;
+          }
+
+          if (columnIndex > maxColumn) {
+            maxColumn = columnIndex;
+          }
+
+          return [minRow, maxRow, minColumn, maxColumn];
+        }, [
+        Number.POSITIVE_INFINITY,
+        Number.NEGATIVE_INFINITY,
+        Number.POSITIVE_INFINITY,
+        Number.NEGATIVE_INFINITY
+      ]
+      );
+
+    const headerBuilder = (minColumn, maxColumn, columnWidth, stickyHeight) => {
+      const columns = [];
+
+      let value, j = 0, left;
+      for (let i = minColumn; i <= maxColumn; i++) {
+        if (i === maxColumn)
+          value = "*";
+        else
+          value = db1.FieldName(view.bficol[i]);
+        if (i === minColumn)
+          left = 0;
+        else
+          left += columns[j++].width;
+        columns.push({
+          height: stickyHeight,
+          width: columnWidth(i),
+          left: left,
+          label: value
+        });
+      }
+
+      return columns;
+    };
+
+    const columnsBuilder = (minRow, maxRow, rowHeight, stickyWidth) => {
+      const rows = [];
+      const height = rowHeight();
+
+      for (let i = minRow; i <= maxRow; i++) {
+        rows.push({
+          height: height,
+          width: stickyWidth,
+          top: i * height,
+          label: i + 1
+        });
+      }
+
+      return rows;
+    };
+
+    const GridColumn = ({
+      rowIndex,
+      columnIndex,
+      style
+    }) => {
+      let value;
+      if (rowIndex >= lineCount)
+        value = "";
+      else if (columnIndex === view.collin) {
+        value = db1.RecordCount(view.curpag, rowIndex + 1);
+        if (value === 1)
+          value = "";
+      }
+      else
+        value = db1.GetValue(view.curpag, rowIndex + 1, view.bficol[columnIndex]);
+      
+      return React.createElement(
+        CellInput, {
+        id: (rowIndex + 1) + ',' + (columnIndex + 1),
+        className: ((rowIndex % 2) === 0) ? "sticky-grid__data__column oddCell" : "sticky-grid__data__column evenCell",
+        style: style,
+        type: "text",
+        defaultValue: value,
+        cellChange: detailChange,
+        line: rowIndex + 1,
+        bfi: view.bficol[columnIndex],
+        key: --keyValue
+      });
+    };
+
+    const StickyHeader = function ({ stickyHeight, stickyWidth, headerColumns }) {
+      const baseStyle = {
+        height: stickyHeight,
+        width: stickyWidth
+      };
+      const scrollableStyle = {
+        left: stickyWidth
+      };
+      return React.createElement(
+        "div",
+        {
+          className: "sticky-grid__header"
+        },
+        React.createElement(
+          "div",
+          {
+            className: "sticky-grid__header__base",
+            style: baseStyle
+          },
+          "+"
+        ),
+        React.createElement(
+          "div",
+          {
+            className: "sticky-grid__header__scrollable",
+            style: scrollableStyle
+          },
+          headerColumns.map(({ label, ...style }, i) =>
+            React.createElement(
+              "div",
+              {
+                className: "sticky-grid__header__scrollable__column",
+                style: style,
+                key: --keyValue
+              },
+              React.createElement(
+                "div",
+                {
+                  className: "labelText"
+                },
+                label
+              )
+            )
+          )
+        )
+      );
+    };
+
+    const StickyColumns = ({
+      rows,
+      stickyHeight,
+      stickyWidth
+    }) => {
+      const leftSideStyle = {
+        top: stickyHeight,
+        width: stickyWidth,
+        height: `calc(100% - ${stickyHeight}px)`
+      };
+
+      return React.createElement(
+        "div", {
+        className: "sticky-grid__sticky-columns__container",
+        style: leftSideStyle
+      },
+        rows.map(({
+          label,
+          ...style
+        }, i) =>
+          React.createElement(
+            "div", {
+            className: "sticky-grid__sticky-columns__row",
+            style: style,
+            key: --keyValue
+          },
+            label
+          )
+        )
+      );
+    };
+
+    const StickyGridContext = React.createContext();
+    StickyGridContext.displayName = "StickyGridContext";
+    const innerGridElementType = React.forwardRef(({
+      children,
+      ...rest
+    }, ref) =>
+      React.createElement(
+        StickyGridContext.Consumer,
+        null,
+        ({
+          stickyHeight,
+          stickyWidth,
+          headerBuilder,
+          columnsBuilder,
+          columnWidth,
+          rowHeight
+        }) => {
+          const [minRow, maxRow, minColumn, maxColumn] = getRenderedCursor(
+            children
+          ); // TODO maybe there is more elegant way to get this
+
+          const headerColumns = headerBuilder(
+            minColumn,
+            maxColumn,
+            columnWidth,
+            stickyHeight
+          );
+          const leftSideRows = columnsBuilder(
+            minRow,
+            maxRow,
+            rowHeight,
+            stickyWidth
+          );
+          const containerStyle = {
+            ...rest.style,
+            width: `${parseFloat(rest.style.width) + stickyWidth}px`,
+            height: `${parseFloat(rest.style.height) + stickyHeight}px`
+          };
+          const containerProps = {
+            ...rest,
+            style: containerStyle
+          };
+          const gridDataContainerStyle = {
+            top: stickyHeight,
+            left: stickyWidth
+          };
+          return React.createElement(
+            "div",
+            _extends({
+              className: "sticky-grid__container",
+              ref: ref
+            },
+              containerProps
+            ),
+            React.createElement(StickyHeader, {
+              headerColumns: headerColumns,
+              stickyHeight: stickyHeight,
+              stickyWidth: stickyWidth
+            }),
+            React.createElement(StickyColumns, {
+              rows: leftSideRows,
+              stickyHeight: stickyHeight,
+              stickyWidth: stickyWidth
+            }),
+            React.createElement(
+              "div", {
+              className: "sticky-grid__data__container",
+              style: gridDataContainerStyle
+            },
+              children
+            )
+          );
+        }
+      )
+    );
+
+    const StickyGrid = ({
+      stickyHeight,
+      stickyWidth,
+      columnWidth,
+      rowHeight,
+      children,
+      ...rest
+    }) =>
+      React.createElement(
+        StickyGridContext.Provider, {
+        value: {
+          stickyHeight,
+          stickyWidth,
+          columnWidth,
+          rowHeight,
+          headerBuilder,
+          columnsBuilder
+        }
+      },
+        React.createElement(
+          ReactWindow.VariableSizeGrid,
+          _extends({
+            columnWidth: columnWidth,
+            rowHeight: rowHeight,
+            innerElementType: innerGridElementType,
+            ref: gridRef
+          },
+            rest
+          ),
+          children
+        )
+      );
+
+
     // Display the columnar portion of the edit screen
-    var FillColumns = function(page, npage, bficol, collin, refresh) {
+    var FillColumns = function (page, npage, bficol, collin, refresh) {
 
       if (page > npage) {
         lineCount = 0;
-        rowcount = 2;
+        rowcount = 1;
       } else {
         lineCount = db1.LineCount(page);
-        rowcount = lineCount + 2;
+        rowcount = lineCount + 1;
       }
 
       // Grid parameters
       var gparms = {};
       gparms.className = "detail_grid";
-      gparms.cellRangeRenderer = myCellRangeRenderer;
-      gparms.cellRenderer = myCellRenderer;
       gparms.rowCount = rowcount;
-      gparms.rowHeight = 30;
-      gparms.columnCount = collin + 2;
+      gparms.rowHeight = getRowHeight;
+      gparms.columnCount = collin + 1;
       gparms.columnWidth = getColumnWidth;
       gparms.onScroll = handleGridScroll;
-      gparms.ref = function(ref) {
-        grid = ref;
-      };
-      gparms.fixedColumnCount = 1;
-      gparms.fixedRowCount = 1;
-      gparms.overscanColumnCount = 10;
-      gparms.overscanRowCount = 10;
-      gparms.enableFixedColumnScroll = true;
-      gparms.enableFixedRowScroll = true;
-      gparms.hideTopRightGridScrollbar = true;
-      gparms.hideBottomLeftGridScrollbar = true;
-
-      if (!refresh) {
-        gparms.scrollToRow = 0;
-        gparms.scrollToColumn = 0;
-        refreshNum += 1;
-      }
-      gparms.refresh = refreshNum;
+      gparms.overscanColumnCount = 2;
+      gparms.overscanRowCount = 8;
+      gparms.stickyHeight = 30;
+      gparms.stickyWidth = 60;
 
       // Display the grid
       ReactDOM.render(React.createElement(ReactVirtualized.AutoSizer, null,
-        function(params) {
+        function (params) {
           gparms.height = params.height;
           gparms.width = params.width;
-          return React.createElement(ReactVirtualized.MultiGrid, gparms);
+          return React.createElement(StickyGrid, gparms, GridColumn);
         }), document.getElementById("detail"));
     }
 
     // Previous page
-    var leftArrowClick = function() {
+    var leftArrowClick = function () {
       if (--view.curpag < 1) {
         view.curpag = 1;
         return;
       }
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
-      if (view.collin)
+      if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
+        gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+      }
     }
 
     // Next page
-    var rightArrowClick = function() {
+    var rightArrowClick = function () {
       if (++view.curpag > view.npage)
         view.curpag = view.npage + 1;
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
-      if (view.collin)
+      if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
+        gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+      }
     }
 
-    var trashClick = function() {
+    var trashClick = function () {
       alert("Trash not yet implemented");
     }
 
-    var searchClick = function() {
-      alert("Search not yet implemented");
-    }
-
-    var doReport = function() {
-      db1.XMLReport(editScreen[currentScreen-1].name);
-    }
-
-    var doExport = function() {
-      db1.WriteCsvFile("output.csv", ',');
-    }
-
-    var PruneCurrent = function() {
+    var Find = function () {
       if (focusField === undefined)
         return;
-      var num, bfi, val=[];
+
+      var num, bfi, line;
       if (focusField.startsWith("hedit")) {
         num = parseInt(focusField.substring(5));
         bfi = view.bfihed[num];
-      }
-      else {
+        line = 0;
+      } else {
         var k = focusField.split(',');
         num = parseInt(k[1]);
-        bfi = view.bficol[num-1];
+        bfi = view.bficol[num - 1];
+        line = parseInt(k[0]);
+      }
+
+      if (db1.PruneBracket(0, "value", bfi, ["A", "B"], {
+        "match": "locate"
+      }))
+        return;
+
+      locate.set = "locate";
+      locate.operation = "Next";
+      locate.starthere = true;
+      locate.page = view.curpag;
+      locate.line = line;
+      if (db1.Locate(locate)) {
+        alert("No match");
+        return;
+      }
+      gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: locate.line - 1 });
+    }
+
+    var FindNext = function () {
+      if ("set" in locate === undefined)
+        return;
+
+      // Because we are using locate.starthere
+      if (locate.operation === "Next")
+        ++locate.line;
+      else
+        --locate.line;
+
+      // Find the next matching item
+      if (db1.Locate(locate)) {
+        alert("No match");
+        return;
+      }
+    }
+
+    var doReport = function () {
+      db1.XMLReport(editScreen[currentScreen - 1].name);
+    }
+
+    var doExport = function () {
+      db1.WriteCsvFile("output.csv", ',');
+    }
+
+    var PruneCurrent = function () {
+      if (focusField === undefined)
+        return;
+      var num, bfi, val = [];
+      if (focusField.startsWith("hedit")) {
+        num = parseInt(focusField.substring(5));
+        bfi = view.bfihed[num];
+      } else {
+        var k = focusField.split(',');
+        num = parseInt(k[1]);
+        bfi = view.bficol[num - 1];
       }
       val[0] = document.getElementById(focusField).value;
-      if (db1.PruneBracket(pruneSet, "value", bfi, val, {"match": "keep"}))
+      if (db1.PruneBracket(pruneSet, "value", bfi, val, {
+        "match": "keep"
+      }))
         return;
       if (db1.ApplyPrune("keep"))
         return;
       pruneSet = "keep";
-      
+
       screenChange();
     }
 
-    var InvertPrune = function() {
+    var InvertPrune = function () {
       if (pruneSet === 0)
         return;
       if (db1.LineSetInvert(pruneSet))
         return;
       if (db1.ApplyPrune(pruneSet))
         return;
-      screenChange();      
+      screenChange();
     }
 
-    var RemovePrune = function() {
+    var RemovePrune = function () {
       db1.ResetPrune();
       pruneSet = 0;
+      locate = {};
       screenChange();
     }
   </script>

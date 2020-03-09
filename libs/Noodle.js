@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 25, 2020
+ * Release: March 6, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -11,9 +11,9 @@ function Noodle(dataArray, labels) {
   var mLabels;
   var mNumFields;
   var mType = undefined;
-  
+
   // Setup
-  
+
   // Preferred data type
   if (typeof NoodleDatabase === "function" && dataArray instanceof NoodleDatabase) {
     mData = dataArray;
@@ -35,7 +35,7 @@ function Noodle(dataArray, labels) {
     }
     if (mData === undefined)
       SOS("Noodle: Data does not contain an array!");
-    
+
     if (mData.length === 0)
       SOS("Noodle can't work with empty arrays!");
 
@@ -51,7 +51,7 @@ function Noodle(dataArray, labels) {
     else {
       var n = mData.length;
       var zdata = [];
-      for (var i=0; i < n; i++) {
+      for (var i = 0; i < n; i++) {
         zdata[i] = [];
         zdata[i][0] = mData[i];
       }
@@ -71,7 +71,7 @@ function Noodle(dataArray, labels) {
 
   // Get a data element from the data source
   var LineValue;
-  _linevalue = function(line, bfi) {
+  _linevalue = function (line, bfi) {
     var val = mData[line - 1][mKeys[bfi - 1]];
     if (val != undefined)
       return val.toString();
@@ -84,7 +84,7 @@ function Noodle(dataArray, labels) {
 
   // Put a data element into the data source
   var PutLineValue;
-  _putlinevalue = function(val, line, bfi) {
+  _putlinevalue = function (val, line, bfi) {
     mData[line - 1][mKeys[bfi - 1]] = val;
   }
   if (mData.PutLineValue != undefined)
@@ -133,42 +133,42 @@ function Noodle(dataArray, labels) {
   // Prune bracket and locate storage
   var prune = {};
   var locate = {};
-  
-  ErrorMsg = function(msg) {
+
+  ErrorMsg = function (msg) {
     alert(msg);
   }
 
-  SOS = function(msg) {
+  SOS = function (msg) {
     throw ("Noodle: " + msg);
   }
 
-  this.FieldCount = function() {
+  this.FieldCount = function () {
     return mNumFields;
   }
 
-  this.FieldName = function(bfi) {
+  this.FieldName = function (bfi) {
     if (bfi <= 0 || bfi > mNumFields)
       SOS("Invalid field index.");
     return mLabels[bfi - 1].toString();
   }
 
-  this.BFI = function(fieldName) {
+  this.BFI = function (fieldName) {
     return mLabels.indexOf(fieldName) + 1;
   }
 
-  this.Nline = function() {
+  this.Nline = function () {
     if (typeof mData.length === "function")
       return mData.length();
     else
       return mData.length;
   }
-  
-  this.GetEditScreens = function() {
+
+  this.GetEditScreens = function () {
     if (mData instanceof NoodleDatabase)
-      return 	mData.getScreens();
+      return mData.getScreens();
   }
 
-  this.InitializeView = function() {
+  this.InitializeView = function () {
     viewHeaderFields.length = 0;
     viewHeaderSumFields.length = 0;
     viewColumnarFields.length = 0;
@@ -179,7 +179,7 @@ function Noodle(dataArray, labels) {
     viewGenerated = false;
   }
 
-  this.EnterHeader = function(bfi) {
+  this.EnterHeader = function (bfi) {
     if (!viewInitialized)
       SOS("View was not initialized.");
     if (viewGenerated)
@@ -190,7 +190,7 @@ function Noodle(dataArray, labels) {
     viewType[bfi - 1] = HEADER_FIELD;
   }
 
-  this.EnterHeaderSum = function(bfi) {
+  this.EnterHeaderSum = function (bfi) {
     if (!viewInitialized)
       SOS("View was not initialized.");
     if (viewGenerated)
@@ -206,7 +206,7 @@ function Noodle(dataArray, labels) {
     viewSum[bfi - 1] = viewSums.length;
   }
 
-  this.EnterColumnar = function(bfi) {
+  this.EnterColumnar = function (bfi) {
     if (!viewInitialized)
       SOS("View was not initialized.");
     if (viewGenerated)
@@ -217,7 +217,7 @@ function Noodle(dataArray, labels) {
     viewType[bfi - 1] = COLUMNAR_FIELD;
   }
 
-  this.EnterColumnarSum = function(bfi) {
+  this.EnterColumnarSum = function (bfi) {
     if (!viewInitialized)
       SOS("View was not initialized.");
     if (viewGenerated)
@@ -233,7 +233,7 @@ function Noodle(dataArray, labels) {
     viewSum[bfi - 1] = viewSums.length;
   }
 
-  this.PageCount = function() {
+  this.PageCount = function () {
     if (!viewGenerated)
       SOS("View wasn't generated.");
     return viewNumPages;
@@ -242,7 +242,7 @@ function Noodle(dataArray, labels) {
   // Get the actual line number for a data row
   // given a book view page and line.
   //
-  firstOf = function(page, line) {
+  firstOf = function (page, line) {
     var ln;
 
     // find line the slow way
@@ -306,7 +306,7 @@ function Noodle(dataArray, labels) {
     return recentFirst;
   }
 
-  nlineOf = function(page) {
+  nlineOf = function (page) {
     var line;
     if (recentPage === page)
       return recentNline;
@@ -320,7 +320,7 @@ function Noodle(dataArray, labels) {
     return recentNline;
   }
 
-  this.LineCount = function(page) {
+  this.LineCount = function (page) {
     if (!viewGenerated)
       SOS("View wasn't generated.");
     if (page <= 0 || page > viewNumPages)
@@ -329,7 +329,7 @@ function Noodle(dataArray, labels) {
   }
 
   // Get the number of records represented by Page, Line
-  this.RecordCount = function(page, line) {
+  this.RecordCount = function (page, line) {
     var first, c, count = 1;
 
     if (!viewGenerated)
@@ -346,7 +346,7 @@ function Noodle(dataArray, labels) {
     return count;
   }
 
-  fieldAudits = function(page, line, bfi) {
+  fieldAudits = function (page, line, bfi) {
     if (!viewGenerated)
       SOS("View was not generated.");
     if (bfi < 0 || bfi > mNumFields)
@@ -359,10 +359,10 @@ function Noodle(dataArray, labels) {
       SOS("Use line = 0 for a view without columnar fields.");
   }
 
-  groupSum = function(bfi, first, nextLine) {
+  groupSum = function (bfi, first, nextLine) {
     var s, line, d, sum = 0.0;
     for (line = first; line > 0; line = nextLine[line - 1]) {
-      s = LineValue(line,bfi);
+      s = LineValue(line, bfi);
       d = parseFloat(s);
       if (d != NaN)
         sum += d;
@@ -370,9 +370,9 @@ function Noodle(dataArray, labels) {
     return sum;
   }
 
-  noodleCompare = function(list, a, b, sortColumns) {
+  noodleCompare = function (list, a, b, sortColumns) {
     var i, fx, aRow = list[a], bRow = list[b], rc;
-    
+
     // Consider switching to Intl.Collator when mobile browsers support it
 
     for (i = 0; i < sortColumns.length; i++) {
@@ -391,11 +391,11 @@ function Noodle(dataArray, labels) {
     return 0;
   }
 
-  this.GenerateView = function(compareFunc) {
+  this.GenerateView = function (compareFunc) {
     var i, v = [],
       dsum;
-    var bfi, first=[], drop=[], prev, page,
-      ngroup=0, g, member, line;
+    var bfi, first = [], drop = [], prev, page,
+      ngroup = 0, g, member, line;
     var comparer;
 
     if (!viewInitialized)
@@ -409,7 +409,7 @@ function Noodle(dataArray, labels) {
       comparer = noodleCompare;
 
     var rowcount = this.Nline();
-    
+
     // Prime a new data set if necessary
     if (rowcount === 0) {
       mData.push([]);
@@ -451,7 +451,7 @@ function Noodle(dataArray, labels) {
     if (viewSortFields.length > 0) {
       Roots.mrsort(mData, comparer, viewSortFields, viewPages, viewNextLine);
       first[0] = viewPages[0];
-    } 
+    }
     else first[0] = Roots.seqlst(rowcount, viewNextLine);
 
     // Drop out records which have been deleted or filtered out
@@ -468,7 +468,7 @@ function Noodle(dataArray, labels) {
       viewNumPages = Roots.colect(mData, comparer,
         viewSortFields.slice(0, viewNumHead),
         first[0], viewNextLine, viewPages);
-    } 
+    }
     else {
       viewNumPages = 1;
       viewPages[0] = first[0];
@@ -547,7 +547,7 @@ function Noodle(dataArray, labels) {
     return true;
   }
 
-  this.GetValue = function(page, line, bfi) {
+  this.GetValue = function (page, line, bfi) {
     var first;
 
     // Input audit
@@ -568,9 +568,8 @@ function Noodle(dataArray, labels) {
 
     // Regular field
     if ((viewType[bfi - 1] & COLUMNAR_FIELD) != 0 ||
-      (viewType[bfi - 1] & HEADER_FIELD) != 0)
-    {
-      return LineValue(first,bfi);
+      (viewType[bfi - 1] & HEADER_FIELD) != 0) {
+      return LineValue(first, bfi);
     }
 
     // Summary field
@@ -582,7 +581,7 @@ function Noodle(dataArray, labels) {
 
 
   // Set the value for column number bfi for the given page and line.
-  this.PutValue = function(val, page, line, bfi) {
+  this.PutValue = function (val, page, line, bfi) {
     var first, clone;
 
     // Input audit
@@ -617,21 +616,21 @@ function Noodle(dataArray, labels) {
         PutLineValue(val, clone, bfi);
     }
   }
-  
-  PrimeNewLine = function(line) {
+
+  PrimeNewLine = function (line) {
     if (mData instanceof NoodleDatabase)
       return;
-    for (var i=1; i <= mNumFields; i++)
+    for (var i = 1; i <= mNumFields; i++)
       PutLineValue("", line, i);
   }
 
-  this.CreateNewPage = function() {
+  this.CreateNewPage = function () {
     if (!viewGenerated)
       SOS("Noodle: View was not generated!");
 
     if (!viewNumHead)
       SOS("Noodle: View has no header fields.");
-    
+
     // Add a new row to the dataset
     var nline;
     if (mType === "array")
@@ -641,7 +640,7 @@ function Noodle(dataArray, labels) {
     PrimeNewLine(nline);
     for (var i = 0; i < viewSums.length; i++)
       viewSums[i].push(0.0);
-  
+
     //	update lists
     var newLine = nline - 1;
     Roots.xpand(viewPages, nline);
@@ -658,25 +657,25 @@ function Noodle(dataArray, labels) {
     viewNextDetail[newLine] = 0;
     viewState[newLine] = ACTIVE_ROW;
 
-	  AdjustPruneBitMatrix(nline);
+    AdjustPruneBitMatrix(nline);
 
-	  return viewNumPages;
+    return viewNumPages;
   }
 
-  CopyHeaderFields = function(newLine, parentLine) {
-     for (var i = 0; i < viewHeaderFields.length; i++) {
-        var bfi = viewHeaderFields[i];
-        if ((viewType[bfi - 1] & HEADER_FIELD) != 0) {
-           PutLineValue(LineValue(parentLine, bfi), newLine, bfi);
-        }
-        else {   // HEADER_SUM
-           var k = viewSum[bfi - 1] - 1;
-           viewSums[k][newLine - 1] = viewSums[k][parentLine - 1];
-        }
-     }
+  CopyHeaderFields = function (newLine, parentLine) {
+    for (var i = 0; i < viewHeaderFields.length; i++) {
+      var bfi = viewHeaderFields[i];
+      if ((viewType[bfi - 1] & HEADER_FIELD) != 0) {
+        PutLineValue(LineValue(parentLine, bfi), newLine, bfi);
+      }
+      else {   // HEADER_SUM
+        var k = viewSum[bfi - 1] - 1;
+        viewSums[k][newLine - 1] = viewSums[k][parentLine - 1];
+      }
+    }
   }
 
-  this.CreateNewLineOnPage = function(page) {
+  this.CreateNewLineOnPage = function (page) {
     if (!viewGenerated)
       SOS("View was not generated.");
 
@@ -697,7 +696,7 @@ function Noodle(dataArray, labels) {
 
     // Copy data to the new row
     PrimeNewLine(newLine);
-    CopyHeaderFields(newLine, viewPages[page-1]);
+    CopyHeaderFields(newLine, viewPages[page - 1]);
 
     // Find last on current page
     var last = firstOf(page, nlineOf(page));
@@ -708,11 +707,11 @@ function Noodle(dataArray, labels) {
     Roots.xpand(viewFirstDetail, newLine);
     Roots.xpand(viewNextDetail, newLine);
     Roots.xpand(viewState, newLine);
-    viewNextLine[last-1] = newLine;
-    viewNextLine[newLine-1] = 0;
-    viewPrevLine[newLine-1] = last;
-    viewFirstDetail[newLine-1] = 0;
-    viewNextDetail[newLine-1] = 0;
+    viewNextLine[last - 1] = newLine;
+    viewNextLine[newLine - 1] = 0;
+    viewPrevLine[newLine - 1] = last;
+    viewFirstDetail[newLine - 1] = 0;
+    viewNextDetail[newLine - 1] = 0;
     viewState[newLine - 1] = ACTIVE_ROW;
 
     AdjustPruneBitMatrix(newLine);
@@ -723,7 +722,7 @@ function Noodle(dataArray, labels) {
   }
 
   var PruneValues;
-  _prunevalues = function(pruneData) {
+  _prunevalues = function (pruneData) {
     switch (pruneData.operation) {
       case "value":
         Roots.txtprnArrayCol(mData, pruneData.fx, pruneData.values,
@@ -748,20 +747,20 @@ function Noodle(dataArray, labels) {
   else
     PruneValues = _prunevalues;
 
-  AdjustPruneBitMatrix = function(nline) {
+  AdjustPruneBitMatrix = function (nline) {
     if ("sets" in prune === false)
       return;
     var keys = Object.keys(prune.sets);
-    var need = Math.ceil(nline/8);
+    var need = Math.ceil(nline / 8);
     for (var key in keys) {
       if (need > prune.sets[keys[key]].length)
-        prune.sets[keys[key]] = Roots.transfer(prune.sets[keys[key]], need+25);
+        prune.sets[keys[key]] = Roots.transfer(prune.sets[keys[key]], need + 25);
     }
   }
 
   // Create a prune set
-  this.PruneBracket = function(inputs, operation, bfi, values, outputs) {
-    var i, v=[];
+  this.PruneBracket = function (inputs, operation, bfi, values, outputs) {
+    var i, v = [];
 
     // first time in?
     if ("nline" in prune === false) {
@@ -790,15 +789,15 @@ function Noodle(dataArray, labels) {
       if (!Array.isArray(inputs)) {
         if (inputs in prune.sets === false) {
           alert("Can't do PruneBracket.  Input set doesn't exist!");
-          return -1;          
+          return -1;
         }
         prune.work = prune.sets[inputs].slice();
       }
       else {
-        for (i=0; i < inputs.length; i++) {
+        for (i = 0; i < inputs.length; i++) {
           if (inputs[i] in prune.sets === false) {
             alert("Can't do PruneBracket.  Input set doesn't exist!");
-            return -1;          
+            return -1;
           }
           if (i === 0)
             prune.work = prune.sets.inputs[i].slice();
@@ -812,38 +811,38 @@ function Noodle(dataArray, labels) {
 
     // Perform the requested prune operation
     prune.operation = operation;
-    prune.fx = mKeys[bfi-1];
+    prune.fx = mKeys[bfi - 1];
     prune.values = values;
     if (PruneValues(prune) === -1)
       return -1;
 
     // Save the output sets as bit strings
     if ("match" in outputs && outputs.match != 0) {
-      prune.sets[outputs.match] = new Uint8Array(Math.ceil(prune.nline/8));
+      prune.sets[outputs.match] = new Uint8Array(Math.ceil(prune.nline / 8));
       Roots.zerout(prune.sets[outputs.match]);
       Roots.setbit(prune.match, prune.nextLine, prune.sets[outputs.match]);
     }
     if ("leftover" in outputs && outputs.leftover != 0) {
-      prune.sets[outputs.leftover] = new Uint8Array(Math.ceil(prune.nline/8));
+      prune.sets[outputs.leftover] = new Uint8Array(Math.ceil(prune.nline / 8));
       Roots.zerout(prune.sets[outputs.leftover]);
-      Roots.setbit(prune.first, prune.nextLine, prune.sets[outputs.leftover]);      
+      Roots.setbit(prune.first, prune.nextLine, prune.sets[outputs.leftover]);
     }
     if ("greaterthan" in outputs && outputs.greaterthan != 0) {
-      prune.sets[outputs.greaterthan] = new Uint8Array(Math.ceil(prune.nline/8));
+      prune.sets[outputs.greaterthan] = new Uint8Array(Math.ceil(prune.nline / 8));
       Roots.zerout(prune.sets[outputs.greaterthan]);
-      Roots.setbit(prune.greaterthan, prune.nextLine, prune.sets[outputs.greaterthan]);       
+      Roots.setbit(prune.greaterthan, prune.nextLine, prune.sets[outputs.greaterthan]);
     }
     if ("lessthan" in outputs && outputs.lessthan != 0) {
-      prune.sets[outputs.lessthan] = new Uint8Array(Math.ceil(prune.nline/8));
+      prune.sets[outputs.lessthan] = new Uint8Array(Math.ceil(prune.nline / 8));
       Roots.zerout(prune.sets[outputs.lessthan]);
-      Roots.setbit(prune.lessthan, prune.nextLine, prune.sets[outputs.lessthan]);       
+      Roots.setbit(prune.lessthan, prune.nextLine, prune.sets[outputs.lessthan]);
     }
     return 0;
   }
 
   // Filter the data for the specified sets.
   // Mark non-selected rows as "Pruned" out.
-  this.ApplyPrune = function(inputs) {
+  this.ApplyPrune = function (inputs) {
     if ("sets" in prune === false) {
       alert("Noodle: No prune sets have been defined.");
       return -1;
@@ -851,7 +850,7 @@ function Noodle(dataArray, labels) {
 
     // Remove old prune flags first
     Roots.xpand(viewState, this.Nline());
-    var val=[];
+    var val = [];
     prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
     val[0] = val[1] = PRUNED_ROW;
     Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
@@ -868,15 +867,15 @@ function Noodle(dataArray, labels) {
     if (!Array.isArray(inputs)) {
       if (inputs in prune.sets === false) {
         alert("Can't do ApplyPrune.  Input set doesn't exist!");
-        return -1;          
+        return -1;
       }
       prune.work = prune.sets[inputs].slice();
     }
     else {
-      for (i=0; i < inputs.length; i++) {
+      for (i = 0; i < inputs.length; i++) {
         if (inputs[i] in prune.sets === false) {
           alert("Can't do ApplyPrune.  Input set doesn't exist!");
-          return -1;          
+          return -1;
         }
         if (i === 0)
           prune.work = prune.sets.inputs[i].slice();
@@ -897,44 +896,44 @@ function Noodle(dataArray, labels) {
   }
 
   // Reverse the position of all bits in an input set
-  this.LineSetInvert = function(set) {
+  this.LineSetInvert = function (set) {
     if ("sets" in prune === false) {
       alert("LineSetInvert: No prune sets have been defined.");
       return -1;
     }
     if (set in prune.sets === false) {
       alert("Can't do LineSetInvert.  Input set doesn't exist!");
-      return -1;          
+      return -1;
     }
     prune.work = prune.sets[set].slice();
-    for (var i=0; i < prune.work.length; i++)
+    for (var i = 0; i < prune.work.length; i++)
       prune.sets[set][i] = 0xFF;
     Roots.lgexcl(prune.work, prune.work.length, prune.sets[set]);
     return 0;
   }
 
   // Find matching lines in a set
-  this.Locate = function(locateData) {
+  this.Locate = function (locateData) {
     if ("sets" in prune === false) {
       alert("Locate: No prune sets have been defined.");
       return -1;
     }
     if (locateData.set in prune.sets === false) {
       alert("Can't do Locate.  Input set doesn't exist!");
-      return -1;          
+      return -1;
     }
     if ("starthere" in locateData === false)
       locateData.starthere = false;
 
     var page, line, first, last, index, byte;
     const tbits = new Uint8Array([0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01]);
-    
+
     // Find the next matching line
     if (locateData.operation === "Next") {
-      for (page=locateData.page; page <= viewNumPages; ++page) {
-        first = viewPages[page-1];
+      for (page = locateData.page; page <= viewNumPages; ++page) {
+        first = viewPages[page - 1];
         line = 0;
-        for( ; first > 0; first = viewNextLine[first-1]) {
+        for (; first > 0; first = viewNextLine[first - 1]) {
           if (viewNumCol)
             ++line;
           if (page === locateData.page) {
@@ -943,9 +942,9 @@ function Noodle(dataArray, labels) {
             if (!locateData.starthere && line <= locateData.line)
               continue;
           }
-          index = first-1;
-          byte = Math.floor(index/8);
-          if (prune.sets[locateData.set][byte] & tbits[index%8]) {
+          index = first - 1;
+          byte = Math.floor(index / 8);
+          if (prune.sets[locateData.set][byte] & tbits[index % 8]) {
             locateData.page = page;
             locateData.line = line;
             return 0;
@@ -958,14 +957,14 @@ function Noodle(dataArray, labels) {
 
     // Find the previous matching line (row)
     else if (locateData.operation === "Previous") {
-      for (page=locateData.page; page > 0; --page) {
+      for (page = locateData.page; page > 0; --page) {
         line = nlineOf(page);
         last = firstOf(page, line);
         if (!viewNumCol)
           line = 0;
         else
           ++line;
-        for ( ; last > 0; last = viewPrevLine[last-1]) {
+        for (; last > 0; last = viewPrevLine[last - 1]) {
           if (viewNumPages)
             --line;
           if (page === locateData.page) {
@@ -973,10 +972,10 @@ function Noodle(dataArray, labels) {
               continue;
             if (!locateData.starthere && line >= locateData.line)
               continue;
-          }            
-          index = last-1;
-          byte = Math.floor(index/8);
-          if (prune.sets[locateData.set][byte] & tbits[index%8]) {
+          }
+          index = last - 1;
+          byte = Math.floor(index / 8);
+          if (prune.sets[locateData.set][byte] & tbits[index % 8]) {
             locateData.page = page;
             locateData.line = line;
             return 0;
@@ -992,14 +991,14 @@ function Noodle(dataArray, labels) {
   }
 
   // Remove prune brackets
-  this.ResetPrune = function() {
+  this.ResetPrune = function () {
 
     // Ignore if no prune brackets were set up
     if ("nline" in prune === false)
       return;
 
     // Set all rows to "Active"
-    var val=[];
+    var val = [];
     prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
     val[0] = val[1] = PRUNED_ROW;
     Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
@@ -1008,9 +1007,30 @@ function Noodle(dataArray, labels) {
 
     prune = {};
   }
-  
+
+  this.MoveLines = function (targetPage, AtTargetLine, sourcePage, SourceLine1, SourceLineLast) {
+  }
+
+  this.PageLineSeq = function (Page, seqBfi) {
+  }
+
+  this.OpenLine = function (Page, Line) {
+  }
+
+  this.DeleteLine = function (onPage, LineNumber) {
+  }
+
+  this.DeletePage = function (PageNumber) {
+  }
+
+  this.CopyLine = function (Page, Line) {
+  }
+
+  this.CopyPage = function (Page) {
+  }
+
   // Output encode XML special characters
-  encodeXML = function(s) {
+  encodeXML = function (s) {
     return (s
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -1019,23 +1039,23 @@ function Noodle(dataArray, labels) {
       .replace(/"/g, '&quot;')
     );
   }
-	
+
   // Create an XML file the represents the current screen's data view
-  this.XMLReport = function(title, fn, page1) {
+  this.XMLReport = function (title, fn, page1) {
     var i, page, start, end, line, bfi;
     var xmldata, blob, alink;
 
     if (fn === undefined)
       fn = "report.xml";
-    
+
     start = end = page1;
     if (start === undefined) {
       start = 1;
       end = viewNumPages;
     }
-    
+
     // Create the XML data
-    
+
     xmldata = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     xmldata += "<?xml-stylesheet type=\"text/xsl\" href=\"report.xsl\"?>\n";
     var d = new Date();
@@ -1054,7 +1074,7 @@ function Noodle(dataArray, labels) {
         for (i = 0; i < viewHeaderFields.length; i++) {
           bfi = viewHeaderFields[i];
           xmldata += "<field name=\"";
-          xmldata += encodeXML(mLabels[bfi-1]);
+          xmldata += encodeXML(mLabels[bfi - 1]);
           xmldata += "\">";
           xmldata += encodeXML(this.GetValue(page, 0, bfi));
           xmldata += "</field>\n";
@@ -1088,13 +1108,13 @@ function Noodle(dataArray, labels) {
     }
 
     xmldata += "</report>\n";
-    
+
     // Create a temporary link to download the data
-    
+
     blob = new Blob([xmldata], {
-      "type": "application/xml; charset=utf8;"			
+      "type": "application/xml; charset=utf8;"
     });
-    
+
     alink = document.createElement('a');
     document.body.appendChild(alink);
     alink.setAttribute("href", window.URL.createObjectURL(blob));
@@ -1103,24 +1123,24 @@ function Noodle(dataArray, labels) {
     alink.remove();
   }
 
-  GetCsvWritableValue = function(s1) {
+  GetCsvWritableValue = function (s1) {
     if (s1 === null)
       return "";
 
     // Replace " with ""
     var s2 = s1.replace(/"/g, '""');
-    
+
     // Add quotes if the value starts with whitespace
     // or if the value contains , " \r \n
     var pattern = /(^\s|.*[,"\r\n])/;
     if (pattern.test(s2))
       return '"' + s2 + '"';
-    
+
     return s2;
   }
 
-  this.WriteCsvFile = function(fn, separator) {
-     var i, page, line, output, sep, blob;
+  this.WriteCsvFile = function (fn, separator) {
+    var i, page, line, output, sep, blob;
 
     //StreamWriter writer = new StreamWriter(path);
 
@@ -1129,7 +1149,7 @@ function Noodle(dataArray, labels) {
     sep = "";
     for (i = 0; i < viewHeaderFields.length; i++) {
       output += sep;
-      output += GetCsvWritableValue(mLabels[viewHeaderFields[i]-1]);
+      output += GetCsvWritableValue(mLabels[viewHeaderFields[i] - 1]);
       sep = separator;
     }
     for (i = 0; i < viewColumnarFields.length; i++) {
@@ -1145,7 +1165,7 @@ function Noodle(dataArray, labels) {
         sep = "";
         for (i = 0; i < viewHeaderFields.length; i++) {
           output += sep;
-          output += GetCsvWritableValue(this.GetValue(page,0,viewHeaderFields[i]));
+          output += GetCsvWritableValue(this.GetValue(page, 0, viewHeaderFields[i]));
           sep = separator;
         }
         for (i = 0; i < viewColumnarFields.length; i++) {
@@ -1156,13 +1176,13 @@ function Noodle(dataArray, labels) {
         output += "\n";
       }
     }
-    
+
     // Create a temporary link to download the data
-    
+
     blob = new Blob([output], {
-      "type": "data/text; charset=utf8;"			
+      "type": "data/text; charset=utf8;"
     });
-    
+
     alink = document.createElement('a');
     document.body.appendChild(alink);
     alink.setAttribute("href", window.URL.createObjectURL(blob));
@@ -1173,13 +1193,13 @@ function Noodle(dataArray, labels) {
 
   // ----- Slickgrid interface methods ------------------
 
-  this.getLength = function() {
+  this.getLength = function () {
     if (recentPage === 0)
       return 0;
     return nlineOf(recentPage);
   }
 
-  this.getItem = function(row) {
+  this.getItem = function (row) {
     var arr = [];
     var line = row + 1;
     var nf = viewColumnarFields.length;
