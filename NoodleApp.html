@@ -740,8 +740,7 @@
 
     // for Grid hacks
     var gridRef = React.createRef();
-    var keyValue = Number.MAX_SAFE_INTEGER;
-    var refreshNum = 0;
+    var keyValue = 0;
     var lineCount = 0;
 
     // Set up app events
@@ -1822,7 +1821,7 @@
         cellChange: detailChange,
         line: rowIndex + 1,
         bfi: view.bficol[columnIndex],
-        key: --keyValue
+        key: keyValue++
       });
     };
 
@@ -1859,7 +1858,7 @@
               {
                 className: "sticky-grid__header__scrollable__column",
                 style: style,
-                key: --keyValue
+                key: keyValue++
               },
               React.createElement(
                 "div",
@@ -1898,7 +1897,7 @@
             "div", {
             className: "sticky-grid__sticky-columns__row",
             style: style,
-            key: --keyValue
+            key: keyValue++
           },
             label
           )
