@@ -743,9 +743,14 @@
 
     // for Grid hacks
     var gridRef = React.createRef();
+    
+    // Incremented each time the screen or page number changes
     var keyValue = 0;
-    var getKeyValue = function(parms) {
-      return ++keyValue;
+
+    // Keys need to be unique, but not too "unique."
+    // Don't want unneccsary re-renders in React.
+    var getKeyValue = function (parms) {
+      return keyValue + "," + parms.rowIndex + "," + parms.columnIndex;
     }
     var lineCount = 0;
 
@@ -1473,6 +1478,7 @@
     }
 
     var ShowNewScreen = function (nFlags) {
+      
       // Get the currently selected screen to display
       if (nFlags & SCREEN_GET)
         ScreenGet();
@@ -1594,18 +1600,18 @@
       document.getElementById("pagecount").innerText = "Page " + page + " of " + npage;
     }
 
-    var getRowHeight = function(index) {
+    var getRowHeight = function (index) {
       return 30;
     }
 
     // Get the width of grid columns
-    var getColumnWidth = function(index) {
+    var getColumnWidth = function (index) {
       if (index >= view.collin)
         return 60;
       var w = editScreen[currentScreen - 1].columns[index].width;
       if (w === undefined) {
         w = 140;
-        editScreen[currentScreen -1].columns[index].width = w;
+        editScreen[currentScreen - 1].columns[index].width = w;
       }
       return w;
     }
@@ -1629,6 +1635,7 @@
       constructor(props) {
         super(props);
         this.state = {
+          val: props.defaultValue,
           changed: false
         };
       }
@@ -1636,6 +1643,7 @@
       // The cell value has changed
       onChange(event) {
         this.setState({
+          val: event.target.value,
           changed: true
         });
       }
@@ -1665,6 +1673,7 @@
           });
         }
       }
+
 
       render() {
         return React.createElement("input", {
@@ -1763,10 +1772,10 @@
 
     const headerBuilder = (minColumn, maxColumn, columnWidth, stickyHeight) => {
       const columns = [];
-      let left=[0], pos=0, value;
-            
-      for (let c=1; c <= maxColumn; c++) {
-        pos += columnWidth(c-1);
+      let left = [0], pos = 0, value;
+
+      for (let c = 1; c <= maxColumn; c++) {
+        pos += columnWidth(c - 1);
         left.push(pos);
       }
 
@@ -1788,10 +1797,10 @@
 
     const columnsBuilder = (minRow, maxRow, rowHeight, stickyWidth) => {
       const rows = [];
-      let top=[0], pos=0;
+      let top = [0], pos = 0;
 
-      for (let c=1; c <= maxRow; c++) {
-        pos += rowHeight(c-1);
+      for (let c = 1; c <= maxRow; c++) {
+        pos += rowHeight(c - 1);
         top.push(pos);
       }
 
@@ -1822,7 +1831,7 @@
       }
       else
         value = db1.GetValue(view.curpag, rowIndex + 1, view.bficol[columnIndex]);
-      
+
       return React.createElement(
         CellInput, {
         id: (rowIndex + 1) + ',' + (columnIndex + 1),
@@ -1869,7 +1878,7 @@
               {
                 className: "sticky-grid__header__scrollable__column",
                 style: style,
-                key: ++keyValue
+                key: i
               },
               React.createElement(
                 "div",
@@ -1908,7 +1917,7 @@
             "div", {
             className: "sticky-grid__sticky-columns__row",
             style: style,
-            key: ++keyValue
+            key: i
           },
             label
           )
@@ -2038,6 +2047,8 @@
         rowcount = lineCount + 1;
       }
 
+      ++keyValue;
+
       // Grid parameters
       var gparms = {};
       gparms.className = "detail_grid";
@@ -2050,6 +2061,9 @@
       gparms.overscanRowCount = 8;
       gparms.stickyHeight = 30;
       gparms.stickyWidth = 60;
+
+      // Let React know that the page changed
+      gparms.number = keyValue;
 
       // Display the grid
       ReactDOM.render(React.createElement(ReactVirtualized.AutoSizer, null,
