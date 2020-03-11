@@ -744,6 +744,9 @@
     // for Grid hacks
     var gridRef = React.createRef();
     var keyValue = 0;
+    var getKeyValue = function(parms) {
+      return ++keyValue;
+    }
     var lineCount = 0;
 
     // Set up app events
@@ -1760,21 +1763,22 @@
 
     const headerBuilder = (minColumn, maxColumn, columnWidth, stickyHeight) => {
       const columns = [];
+      let left=[0], pos=0, value;
+            
+      for (let c=1; c <= maxColumn; c++) {
+        pos += columnWidth(c-1);
+        left.push(pos);
+      }
 
-      let value, j = 0, left;
       for (let i = minColumn; i <= maxColumn; i++) {
         if (i === maxColumn)
           value = "*";
         else
           value = db1.FieldName(view.bficol[i]);
-        if (i === minColumn)
-          left = 0;
-        else
-          left += columns[j++].width;
         columns.push({
           height: stickyHeight,
           width: columnWidth(i),
-          left: left,
+          left: left[i],
           label: value
         });
       }
@@ -1784,13 +1788,18 @@
 
     const columnsBuilder = (minRow, maxRow, rowHeight, stickyWidth) => {
       const rows = [];
-      const height = rowHeight();
+      let top=[0], pos=0;
+
+      for (let c=1; c <= maxRow; c++) {
+        pos += rowHeight(c-1);
+        top.push(pos);
+      }
 
       for (let i = minRow; i <= maxRow; i++) {
         rows.push({
-          height: height,
+          height: rowHeight(i),
           width: stickyWidth,
-          top: i * height,
+          top: top[i],
           label: i + 1
         });
       }
@@ -1824,7 +1833,6 @@
         cellChange: detailChange,
         line: rowIndex + 1,
         bfi: view.bficol[columnIndex],
-        key: keyValue++
       });
     };
 
@@ -1861,7 +1869,7 @@
               {
                 className: "sticky-grid__header__scrollable__column",
                 style: style,
-                key: keyValue++
+                key: ++keyValue
               },
               React.createElement(
                 "div",
@@ -1900,7 +1908,7 @@
             "div", {
             className: "sticky-grid__sticky-columns__row",
             style: style,
-            key: keyValue++
+            key: ++keyValue
           },
             label
           )
@@ -2009,7 +2017,8 @@
             columnWidth: columnWidth,
             rowHeight: rowHeight,
             innerElementType: innerGridElementType,
-            ref: gridRef
+            ref: gridRef,
+            itemKey: getKeyValue
           },
             rest
           ),
