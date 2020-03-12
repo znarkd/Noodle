@@ -1636,7 +1636,6 @@
       constructor(props) {
         super(props);
         this.state = {
-          val: props.defaultValue,
           changed: false
         };
       }
@@ -1644,7 +1643,6 @@
       // The cell value has changed
       onChange(event) {
         this.setState({
-          val: event.target.value,
           changed: true
         });
       }
