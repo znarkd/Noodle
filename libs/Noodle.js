@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: March 6, 2020
+ * Release: March 14, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -237,6 +237,28 @@ function Noodle(dataArray, labels) {
     if (!viewGenerated)
       SOS("View wasn't generated.");
     return viewNumPages;
+  }
+
+  // Make room for a new dataset row
+  MakeRoomForNewEntry = function() {
+
+    // Add a new row to the dataset
+    var nline;
+    if (mType === "array")
+      nline = mData.push([]);
+    else
+      nline = mData.push({});
+
+    // Add space to sums
+    for (var i = 0; i < viewSums.length; i++)
+      viewSums[i].push(0.0);
+ 
+    // Keep list arrays in similar dimensions
+    Roots.xpand(viewFirstDetail, nline);
+    Roots.xpand(viewNextDetail, nline);
+    Roots.xpand(viewNextLine, nline);
+    Roots.xpand(viewPrevLine, nline);
+    Roots.xpand(viewState, nline);
   }
 
   // Get the actual line number for a data row
@@ -1009,24 +1031,424 @@ function Noodle(dataArray, labels) {
   }
 
   this.MoveLines = function (targetPage, AtTargetLine, sourcePage, SourceLine1, SourceLineLast) {
+    var nlineTarget, nlineSource, member, clone, headerLine;
+    var first, last, insert, stayTop, stayBottom;
+    var insertTop, insertBottom, sourceL1, sourceLn;
+    var append = false;
+
+    sourceL1 = SourceLine1;
+    if (sourceL1 > SourceLineLast)
+      sourceL1 = SourceLineLast;
+
+    sourceLn = SourceLine1;
+    if (sourceLn < SourceLineLast)
+      sourceLn = SourceLineLast;
+
+    if (mData === undefined)
+      SOS("No data loaded!");
+    if (!viewGenerated)
+      SOS("View was not generated!\nPlease: initialize and define a view first!");
+    if (targetPage < 0 || targetPage > viewNumPages || sourcePage < 0 || sourcePage > viewNumPages)
+      SOS("Target and/or source page number outside valid range 1 - " + viewNumPages);
+    if (viewNumCol === 0 || viewNumCol === viewColumnarSumFields.length)
+      SOS("Can't move lines for pure HeaderPage view!");
+
+    // Get line counts
+    nlineTarget = this.LineCount(targetPage);
+    nlineSource = this.LineCount(sourcePage);
+    if (nlineSource < 0 || nlineTarget < 0)
+      return -1;
+
+    // Handle the append case which happens when line goes to bottom of target
+    if (nlineTarget + 1 === AtTargetLine) {
+      append = true;
+      AtTargetLine--;
+    }
+
+    if (nlineTarget < AtTargetLine)
+      SOS("Target line " + AtTargetLine + " beyond (nline+1) of target pages nline: " + nlineTarget);
+
+    if (nlineSource < sourceL1 || nlineSource < sourceLn)
+      SOS("First and/or last Source-line not on Source Page!");
+
+
+    // Process the call
+
+    // Isolate the first and last source lines.
+
+    // find first source line
+    first = firstOf(sourcePage, sourceL1);
+
+    // find last source line
+    last = firstOf(sourcePage, sourceLn);
+
+    if (viewPrevLine[first - 1] === 0 && viewNextLine[last - 1] === 0)
+      SOS("Can't move all lines from a page!");
+
+    // Find the target spot
+    insert = firstOf(targetPage, AtTargetLine);
+
+    // Remove the source lines from view and keep them to be moved
+
+    stayTop = viewPrevLine[first - 1];
+    stayBottom = viewNextLine[last - 1];
+
+    // Remove from top of page
+    if (stayTop === 0) {
+      viewPages[sourcePage - 1] = stayBottom;
+      viewPrevLine[stayBottom - 1] = 0;
+    }
+    // Remove from within
+    else {
+      viewNextLine[stayTop - 1] = stayBottom;
+      if (stayBottom != 0)
+        viewPrevLine[stayBottom - 1] = stayTop;
+    }
+
+    // Clean up the disconnected bunch
+    viewNextLine[last - 1] = viewPrevLine[first - 1] = 0;
+
+    // Propagate header values if needed
+
+    if (sourcePage != targetPage) {
+      headerLine = viewPages[targetPage - 1];
+      member = first;
+      while (member != 0) {
+        CopyHeaderFields(member, headerLine);
+        clone = viewNextDetail[member - 1];
+        while (clone != 0) {
+          CopyHeaderFields(clone, headerLine);
+          clone = viewNextLine[clone - 1];
+        }
+        member = viewNextLine[member - 1];
+      }
+    }
+
+    // Append source to bottom of target line;  N.B. input was on phantom last+1
+
+    if (append) {
+      insertTop = insert;
+      insertBottom = 0;
+      viewPrevLine[first - 1] = insertTop;
+      viewNextLine[insertTop - 1] = first;
+      viewNextLine[last - 1] = insertBottom;
+    }
+
+    // Insert lines at target line
+
+    else {
+      insertTop = viewPrevLine[insert - 1];
+      insertBottom = insert;
+
+      // On top of page
+      if (insertTop === 0) {
+        viewNextLine[last - 1] = insertBottom;
+        viewPrevLine[insertBottom - 1] = last;
+        viewPages[targetPage - 1] = first;
+      }
+      // Within the body
+      else {
+        viewPrevLine[first - 1] = insertTop;
+        viewNextLine[insertTop - 1] = first;
+        viewNextLine[last - 1] = insertBottom;
+        viewPrevLine[insertBottom - 1] = last;
+      }
+    }
+
+    // Update recent
+    recentFirst = recentLine = recentNline = recentPage = 0;
+    return 0;
   }
 
-  this.PageLineSeq = function (Page, seqBfi) {
+  this.PageLineSeq = function (page, bfi) {
+    var seq = 0, nline, first, line, clone, val;
+
+    fieldAudits(page, 1, bfi);
+    nline = nlineOf(page);
+
+    //	Store the sequence numbers
+    for (line = 1; line <= nline; line++) {
+      ++seq;
+      val = seq.toString();
+      first = firstOf(page, line);
+      PutLineValue(val, first, bfi);
+      for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
+        PutLineValue(val, clone, bfi);
+    }
   }
 
-  this.OpenLine = function (Page, Line) {
+  this.OpenLine = function (page, line) {
+    if (line <= 0 || line > this.LineCount(page))
+      SOS("Invalid line number specified!");
+
+    var appendedLine = this.CreateNewLineOnPage(page);
+    if (appendedLine === 0)
+      return false;
+
+    return this.MoveLines(page, line, page, appendedLine, appendedLine);
   }
 
   this.DeleteLine = function (onPage, LineNumber) {
+    var first, clone, nline;
+    var stayTop, stayBottom;
+
+    if (mData === undefined)
+      SOS("No data loaded!");
+    if (!viewGenerated)
+      SOS("View was not generated!\nPlease: initialize and define a view first!");
+    if (onPage <= 0 || onPage > viewNumPages)
+      SOS("Page Number outside valid range 1 - " + viewNumPages);
+    if (viewNumCol === 0)
+      SOS("Can't delete line from a pure HeaderPage view!");
+
+    nline = this.LineCount(onPage);
+    if (nline === 1)
+      SOS("Can't delete only remaining line from a page!");
+
+    if (LineNumber <= 0 || LineNumber > nline)
+      SOS("Page " + onPage + " does not have line number " + LineNumber);
+
+    //	Get to the line that is to be deleted
+    first = firstOf(onPage, LineNumber);
+
+    // Mark the status column for the line and its clones
+    viewState[first - 1] = DELETED_ROW;
+    for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1]) {
+      viewState[clone - 1] = DELETED_ROW;
+    }
+
+    // Delete line and its clones from list
+
+    stayTop = viewPrevLine[first - 1];
+    stayBottom = viewNextLine[first - 1];
+
+    // Remove from top of page
+    if (stayTop == 0) {
+      viewPages[onPage - 1] = stayBottom;
+      viewPrevLine[stayBottom - 1] = 0;
+    }
+
+    // Remove from within page
+    else {
+      viewNextLine[stayTop - 1] = stayBottom;
+      if (stayBottom != 0)
+        viewPrevLine[stayBottom - 1] = stayTop;
+    }
+
+    //	Update recent
+    recent.nline--;
+    if (stayBottom != 0)
+      recent.first = stayBottom;
+    else {
+      recent.line--;
+      recent.first = stayTop;
+    }
+
+    return true;
   }
 
   this.DeletePage = function (PageNumber) {
+    var first, clone, line, page;
+
+    if (mData === undefined)
+      SOS("No data loaded!");
+    if (!viewGenerated)
+      SOS("View was not generated!\nPlease: initialize and define a view first!");
+    if (PageNumber <= 0 || PageNumber > viewNumPages)
+      SOS("Page Number outside valid range 1 - " + viewNumPages);
+    if (viewNumHead === 0 || viewNumHead === viewHeaderSumFields.length)
+      SOS("Can't delete a page from a pure Columnar view!");
+
+    //	Mark page as deleted
+
+    first = viewPages[PageNumber - 1];
+
+    // Mark the status column for each line on the page
+    for (line = first; line > 0; line = viewNextLine[line - 1]) {
+      viewState[line - 1] = DELETED_ROW;
+      for (clone = viewNextDetail[line - 1]; clone > 0; clone = viewNextLine[clone - 1]) {
+        viewState[clone - 1] = DELETED_ROW;
+      }
+    }
+
+    //	Remove one page by filling the created gap
+    for (page = PageNumber; page < view.nPages; page++)
+      viewPages[page - 1] = viewPages[page];
+    viewNumPages--;
+
+    // Update recent
+    recentFirst = recentLine = recentNline = recentPage = 0;
+
+    return true;
   }
 
   this.CopyLine = function (Page, Line) {
+    var parentFirst, offspringFirst;
+    var parentLine = Line + 1;
+    var targetLine = Line;
+    var clones, cloneCount;
+    var i, rowcount;
+
+    if (mData === undefined)
+      SOS("No data loaded!");
+    if (!viewGenerated)
+      SOS("View was not generated!\nPlease: initialize and define a view first!");
+    if (Page <= 0 || Page > viewNumPages)
+      SOS("Page Number outside valid range 1 - " + viewNumPages);
+    if (viewNumCol === 0 || viewNumCol === viewColumnarSumFields.length)
+      SOS("Can't copy lines for pure HeaderPage view!");
+
+    // Create a blank line first, then copy the parent line and clones to it.
+
+    if (this.OpenLine(Page, targetLine) != 0)
+      return -1;
+
+    parentFirst = firstOf(Page, parentLine);
+    offspringFirst = firstOf(Page, targetLine);
+
+    // Copy the firsts
+    for (i = 1; i <= mNumFields; i++) {
+      PutLineValue(LineValue(parentFirst, i), offspringFirst, i);
+    }
+    if (viewSums.length > 0) {
+      for (i = 0; i < viewSums.length; i++) {
+        viewSums[i][offspringFirst - 1] = viewSums[i][parentFirst - 1];
+      }
+    }
+
+    // Move the clones
+
+    cloneCount = 0;
+    for (clones = viewNextDetail[parentFirst - 1]; clones > 0; clones = viewNextLine[clones - 1]) {
+      cloneCount++;
+      MakeRoomForNewEntry();     // Adds a line to mData
+      for (i = 1; i <= mNumFields; i++) {
+        PutLineValue(LineValue(clones, i), this.Nline(), i);
+      }
+
+      rowcount = this.Nline();
+      if (viewSums.length > 0) {
+        for (i = 0; i < viewSums.length; i++) {
+          viewSums[i][rowcount-1] = viewSums[i][clones - 1];
+        }
+      }
+
+      viewState[rowcount-1] = ACTIVE_ROW;
+
+      if (cloneCount === 1) {
+        viewNextDetail[offspringFirst - 1] = rowcount;
+        viewNextLine[rowcount-1] = 0;
+        viewPrevLine[rowcount-1] = 0;
+      }
+      else {
+        viewNextLine[rowcount-2] = rowcount;
+        viewPrevLine[rowcount-1] = rowcount-1;
+        viewNextLine[rowcount-1] = 0;
+        viewNextDetail[rowcount-1] = 0;
+      }
+    }
+
+    AdjustPruneBitMatrix();
+
+    recentFirst = recentLine = recentNline = recentPage = 0;
+    return 0;
   }
 
   this.CopyPage = function (Page) {
+    var ParentPage = Page + 1;
+    var OffspringPage = Page;
+    var i, n, ParentFirst, nline, nclone;
+    var prevl = 0, clone, clone1, prevClone = 1, member;
+
+    if (mData === undefined)
+      SOS("No data loaded!");
+    if (!viewGenerated)
+      SOS("View was not generated!\nPlease: initialize and define a view first!");
+    if (Page <= 0 || Page > viewNumPages)
+      SOS("Page Number outside valid range 1 - " + viewNumPages);
+    if (viewHeaderFields.length == 0 || viewHeaderFields.length == viewHeaderSumFields.length)
+      SOS("Can't copy page for pure Columnar view!");
+
+    // Process the copy operation
+
+    // Extend the number of pages.  Push the current page and all others down one spot
+    viewNumPages++;
+    Roots.xpand(viewPages, viewNumPages);
+    for (i = viewNumPages; i >= OffspringPage; i--)
+      viewPages[i - 1] = viewPages[i - 2];
+
+    // Copy the parent info to offspring
+
+    ParentFirst = viewPages[ParentPage - 1];
+    nline = 0;
+    for (member = ParentFirst; member > 0; member = viewNextLine[member - 1]) {
+      nline++;
+      MakeRoomForNewEntry();
+      n = this.Nline();
+
+      for (i = 1; i <= mNumFields; i++) {
+        PutLineValue(LineValue(member, i), n, i);
+      }
+      if (viewSums.length > 0) {
+        for (i = 0; i < viewSums.length; i++) {
+          viewSums[i][n - 1] = viewSums[i][member - 1];
+        }
+      }
+      viewState[n - 1] = ACTIVE_ROW;
+
+      if (nline === 1) {
+        viewPages[OffspringPage - 1] = n;
+        viewNextLine[n - 1] = 0;
+        viewPrevLine[n - 1] = 0;
+        viewNextDetail[n - 1] = 0;
+        prevl = n;
+      }
+      else {
+        viewNextLine[prevl - 1] = n;
+        viewPrevLine[n - 1] = prevl;
+        viewNextLine[n - 1] = 0;
+        viewNextDetail[n - 1] = 0;
+        prevl = n;
+      }
+
+      // Deal with clones
+      clone1 = viewNextDetail[member - 1];
+      nclone = 0;
+      for (clone = clone1; clone > 0; clone = viewNextLine[clone - 1]) {
+        nclone++;
+        MakeRoomForNewEntry();
+        n = this.Nline();
+
+        for (i = 1; i <= mNumFields; i++) {
+          PutLineValue(LineValue(clone, i), n, i);
+        }
+        if (viewSums.length > 0) {
+          for (i = 0; i < viewSums.length; i++) {
+            viewSums[i][n - 1] = viewSums[i][clone - 1];
+          }
+        }
+        viewState[n - 1] = ACTIVE_ROW;
+
+        if (nclone == 1) {
+          viewNextDetail[prevl - 1] = n;
+          viewNextLine[n - 1] = 0;
+          viewPrevLine[n - 1] = 0;
+          prevClone = n;
+        }
+        else {
+          viewNextLine[prevClone - 1] = n;
+          viewPrevLine[n - 1] = prevClone;
+          viewNextLine[n - 1] = 0;
+          viewNextDetail[n - 1] = 0;
+          prevClone = n;
+        }
+      }
+    }
+
+    AdjustPruneBitMatrix();
+
+    recentFirst = recentLine = recentNline = recentPage = 0;
+    return 0;
   }
 
   // Output encode XML special characters
@@ -1086,7 +1508,7 @@ function Noodle(dataArray, labels) {
       if (viewColumnarFields.length > 0) {
         xmldata += "<detail>\n";
 
-        var nline = LineCount(page);
+        var nline = this.LineCount(page);
         for (line = 1; line <= nline; line++) {
           xmldata += "<line>\n";
 
@@ -1161,7 +1583,7 @@ function Noodle(dataArray, labels) {
 
     // Save the current view data
     for (page = 1; page <= viewNumPages; page++) {
-      for (line = 1; line <= LineCount(page); line++) {
+      for (line = 1; line <= this.LineCount(page); line++) {
         sep = "";
         for (i = 0; i < viewHeaderFields.length; i++) {
           output += sep;

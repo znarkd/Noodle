@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="March 11, 2020">
+  <meta name="version" content="March 14, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -699,7 +699,12 @@
             <a>Prune</a>
             <a id="menuPruneCurrent">Prune by Current Field</a>
             <a id="menuInvertPrune">Invert Prune</a>
-            <a id="menuRemovePrune">Remove Prune</a>
+            <a id="menuRemovePrune" style="border-bottom: 1px solid black;">Remove Prune</a>
+            <a id="menuInsertRow">Insert Row</a>
+            <a id="menuDuplicateRow">Duplicate Row</a>
+            <a id="menuDuplicatePage" style="border-bottom: 1px solid black;">Duplicate Page</a>
+            <a id="menuDeleteRow">Delete Row</a>
+            <a id="menuDeletePage">Delete Page</a>
             <h2>Screen</h2>
             <a id="menuNewScreen">New Layout</a>
             <a id="menuReviseScreen" style="border-bottom: 1px solid black;">Revise Layout</a>
@@ -744,7 +749,7 @@
 
     // for Grid hacks
     var gridRef = React.createRef();
-    
+
     // Incremented each time the screen or page number changes
     var keyValue = 0;
 
@@ -793,6 +798,9 @@
       document.getElementById("menuPruneCurrent").addEventListener("click", PruneCurrent);
       document.getElementById("menuInvertPrune").addEventListener("click", InvertPrune);
       document.getElementById("menuRemovePrune").addEventListener("click", RemovePrune);
+      document.getElementById("menuInsertRow").addEventListener("click", InsertRow);
+      document.getElementById("menuDuplicateRow").addEventListener("click", DuplicateRow);
+      document.getElementById("menuDuplicatePage").addEventListener("click", DuplicatePage);
       document.getElementById("menuNewScreen").addEventListener("click", function () {
         ShowBuildScreen(true);
       });
@@ -1479,7 +1487,7 @@
     }
 
     var ShowNewScreen = function (nFlags) {
-      
+
       // Get the currently selected screen to display
       if (nFlags & SCREEN_GET)
         ScreenGet();
@@ -1673,7 +1681,6 @@
         }
       }
 
-
       render() {
         return React.createElement("input", {
           id: this.props.id,
@@ -1733,6 +1740,7 @@
 
     // react-window by Brian Vaughn, https://github.com/bvaughn/react-window
     // StickyGrid by Andrew Storchous, https://codesandbox.io/s/react-window-sticky-grid-liwsd
+    // Revisions for VariableSizeGrid my me :)
 
     const getRenderedCursor = children =>
       children.reduce(
@@ -2046,8 +2054,6 @@
         rowcount = lineCount + 1;
       }
 
-      ++keyValue;
-
       // Grid parameters
       var gparms = {};
       gparms.className = "detail_grid";
@@ -2062,7 +2068,7 @@
       gparms.stickyWidth = 60;
 
       // Let React know that the page changed
-      gparms.number = keyValue;
+      gparms.number = ++keyValue;
 
       // Display the grid
       ReactDOM.render(React.createElement(ReactVirtualized.AutoSizer, null,
@@ -2198,6 +2204,47 @@
       pruneSet = 0;
       locate = {};
       screenChange();
+    }
+
+    // Insert a new row into current page
+    var InsertRow = function () {
+
+      // Want to insert above the current line, so subtract 1
+      var line = parseInt(focusField.split(',')[0]) - 1;
+
+      var count = db1.LineCount(view.curpag);
+      var newline = db1.CreateNewLineOnPage(view.curpag);
+
+      // Move lines down
+      if (line < count)
+        db1.MoveLines(view.curpag, line + 1, view.curpag, newline, newline);
+
+      // Refresh the grid display
+      FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
+    }
+
+    var DuplicateRow = function () {
+      var line = parseInt(focusField.split(',')[0]);
+
+      // Insert a new record above the current record
+      if (db1.CopyLine(view.curpag, line))
+        return;
+
+      // Refresh the grid display
+      FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
+    }
+
+    var DuplicatePage = function () {
+      if (view.hedlin === 0  || view.curpag > view.npage)
+        return;
+
+      if (db1.CopyPage(view.curpag))
+        return;
+
+      // Update the page counter
+      view.npage = db1.PageCount();
+      document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
+      gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
     }
   </script>
 </body>
