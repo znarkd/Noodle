@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: March 14, 2020
+ * Release: March 15, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -283,7 +283,7 @@ function Noodle(dataArray, labels) {
       recentLine = 0;
       ln = viewPages[page - 1];
       while (ln >= 0) {
-        if (++recentLine == line)
+        if (++recentLine === line)
           break;
         ln = viewNextLine[ln - 1];
       }
@@ -1202,8 +1202,10 @@ function Noodle(dataArray, labels) {
       SOS("Can't delete line from a pure HeaderPage view!");
 
     nline = this.LineCount(onPage);
-    if (nline === 1)
-      SOS("Can't delete only remaining line from a page!");
+    if (nline === 1) {
+      ErrorMsg("Can't delete only remaining line from a page!");
+      return -1;
+    }
 
     if (LineNumber <= 0 || LineNumber > nline)
       SOS("Page " + onPage + " does not have line number " + LineNumber);
@@ -1236,15 +1238,15 @@ function Noodle(dataArray, labels) {
     }
 
     //	Update recent
-    recent.nline--;
+    recentNline--;
     if (stayBottom != 0)
-      recent.first = stayBottom;
+      recentFirst = stayBottom;
     else {
-      recent.line--;
-      recent.first = stayTop;
+      recentLine--;
+      recentFirst = stayTop;
     }
 
-    return true;
+    return 0;
   }
 
   this.DeletePage = function (PageNumber) {
@@ -1256,8 +1258,10 @@ function Noodle(dataArray, labels) {
       SOS("View was not generated!\nPlease: initialize and define a view first!");
     if (PageNumber <= 0 || PageNumber > viewNumPages)
       SOS("Page Number outside valid range 1 - " + viewNumPages);
-    if (viewNumHead === 0 || viewNumHead === viewHeaderSumFields.length)
-      SOS("Can't delete a page from a pure Columnar view!");
+    if (viewNumHead === 0 || viewNumHead === viewHeaderSumFields.length) {
+      ErrorMsg("Can't delete a page from a pure Columnar view!");
+      return -1;
+    }
 
     //	Mark page as deleted
 
@@ -1272,14 +1276,14 @@ function Noodle(dataArray, labels) {
     }
 
     //	Remove one page by filling the created gap
-    for (page = PageNumber; page < view.nPages; page++)
+    for (page = PageNumber; page < viewNumPages; page++)
       viewPages[page - 1] = viewPages[page];
     viewNumPages--;
 
     // Update recent
     recentFirst = recentLine = recentNline = recentPage = 0;
 
-    return true;
+    return 0;
   }
 
   this.CopyLine = function (Page, Line) {

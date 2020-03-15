@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="March 14, 2020">
+  <meta name="version" content="March 15, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -801,6 +801,8 @@
       document.getElementById("menuInsertRow").addEventListener("click", InsertRow);
       document.getElementById("menuDuplicateRow").addEventListener("click", DuplicateRow);
       document.getElementById("menuDuplicatePage").addEventListener("click", DuplicatePage);
+      document.getElementById("menuDeleteRow").addEventListener("click", DeleteRow);
+      document.getElementById("menuDeletePage").addEventListener("click", DeletePage);
       document.getElementById("menuNewScreen").addEventListener("click", function () {
         ShowBuildScreen(true);
       });
@@ -2238,7 +2240,7 @@
     }
 
     var DuplicatePage = function () {
-      if (view.hedlin === 0  || view.curpag > view.npage)
+      if (view.hedlin === 0 || view.curpag > view.npage)
         return;
 
       if (db1.CopyPage(view.curpag))
@@ -2248,6 +2250,51 @@
       view.npage = db1.PageCount();
       document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
       gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+    }
+
+    var DeleteRow = function () {
+      var line = parseInt(focusField.split(',')[0]);
+      var count = db1.LineCount(view.curpag);
+
+      if (line > count)
+        return;
+
+      if (line === count) {
+
+        // Remove a page?
+        if (line === 1) {
+          DeletePage();
+          return;
+        }
+
+        // Remove last line from page
+        else {
+          if (db1.DeleteLine(view.curpag, line))
+            return;
+          // GotoRow(line - 1);
+        }
+      }
+
+      else if (db1.DeleteLine(view.curpag, line))
+        return;
+
+      // Refresh the grid display
+      FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
+    }
+
+    var DeletePage = function () {
+      if (db1.DeletePage(view.curpag))
+        return;
+
+      view.npage = db1.PageCount();
+      var newpag = view.curpag;
+      if (newpag > view.npage)
+        if (view.npage)
+          newpag = view.npage;
+      view.curpag = newpag;
+
+      // Update the page display
+      FillPage();
     }
   </script>
 </body>
