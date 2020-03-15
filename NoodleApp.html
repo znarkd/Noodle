@@ -2224,6 +2224,9 @@
     }
 
     var DuplicateRow = function () {
+      if (view.collin === 0)
+        return;
+
       var line = parseInt(focusField.split(',')[0]);
 
       // Insert a new record above the current record
