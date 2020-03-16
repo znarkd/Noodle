@@ -841,6 +841,8 @@
         "Diamond", "Quartz", "Ruby", "Gold", "Silver", "Lead", "Jade"
       ];
       var Answer = ["No", "Maybe", "Yes", "True", "False", "So"];
+      var Color = ["Black", "White", "Gray", "Red", "Orange", "Green", "Blue", "Indigo",
+        "Violet", "Brown", "Pink", "Purple"];
       var Sets = [Animal, Vegetable, Mineral];
       var setNames = ["Animal", "Vegetable", "Mineral"];
 
@@ -864,6 +866,7 @@
         k = Math.floor((Math.random() * setNames.length));
         d["Item"] = Sets[k][Math.floor(Math.random() * Sets[k].length)];
         d["Category"] = setNames[k];
+        d["Color"] = Color[Math.floor(Math.random() * Color.length)];
         d["RNum"] = (Math.random() * 100).toFixed(2);
         d["Num"] = Math.floor((Math.random() * 100) + 1);
         d["Date"] = randomDate(_startdate, _enddate);
@@ -936,6 +939,9 @@
         {
           "field": "Letter",
           "width": 80
+        },
+        {
+          "field" : "Color"
         },
         {
           "field": "Num",
