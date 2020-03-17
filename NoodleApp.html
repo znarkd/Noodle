@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="March 16, 2020">
+  <meta name="version" content="March 17, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -660,7 +660,7 @@
             <p>
               Display Width:
               <br>
-              <input type="number" id="field-width" size="4" maxlength="4" max="1200" />
+              <input type="number" id="field-width" min="0" max="1200" />
             </p>
           </fieldset>
           <div id="move-field">
@@ -731,7 +731,7 @@
     </div>
   </div>
 
-  <script type="application/javascript">
+  <script>
     // the Database
     var db1;
 
