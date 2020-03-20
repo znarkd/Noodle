@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="March 17, 2020">
+  <meta name="version" content="March 20, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -867,7 +867,7 @@
         d["Item"] = Sets[k][Math.floor(Math.random() * Sets[k].length)];
         d["Category"] = setNames[k];
         d["Color"] = Color[Math.floor(Math.random() * Color.length)];
-        d["RNum"] = (Math.random() * 100).toFixed(2);
+        d["RNum"] = Number((Math.random() * 100).toFixed(2));
         d["Num"] = Math.floor((Math.random() * 100) + 1);
         d["Date"] = randomDate(_startdate, _enddate);
         d["Count"] = 1;
@@ -979,12 +979,43 @@
         ]
       };
       editScreen[3] = {
-        "name": "No header",
+        "name": "Raw data",
         "columns": [{
+          "field": "Seq",
+          "width": 60
+        },
+        {
+          "field": "Letter",
+          "width": 60
+        },
+        {
+          "field": "Answer",
+          "width": 80
+        },
+        {
           "field": "Item"
         },
         {
           "field": "Category"
+        },
+        {
+          "field": "Color",
+          "width": 80
+        },
+        {
+          "field": "RNum",
+          "width": 100
+        },
+        {
+          "field": "Num",
+          "width": 80
+        },
+        {
+          "field": "Date"
+        },
+        {
+          "field": "Count",
+          "width": 60
         }
         ]
       };

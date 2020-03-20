@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: March 15, 2020
+ * Release: March 20, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -74,18 +74,36 @@ function Noodle(dataArray, labels) {
   _linevalue = function (line, bfi) {
     var val = mData[line - 1][mKeys[bfi - 1]];
     if (val != undefined)
-      return val.toString();
-    return "";
+      return val;
+    return null;
   }
   if (mData.LineValue != undefined)
     LineValue = mData.LineValue;
   else
     LineValue = _linevalue;
 
-  // Put a data element into the data source
+  // Put a data element into the data source.
+  // This default implementation attempts to handle input values of indeterminate type.
   var PutLineValue;
   _putlinevalue = function (val, line, bfi) {
-    mData[line - 1][mKeys[bfi - 1]] = val;
+    var type = typeof mData[line - 1][mKeys[bfi - 1]];
+    if (mData[line -1][mKeys[bfi - 1]] === null)
+      type = "null";
+    var vtype = "string";
+    if (!isNaN(val))
+      vtype = "number";
+    if (val === "")
+      mData[line - 1][mKeys[bfi - 1]] = null;
+    else if (type === "number" && vtype === "number")
+      mData[line - 1][mKeys[bfi - 1]] = Number(val);
+    else if (type === vtype)
+      mData[line - 1][mKeys[bfi - 1]] = val;
+    else if (vtype === "number")
+      mData[line - 1][mKeys[bfi - 1]] = Number(val);
+    else if (type === "object")
+      mData[line - 1][mKeys[bfi - 1]] = new Date(val);
+    else
+      mData[line - 1][mKeys[bfi - 1]] = val;
   }
   if (mData.PutLineValue != undefined)
     PutLineValue = mData.PutLineValue;
@@ -597,7 +615,7 @@ function Noodle(dataArray, labels) {
     // Summary field
     else {
       var i = viewSum[bfi - 1];
-      return viewSums[i - 1][first - 1].toString();
+      return viewSums[i - 1][first - 1];
     }
   }
 
