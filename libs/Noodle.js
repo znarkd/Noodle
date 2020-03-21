@@ -1475,7 +1475,7 @@ function Noodle(dataArray, labels) {
 
   // Output encode XML special characters
   encodeXML = function (s) {
-    return (s
+    return (s.toString()
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -1572,7 +1572,7 @@ function Noodle(dataArray, labels) {
       return "";
 
     // Replace " with ""
-    var s2 = s1.replace(/"/g, '""');
+    var s2 = s1.toString().replace(/"/g, '""');
 
     // Add quotes if the value starts with whitespace
     // or if the value contains , " \r \n
