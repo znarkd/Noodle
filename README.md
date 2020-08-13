@@ -3,6 +3,8 @@ Noodle allows one to construct a dynamic data view representation of a JavaScrip
 
 Noodle is built upon *Roots*.  The Roots library provides a foundation for creating an efficient in-memory database. Its unique [list processing structures](http://armr.sourceforge.net/) simplify programming logic and allow the developer to rapidly sort, group, and select data.
 
+Set-based data viewing and updates without SQL.
+
 ### Example
 ```
 
