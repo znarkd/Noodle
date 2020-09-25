@@ -292,6 +292,8 @@
       margin-bottom: 4px;
       color: black;
       border-radius: 0;
+      border-width: 1px;
+      outline: none;
     }
 
     .detail {
@@ -327,6 +329,7 @@
       align-items: center;
       border: 1px solid #d9dddd;
       border-radius: 0;
+      outline: none;
     }
 
     .evenCell {
@@ -555,6 +558,22 @@
     .item5>button {
       width: 100px;
     }
+
+    #find-dialog {
+      width: 100%;
+      height: 33px;
+      display: block;
+      box-sizing: border-box;
+      border: 1px;
+      margin-left: 14px;
+      padding-right: 4px;
+      z-index: 2;
+    }
+
+    #find-data {
+      border: none;
+      outline: none;
+    }
   </style>
 </head>
 
@@ -694,7 +713,6 @@
             <a id="menuCopy">Copy</a>
             <a id="menuPaste">Paste</a-->
             <a id="menuFind">Find</a>
-            <a id="menuFindNext">Find Next</a>
             <h2>Data</h2>
             <a>Prune</a>
             <a id="menuPruneCurrent">Prune by Current Field</a>
@@ -723,6 +741,20 @@
         </div>
       </div>
       <div id="edit-display" class="edit-display">
+        <div id="find-dialog" class="hide">
+          <div>
+            <input id="find-data" placeholder="Find" aria-label="Find" value=""></input>
+            <button id="find-next" title="Find next">
+              <i class="fa fa-arrow-down" aria-hidden="true"></i>
+            </button>
+            <button id="find-prev" title="Find previous">
+              <i class="fa fa-arrow-up" aria-hidden="true"></i>
+            </button>
+            <button id="find-close" title="close Find">
+              <i class="fa fa-times" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
         <div id="header" class="header">
         </div>
         <div id="detail" class="detail">
@@ -740,10 +772,15 @@
     var currentScreen = 0;
     var SCREEN_GET = 1;
     var SCREEN_SORT = 2;
+    var HEADER_FIELD = 1;
+    var HEADER_SUM = 2;
+    var COLUMNAR_FIELD = 4;
+    var COLUMNAR_SUM = 8;
 
     // Data view - initialized in showEditScreen()
     var view = {};
     var focusField;
+    var focusColumn;
     var pruneSet = 0;
     var locate = {};
 
@@ -793,8 +830,7 @@
       document.getElementById("menuopen").addEventListener("click", ShowOpen);
       document.getElementById("menuXML").addEventListener("click", doReport);
       document.getElementById("menuCSV").addEventListener("click", doExport);
-      document.getElementById("menuFind").addEventListener("click", Find);
-      document.getElementById("menuFindNext").addEventListener("click", FindNext);
+      document.getElementById("menuFind").addEventListener("click", showFind);
       document.getElementById("menuPruneCurrent").addEventListener("click", PruneCurrent);
       document.getElementById("menuInvertPrune").addEventListener("click", InvertPrune);
       document.getElementById("menuRemovePrune").addEventListener("click", RemovePrune);
@@ -814,7 +850,15 @@
       document.getElementById("next_page").addEventListener("click", rightArrowClick);
       document.getElementById("screentitle").addEventListener("change", screenChange);
       document.getElementById("trash").addEventListener("click", trashClick);
-      document.getElementById("search").addEventListener("click", Find);
+      document.getElementById("search").addEventListener("click", showFind);
+      document.getElementById("find-data").addEventListener("change", changeFindData);
+      document.getElementById("find-next").addEventListener("click", function () {
+        doFind("Next");
+      });
+      document.getElementById("find-prev").addEventListener("click", function () {
+        doFind("Previous");
+      });
+      document.getElementById("find-close").addEventListener("click", hideFind);
     }
 
     var showDemo = function () {
@@ -1513,7 +1557,7 @@
       //	Fill the columnar portion
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
     }
 
@@ -1539,6 +1583,7 @@
       BuildForm();
 
       document.getElementById("edit-screen").classList.toggle("hide", false);
+      document.getElementById("find-dialog").classList.toggle("hide", true);
 
       // Load data into the newly created screen page
       FillPage();
@@ -1547,11 +1592,18 @@
         if (editScreen[currentScreen - 1].columns.length > 0)
           refreshGrid();
       }
+
+      // Set focus to first edit field
+      if (view.hedlin != 0)
+        document.getElementById("hedit0").focus();
+      else
+        document.getElementById("1,1").focus();
     }
 
     // Save the id of the edit field that just got the focus
     var fieldFocus = function (e) {
       focusField = e.target.id;
+      focusColumn = parseInt(focusField.substring(5));
     }
 
     var headerChange = function (e) {
@@ -1705,6 +1757,7 @@
       // The cell has gained focus
       onFocus(event) {
         focusField = event.target.id;
+        focusColumn = parseInt(focusField.split(',')[1]);
       }
 
       // The cell lost focus; i.e. was blurred
@@ -1756,12 +1809,16 @@
     // Cause the grid's current input cell to lose focus when scrolling.
     // This allows any changes to be saved.
     var handleGridScroll = function (parms) {
-      document.activeElement.blur();
+      if (!parms.scrollUpdateWasRequested) {
+        var element = document.activeElement;
+        element.blur();
+        element.focus();
+      }
     }
 
     // react-window by Brian Vaughn, https://github.com/bvaughn/react-window
     // StickyGrid by Andrew Storchous, https://codesandbox.io/s/react-window-sticky-grid-liwsd
-    // Revisions for VariableSizeGrid my me :)
+    // Revisions for VariableSizeGrid by me :)
 
     const getRenderedCursor = children =>
       children.reduce(
@@ -2098,6 +2155,7 @@
 
     // Previous page
     var leftArrowClick = function () {
+      document.getElementById("find-dialog").classList.toggle("hide", true);
       if (--view.curpag < 1) {
         view.curpag = 1;
         return;
@@ -2105,18 +2163,19 @@
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
     }
 
     // Next page
     var rightArrowClick = function () {
+      document.getElementById("find-dialog").classList.toggle("hide", true);
       if (++view.curpag > view.npage)
         view.curpag = view.npage + 1;
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
     }
 
@@ -2124,53 +2183,111 @@
       alert("Trash not yet implemented");
     }
 
-    var Find = function () {
-      if (focusField === undefined)
+    var showFind = function () {
+      var e, k;
+      
+      e = document.getElementById("find-dialog");
+      if (!(e.classList.contains("hide"))) {
+        e.classList.toggle("hide", true);
+        if (focusField != undefined)
+          document.getElementById(focusField).focus();
         return;
+      }
 
-      var num, bfi, line;
+      if (focusField === undefined) {
+        focusField = "hedit0";
+        focusColumn = 0;
+        if (view.hedlin === 0) {
+          focusField = document.getElementById("detail").getElementsByTagName("INPUT")[0].id;
+          k = focusField.split(',');
+          focusColumn = parseInt(k[1]);
+        }
+      }
+
+      // Set placeholder value for find input box
       if (focusField.startsWith("hedit")) {
-        num = parseInt(focusField.substring(5));
-        bfi = view.bfihed[num];
-        line = 0;
-      } else {
-        var k = focusField.split(',');
-        num = parseInt(k[1]);
-        bfi = view.bficol[num - 1];
-        line = parseInt(k[0]);
+        locate.bfi = view.bfihed[focusColumn];
+        locate.line = 0;
+      } 
+      else {
+        locate.bfi = view.bficol[focusColumn - 1];
+        k = focusField.split(',');
+        locate.line = parseInt(k[0]);
       }
+      document.getElementById("find-data").placeholder = "Find in " + db1.FieldName(locate.bfi);
+      document.getElementById("find-data").value = "";
 
-      if (db1.PruneBracket(0, "value", bfi, ["A", "B"], {
-        "match": "locate"
-      }))
-        return;
-
-      locate.set = "locate";
-      locate.operation = "Next";
-      locate.starthere = true;
-      locate.page = view.curpag;
-      locate.line = line;
-      if (db1.Locate(locate)) {
-        alert("No match");
-        return;
-      }
-      gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: locate.line - 1 });
+      e.classList.toggle("hide", false);
+      document.getElementById("find-data").focus();
     }
 
-    var FindNext = function () {
-      if ("set" in locate === undefined)
-        return;
+    var changeFindData = function() {
+      locate.sets = undefined;
+    }
 
-      // Because we are using locate.starthere
-      if (locate.operation === "Next")
-        ++locate.line;
-      else
-        --locate.line;
+    var hideFind = function () {
+      document.getElementById("find-dialog").classList.toggle("hide", true);
+      document.getElementById("find-data").value = "";
+      locate = {};
+      if (focusField != undefined)
+        document.getElementById(focusField).focus();
+    }
 
-      // Find the next matching item
+    var doFind = function (operation) {
+
+      // Reset the locate start position
+
+      if (db1.WhereIsField(locate.bfi) & HEADER_FIELD) {
+        if (operation === "Next") {
+			    locate.page = view.curpag + 1;
+			    locate.line = 0;
+		    }
+		    else {
+			    locate.page = view.curpag;
+			    locate.line = 0;
+		    }
+	    }
+	    else {
+        locate.page = view.curpag;
+        var k = focusField.split(',');
+        locate.line = parseInt(k[0]);
+        if (operation === "Next")
+          locate.line += 1;
+        else
+          locate.line -= 1;
+	    }
+     
+      // Do the locate
+
+      if ("set" in locate === false) {
+        var data = [];
+        data[0] = document.getElementById("find-data").value;
+        if (db1.PruneBracket(0, "value", locate.bfi, data, {
+          "match": "locate"
+        }))
+          return;
+      }
+
+      locate.set = "locate";
+      locate.operation = operation;
+      locate.starthere = true;
       if (db1.Locate(locate)) {
         alert("No match");
+        document.getElementById(focusField).focus();
         return;
+      }
+
+      // Update the display
+
+      view.curpag = locate.page;
+      FillPage();
+
+      if (db1.WhereIsField(locate.bfi) & HEADER_FIELD)
+        document.getElementById(focusField).focus();
+      else {
+        gridRef.current.scrollToItem({ align: "auto", columnIndex: 0, rowIndex: locate.line });
+        focusField = locate.line + "," + focusColumn;
+        document.getElementById(focusField).focus();        
       }
     }
 
@@ -2264,7 +2381,7 @@
       // Update the page counter
       view.npage = db1.PageCount();
       document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
-      gridRef.current.scrollToItem({ columnIndex: 0, rowIndex: 0 });
+      gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
     }
 
     var DeleteRow = function () {

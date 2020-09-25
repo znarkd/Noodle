@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: March 20, 2020
+ * Release: September 24, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -162,6 +162,15 @@ function Noodle(dataArray, labels) {
 
   this.FieldCount = function () {
     return mNumFields;
+  }
+
+  this.WhereIsField = function (bfi) {
+    if (viewInitialized != true) {
+      ErrorMsg("View was not initialized!\n" +
+        "Please: initialize and define a view first!");
+	    return 0;
+    }
+    return viewType[bfi-1];
   }
 
   this.FieldName = function (bfi) {
