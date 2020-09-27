@@ -2255,11 +2255,12 @@
           locate.line -= 1;
 	    }
      
-      // Do the locate
+      // Do the locate.
+      // Trailing whitespace is trimmed.
 
       if ("set" in locate === false) {
         var data = [];
-        data[0] = document.getElementById("find-data").value;
+        data[0] = document.getElementById("find-data").value.replace(/\s+$/, '');
         if (db1.PruneBracket(0, "value", locate.bfi, data, {
           "match": "locate"
         }))
