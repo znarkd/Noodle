@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="September 26, 2020">
+  <meta name="version" content="September 27, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -26,6 +26,21 @@
   <script src="libs/NoodleDatabase.js"></script>
 
   <style>
+    html {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body {
+      height: 100%;
+      width: 100%;
+      overflow: auto;
+      position: relative;
+    }
+
+    /*
     html,
     body {
       margin: 0;
@@ -34,6 +49,7 @@
       overflow: hidden;
       position: fixed;
     }
+    */
 
     * {
       box-sizing: border-box;
@@ -2220,7 +2236,7 @@
     }
 
     var changeFindData = function() {
-      locate.sets = undefined;
+      delete locate.sets;
     }
 
     var hideFind = function () {
