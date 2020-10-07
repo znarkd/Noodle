@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 24, 2020
+ * Release: October 3, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -860,6 +860,7 @@ function Noodle(dataArray, labels) {
 
     // Perform the requested prune operation
     prune.operation = operation;
+    prune.bfi = bfi;
     prune.fx = mKeys[bfi - 1];
     prune.values = values;
     if (PruneValues(prune) === -1)

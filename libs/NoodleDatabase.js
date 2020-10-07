@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: February 18, 2020
+ * Release: October 6, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -303,10 +303,80 @@ function NoodleDatabase(stream) {
 
   // Select database rows
 
+  valuePrune = function(p) {
+    var bstr, text, i, index, tindex, v=[];
+    var hits=[0], outlst=[0], date;
+
+    switch(field[p.bfi-1].type) {
+      case 'T':
+        bstr  = new Uint8Array(table[field[p.bfi-1].tindex-1].item.length/8+1);
+        tindex = field[p.bfi-1].tindex;
+        for (i=0; i < p.values.length; i++) {
+          if (p.values[i].length > 0) {
+            index = table[tindex-1].item.indexOf(p.values[i]) + 1;
+            if (index > 0) {
+              v[0] = index;
+              v[1] = 1;
+              Roots.setone(bstr, v, 1);
+            }
+          }
+          else {
+            v[0]=v[1]=0;
+            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            Roots.conlst(outlst, hits, p.nextLine);
+          }
+        }
+        Roots.strprn(base.block, base.cpl, blkfld[p.bfi-1], bstr, p.first, p.nextLine, hits);
+        Roots.conlst(outlst, hits, p.nextLine);
+        break;
+      case 'B':
+      case 'Z':
+        for (i=0; i < p.values.length; i++) {
+          if (Number(p.values[i]) != NaN) {
+            v[0]=v[1]=Math.trunc(p.values[i]);
+            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            Roots.conlst(outlst, hits, p.nextLine);
+          }
+        }
+        break;
+      case 'D':
+        for (i=0; i < p.values.length; i++) {
+          date = new Date(p.values[i]);
+          if (date != "Invalid Date") {
+            v[0]=v[1]=(date.getFullYear()*10000)+((date.getMonth()+1)*100)+date.getDate();
+            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            Roots.conlst(outlst, hits, p.nextLine);
+          }
+        }
+        break;
+      case 'R':
+        for (i=0; i < p.values.length; i++) {
+          if (Number(p.values[i]) != NaN) {
+            v[0]=v[1]=p.values[i];
+            Roots.rgrprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            Roots.conlst(outlst, hits, p.nextLine);
+          }
+        }
+        break;
+      case 'E':
+        v[0]=1;
+        for (i=0; i < p.values.length; i++) {
+          v[1]=p.values[i].length;
+          Roots.txtprn(base.block, base.cpl, blkfld[p.bfi-1], p.values[i], v, p.first, p.nextLine, hits);
+          Roots.conlst(outlst, hits, p.nextLine);
+        }
+        break;
+      default:
+        throw("NoodleDatabase: Invalid data type");
+    }
+    p.match[0] = outlst[0];
+    return 0;
+  }
+
   this.PruneValues = function(pruneData) {
     switch (pruneData.operation) {
       case "value":
-        break;
+        return valuePrune(pruneData);
       case "range":
         break;
       case "scan":

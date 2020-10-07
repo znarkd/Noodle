@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 25, 2020
+ * Release: October 6, 2020
  */
 
 var Roots = Roots || {};
@@ -65,20 +65,20 @@ Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, gro
 // Concatenate two lists
 
 Roots.conlst = function(afirst, bfirst, nextLine) {
-  var line, last = afirst;
+  var line, last = afirst[0];
   var check = nextLine.length;
 
-  if (afirst === 0)
-    afirst = bfirst;
+  if (afirst[0] === 0)
+    afirst[0] = bfirst[0];
   else {
-    for (line = afirst; line != 0; line = nextLine[line - 1]) {
+    for (line = afirst[0]; line != 0; line = nextLine[line - 1]) {
       last = line;
       if (check-- <= 0)
         throw "Roots.conlst: Bad input \"a\" list!";
     }
-    nextLine[last - 1] = bfirst;
+    nextLine[last - 1] = bfirst[0];
   }
-  bfirst = 0;
+  bfirst[0] = 0;
 }
 
 // Remove the elements specified by first/nextLine from block
@@ -127,7 +127,7 @@ Roots.delent = function(block, cpl, nline, first, nextLine) {
       sf[0] = cpl * hole + 1;
       sf[1] = cpl * nkeep;
       df[1] = cpl * nkeep;
-      lgmove(block, all, 1, sf, df, '\0');
+      Roots.lgmove(block, all, 1, sf, df, '\0');
    }
    nline[0] = lines;
 }
@@ -204,7 +204,7 @@ Roots.grpcum = function(block, cpl, numfld, groups, nextLine, nGroup, sums) {
       if (check-- <= 0)
         throw "Roots.grpcum: Bad input list!";
       v[0] = numfld[0] + (line-1) * cpl;
-      n = bunpac(block, v);
+      n = Roots.bunpac(block, v);
       sum += n;
     }
     sums[group] = sum;
@@ -238,7 +238,7 @@ Roots.grplcm = function(block, cpl, numfld, groups, nextLine, nGroup, sums) {
       if (check-- <= 0)
         throw "Roots.grplcm: Bad input list!";
       v[0] = numfld[0] + (line-1) * cpl;
-      n = runpac(block, v);
+      n = Roots.runpac(block, v);
       sum += n;
     }
     sums[group] = sum;
@@ -263,7 +263,7 @@ Roots.idxmap = function(block, cpl, field, first, nextLine, map) {
   for (line = first; line != 0; line = nextLine[line - 1]) {
     if (check-- <= 0)
       throw "Roots.idxmap: Bad input list!";
-    num = bunpac(block, v);
+    num = Roots.bunpac(block, v);
     if (num != 0)
       map[num-1] = 1;
     v[0] += cpl;
@@ -355,6 +355,28 @@ Roots.laybit = function(bitString, bpl, fields) {
   return fields.length;
 }
 
+// The intersection of seta with setb replaces setb
+
+Roots.lgand = function(seta, cpl, setb) {
+  if (cpl < 0)
+    throw("Roots.lgand: cpl < 0");
+  if (!(seta instanceof Uint8Array))
+    throw "Roots.lgand: seta must be Uint8Array";
+  if (!(setb instanceof Uint8Array))
+    throw "Roots.lgand: setb must be Uint8Array";
+
+  var i;
+  for (i=0; i < cpl; i++)
+    setb[i] &= seta[i];
+  
+  // Determine if the output set is empty
+  for (i=0; i < cpl; i++) {
+    if (setb[i])
+      return false;
+  }
+  return true;
+}
+
 // All index values stored in block[field] are transformed based on the
 // values in the rank column; i.e. for all nline block lines,
 // block[field] is set to rank[block[field]]
@@ -377,9 +399,9 @@ Roots.lgmap = function(block, cpl, nline, field, rank) {
   for (line = nline; line-- > 0;) {
 
      // Get the index value from block
-     i = bunpac(block, v);
+     i = Roots.bunpac(block, v);
      if (i > 0)
-        pacbin(rank[i-1], block, v);
+        Roots.pacbin(rank[i-1], block, v);
 
      // Advance to the next record
      v[0] += cpl;
@@ -421,6 +443,7 @@ Roots.lgmove = function(block, cpl, nline, sfld, dfld, pad) {
 }
 
 // The union of seta with setb replaces setb
+
 Roots.lgor = function(seta, cpl, setb) {
   if (cpl < 0)
     throw("Roots.lgor: cpl < 0");
@@ -441,29 +464,9 @@ Roots.lgor = function(seta, cpl, setb) {
   return true;
 }
 
-// The intersection of seta with setb replaces setb
-Roots.lgand = function(seta, cpl, setb) {
-  if (cpl < 0)
-    throw("Roots.lgand: cpl < 0");
-  if (!(seta instanceof Uint8Array))
-    throw "Roots.lgand: seta must be Uint8Array";
-  if (!(setb instanceof Uint8Array))
-    throw "Roots.lgand: setb must be Uint8Array";
-
-  var i;
-  for (i=0; i < cpl; i++)
-    setb[i] &= seta[i];
-  
-  // Determine if the output set is empty
-  for (i=0; i < cpl; i++) {
-    if (setb[i])
-      return false;
-  }
-  return true;
-}
-
 // The members (on-bits) of seta are removed from setb.
 // The result replaces setb.
+
 Roots.lgexcl = function(seta, cpl, setb) {
   if (cpl < 0)
     throw("Roots.lgexcl: cpl < 0");
@@ -692,7 +695,7 @@ Roots.paclst = function(num, block, cpl, field, first, nextLine) {
     if (check-- <= 0)
       throw "Roots.paclst: Bad input list!";
     v[0] = field[0] + (line-1) * cpl;
-    pacbin(num, block, v);
+    Roots.pacbin(num, block, v);
   }
 }
 
@@ -764,7 +767,7 @@ Roots.pcrlst = function(rnum, block, cpl, field, first, nextLine) {
     if (check-- <= 0)
       throw "Roots.pcrlst: Bad input list!";
     v[0] = field[0] + (line-1) * cpl;
-    pacrel(rnum, block, v);
+    Roots.pacrel(rnum, block, v);
   }
 }
 
@@ -796,7 +799,7 @@ Roots.rgrprn = function(block, cpl, field, range, first, nextLine, match) {
     next_line = nextLine[cur_line-1];
     
     v[0] = field[0] + (cur_line-1) * cpl;
-    rnum = runpac(block,v);
+    rnum = Roots.runpac(block,v);
 
     // Match
     if (rnum >= range[0] && rnum <= range[1]) {
@@ -858,7 +861,7 @@ Roots.rngprn = function(block, cpl, field, range, first, nextLine, match) {
     next_line = nextLine[cur_line-1];
     
     v[0] = field[0] + (cur_line-1) * cpl;
-    num = bunpac(block,v);
+    num = Roots.bunpac(block,v);
 
     // Match
     if (num >= range[0] && num <= range[1]) {
@@ -946,60 +949,6 @@ Roots.rngprnArray = function(arr, range, first, nextLine, match) {
     nextLine[last_match-1] = 0;
 }
 
-// For all lines of first/nextLine, the value stored at arr[line][col]
-// is compared with an array of values.  
-
-// Entries which match one of the values are entered in match/lnextl.
-// Non-matching entries remain in first/lnextl.
-
-Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
-  if (!Array.isArray(arr))
-    throw ("Roots.txtprnArrayCol: invalid array");
-
-  var cur_line, next_line, prev_line, last_match;
-  var check = nextLine.length;
-
-  match[0] = next_line = prev_line = last_match = 0;
-  cur_line = first[0];
-
-  while (cur_line != 0) {
-    if (check-- <= 0)
-      throw "Roots.txtprnArrayCol: Bad input list!";
-
-    next_line = nextLine[cur_line-1];
-
-    // Match
-    if (values.indexOf(arr[cur_line-1][col].toString()) >= 0) {
-
-      // Disconnect current line from top of input list
-      if (prev_line === 0)
-        first[0] = next_line;
-
-      // Disconnect current line from spot other than top of input list
-      else nextLine[prev_line-1] = next_line;
-
-      // Insert current line into match list
-         
-      // First member of match list?
-      if (last_match === 0)
-        match[0] = cur_line;
-         
-      // Extend match list
-      else nextLine[last_match-1] = cur_line;
-
-      last_match = cur_line;
-    }
-
-    // Non-match
-    else prev_line = cur_line;
-
-    cur_line = next_line;
-  }
-
-  if (last_match != 0)
-    nextLine[last_match-1] = 0;
-}
-
 // Unpack the floating point number stored within block at field.
 
 Roots.runpac = function(block, field) {
@@ -1055,9 +1004,59 @@ Roots.setbit = function(first, nextLine, bitString) {
   }
 }
 
+// The nf bit fields of bitString are set to all ones.
+
+Roots.setone = function(bitString, fields, nf) {
+  if (!(bitString instanceof Uint8Array))
+    throw "Roots.setone: bitString must be Uint8Array";
+
+  var n, field_start, field_length;
+  var i, f, n, byte1, bit1, bytel, bitl;
+  mask = new Uint8Array(1);
+
+  const leftzero  = new Uint8Array([0xFF,0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01]);
+  const rightzero = new Uint8Array([0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE,0xFF]);
+
+  // Process each bit field
+  f = 0;
+  for (n = nf; n--;) {
+    field_start = fields[f++];
+    --field_start;
+    field_length = fields[f++];
+
+    // Determine the first and last bytes
+    byte1 = field_start >> 3;
+    bit1 = field_start % 8;
+    bytel = (field_start+field_length-1) >> 3;
+    bitl = (field_start+field_length-1) % 8;
+
+    // Bit string is contained in a single byte
+    if (byte1 === bytel) {
+      mask[0] = 0xFF;
+      mask[0] &= leftzero[bit1];
+      mask[0] &= rightzero[bitl];
+      bitString[byte1] |= mask[0];
+    }
+
+    // Bit string spans several bytes
+    else {
+      // Turn on bits in the first byte
+      bitString[byte1] |= leftzero[bit1];
+
+      // Turn on bits in the last byte
+      bitString[bytel] |= rightzero[bitl];
+
+      // Set in-between bytes to all zeros
+      for (byte1 += 1; byte1 != bytel; byte1 += 1)
+        bitString[byte1] = 0xFF;
+    }
+  }
+}
+
 // The input list first/nextLine is split into 2 lists.
 // Members whose bitString(line) contains a "1" are moved to output sub-list match/nextLine.
 // Members whose bitString(line) contains a "0" remain in first/nextLine.
+
 Roots.setprn = function(bitString, first, nextLine, match) {
   if (!(bitString instanceof Uint8Array))
     throw "Roots.setprn: block must be Uint8Array";
@@ -1134,7 +1133,7 @@ Roots.setzer = function(bitString, fields, nf) {
     bitl = (field_start+field_length-1) % 8;
 
     // Bit string is contained in a single byte
-    if (byte1 == bytel) {
+    if (byte1 === bytel) {
       mask[0] = 0x00;
       mask[0] |= leftones[bit1];
       mask[0] |= rightones[bitl];
@@ -1175,6 +1174,200 @@ Roots.srmoveArray = function(sorti, arr) {
   }
 
   arr = output;
+}
+
+// Prune by bit-string.
+// Entries for which bit string(block(field)) is on are entered
+// in match/nextLine.  Non-matching entries remain in first/nextLine.
+
+Roots.strprn = function(block, cpl, field, string, first, nextLine, match) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.strprn: block must be Uint8Array";
+  if (!(string instanceof Uint8Array))
+    throw "Roots.strprn: string must be Uint8Array";  
+  if (cpl <= 0)
+    throw "Roots.strprn: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.strprn: Bad field values";
+  
+  var num, v=[], cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+  const tbits  = new Uint8Array([0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01]);
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+  v[1] = field[1];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.strprn: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    v[0] = field[0] + (cur_line-1) * cpl;
+    num = Roots.bunpac(block,v);
+
+    if (num === 0)
+      prev_line = cur_line;
+
+    else {
+      num -= 1;
+
+      // Match
+      if (string[num >> 3] & tbits[num & 0x7]) {
+
+        // Disconnect current line from top of input list
+        if (prev_line === 0)
+          first[0] = next_line;
+
+        // Disconnect current line from spot other than top of input list
+        else nextLine[prev_line-1] = next_line;
+
+        // Insert current line into match list
+         
+        // First member of match list?
+        if (last_match === 0)
+          match[0] = cur_line;
+         
+        // Extend match list
+        else nextLine[last_match-1] = cur_line;
+
+        last_match = cur_line;
+      }
+
+      // Non-match
+      else prev_line = cur_line;
+    }
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
+// For all block lines of first/nextLine, the text string stored
+// at block[field] is compared with text[tfield].
+
+// Matching entries are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+Roots.txtprn = function(block, cpl, field, text, tfield, first, nextLine, match) {
+  var n, start, cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+  var s1, s2, rc;
+  var decoder = new TextDecoder("utf-8");
+  
+  n = field[1];
+  if (n > tfield[1]) n = tfield[1];
+
+  if (!(block instanceof Uint8Array))
+    throw "Roots.txtprn: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.txtprn: cpl < 1";
+  if (field[0] <= 0 || tfield[0] <= 0 || n <= 0 || n > cpl)
+    throw "Roots.txtprn: Bad field values";
+  if (field[0] + field[1] - 1 > cpl)
+    throw "Roots.txtprn: Bad field values";
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+  s2 = text.slice(tfield[0]-1, tfield[0]-1+n);
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.txtprn: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    start = field[0] + (cur_line-1) * cpl - 1;
+    s1 = decoder.decode(block.slice(start, start+n));
+    rc = s1.localeCompare(s2);
+
+    // Match
+    if (rc === 0) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
+// For all lines of first/nextLine, the value stored at arr[line][col]
+// is compared with an array of values.  
+
+// Entries which match one of the values are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
+  if (!Array.isArray(arr))
+    throw ("Roots.txtprnArrayCol: invalid array");
+
+  var cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.txtprnArrayCol: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+
+    // Match
+    if (values.indexOf(arr[cur_line-1][col].toString()) >= 0) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
 }
 
 // This function can be removed once browsers support ArrayBuffer.transfer.
