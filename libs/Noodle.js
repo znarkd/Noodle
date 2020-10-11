@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 3, 2020
+ * Release: October 11, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -41,11 +41,11 @@ function Noodle(dataArray, labels) {
 
     // Array of arrays
     if (Array.isArray(mData[0]))
-      mType = "array";
+      mType = "Array";
 
     // Array of regular objects
     else if (typeof mData[0] === "object")
-      mType = "object";
+      mType = "Object";
 
     // Array of strings or numbers
     else {
@@ -56,7 +56,7 @@ function Noodle(dataArray, labels) {
         zdata[i][0] = mData[i];
       }
       mData = zdata;
-      mType = "array";
+      mType = "Array";
     }
 
     mKeys = Object.keys(mData[0]);
@@ -162,6 +162,10 @@ function Noodle(dataArray, labels) {
 
   this.FieldCount = function () {
     return mNumFields;
+  }
+
+  this.getBaseType = function() {
+    return mType;
   }
 
   this.WhereIsField = function (bfi) {
@@ -271,7 +275,7 @@ function Noodle(dataArray, labels) {
 
     // Add a new row to the dataset
     var nline;
-    if (mType === "array")
+    if (mType === "Array")
       nline = mData.push([]);
     else
       nline = mData.push({});
@@ -501,7 +505,9 @@ function Noodle(dataArray, labels) {
       Roots.mrsort(mData, comparer, viewSortFields, viewPages, viewNextLine);
       first[0] = viewPages[0];
     }
-    else first[0] = Roots.seqlst(rowcount, viewNextLine);
+    else {
+      Roots.seqlst(first, rowcount, viewNextLine);
+    }
 
     // Drop out records which have been deleted or filtered out
     drop[0] = first[0];
@@ -596,6 +602,12 @@ function Noodle(dataArray, labels) {
     return true;
   }
 
+  this.GetDataType = function(bfi) {
+    if (mData.GetDataType != undefined)
+      return mData.GetDataType(bfi);
+    return "String";
+  }
+
   this.GetValue = function (page, line, bfi) {
     var first;
 
@@ -682,7 +694,7 @@ function Noodle(dataArray, labels) {
 
     // Add a new row to the dataset
     var nline;
-    if (mType === "array")
+    if (mType === "Array")
       nline = mData.push([]);
     else
       nline = mData.push({});
@@ -736,7 +748,7 @@ function Noodle(dataArray, labels) {
 
     // Add a new row to the dataset
     var newLine;
-    if (mType === "array")
+    if (mType === "Array")
       newLine = mData.push([]);
     else
       newLine = mData.push({});
@@ -786,7 +798,7 @@ function Noodle(dataArray, labels) {
       case "compare":
         break;
       default:
-        alert("Can't do PruneValues.  Invalid prune operation!");
+        ErrorMsg("Can't do PruneValues.  Invalid prune operation!");
         return -1;
     }
     return 0;
@@ -824,12 +836,12 @@ function Noodle(dataArray, labels) {
     }
 
     if (prune.nline != this.Nline()) {
-      alert("Data nline has changed since last prune!\nCall ResetPrune!");
+      ErrorMsg("Data nline has changed since last prune!\nCall ResetPrune!");
       return -1;
     }
 
     // Remove "Deleted" rows
-    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     v[0] = v[1] = DELETED_ROW;
     Roots.rngprnArray(viewState, v, prune.first, prune.nextLine, prune.match);
 
@@ -837,7 +849,7 @@ function Noodle(dataArray, labels) {
     if (inputs != 0) {
       if (!Array.isArray(inputs)) {
         if (inputs in prune.sets === false) {
-          alert("Can't do PruneBracket.  Input set doesn't exist!");
+          ErrorMsg("Can't do PruneBracket.  Input set doesn't exist!");
           return -1;
         }
         prune.work = prune.sets[inputs].slice();
@@ -845,7 +857,7 @@ function Noodle(dataArray, labels) {
       else {
         for (i = 0; i < inputs.length; i++) {
           if (inputs[i] in prune.sets === false) {
-            alert("Can't do PruneBracket.  Input set doesn't exist!");
+            ErrorMsg("Can't do PruneBracket.  Input set doesn't exist!");
             return -1;
           }
           if (i === 0)
@@ -894,21 +906,21 @@ function Noodle(dataArray, labels) {
   // Mark non-selected rows as "Pruned" out.
   this.ApplyPrune = function (inputs) {
     if ("sets" in prune === false) {
-      alert("Noodle: No prune sets have been defined.");
+      ErrorMsg("Noodle: No prune sets have been defined.");
       return -1;
     }
 
     // Remove old prune flags first
     Roots.xpand(viewState, this.Nline());
     var val = [];
-    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     val[0] = val[1] = PRUNED_ROW;
     Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
     val[0] = ACTIVE_ROW;
     Roots.paclstArray(val[0], viewState, prune.match, prune.nextLine);
 
     // Get "Active" rows (ignore "Deleted" rows)
-    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     val[0] = val[1] = ACTIVE_ROW;
     Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
     prune.first[0] = prune.match[0];
@@ -916,7 +928,7 @@ function Noodle(dataArray, labels) {
     // Select the requested input sets
     if (!Array.isArray(inputs)) {
       if (inputs in prune.sets === false) {
-        alert("Can't do ApplyPrune.  Input set doesn't exist!");
+        ErrorMsg("Can't do ApplyPrune.  Input set doesn't exist!");
         return -1;
       }
       prune.work = prune.sets[inputs].slice();
@@ -924,7 +936,7 @@ function Noodle(dataArray, labels) {
     else {
       for (i = 0; i < inputs.length; i++) {
         if (inputs[i] in prune.sets === false) {
-          alert("Can't do ApplyPrune.  Input set doesn't exist!");
+          ErrorMsg("Can't do ApplyPrune.  Input set doesn't exist!");
           return -1;
         }
         if (i === 0)
@@ -948,11 +960,11 @@ function Noodle(dataArray, labels) {
   // Reverse the position of all bits in an input set
   this.LineSetInvert = function (set) {
     if ("sets" in prune === false) {
-      alert("LineSetInvert: No prune sets have been defined.");
+      ErrorMsg("LineSetInvert: No prune sets have been defined.");
       return -1;
     }
     if (set in prune.sets === false) {
-      alert("Can't do LineSetInvert.  Input set doesn't exist!");
+      ErrorMsg("Can't do LineSetInvert.  Input set doesn't exist!");
       return -1;
     }
     prune.work = prune.sets[set].slice();
@@ -965,11 +977,11 @@ function Noodle(dataArray, labels) {
   // Find matching lines in a set
   this.Locate = function (locateData) {
     if ("sets" in prune === false) {
-      alert("Locate: No prune sets have been defined.");
+      ErrorMsg("Locate: No prune sets have been defined.");
       return -1;
     }
     if (locateData.set in prune.sets === false) {
-      alert("Can't do Locate.  Input set doesn't exist!");
+      ErrorMsg("Can't do Locate.  Input set doesn't exist!");
       return -1;
     }
     if ("starthere" in locateData === false)
@@ -1036,7 +1048,7 @@ function Noodle(dataArray, labels) {
       return -1;
     }
 
-    alert("Invalid Locate operation.");
+    ErrorMsg("Invalid Locate operation.");
     return -1;
   }
 
@@ -1049,7 +1061,7 @@ function Noodle(dataArray, labels) {
 
     // Set all rows to "Active"
     var val = [];
-    prune.first[0] = Roots.seqlst(prune.nline, prune.nextLine);
+    Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     val[0] = val[1] = PRUNED_ROW;
     Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
     val[0] = ACTIVE_ROW;

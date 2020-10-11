@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 6, 2020
+ * Release: October 11, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -106,6 +106,12 @@ function NoodleDatabase(stream) {
       labels.push(field[i].name);
     }
     return labels;
+  }
+
+  // Return a field type
+
+  this.GetDataType = function(bfi) {
+    return field[bfi-1].type;
   }
   
   // Get the database's edit screens
@@ -304,7 +310,7 @@ function NoodleDatabase(stream) {
   // Select database rows
 
   valuePrune = function(p) {
-    var bstr, text, i, index, tindex, v=[];
+    var bstr, i, index, tindex, v=[];
     var hits=[0], outlst=[0], date;
 
     switch(field[p.bfi-1].type) {
@@ -373,13 +379,51 @@ function NoodleDatabase(stream) {
     return 0;
   }
 
+  scanPrune = function(p) {
+    var bstr, i, index, tindex, v=[];
+    var hits=[0], outlst=[0];
+    var tlines, tfirst=[0], tmatch=[0], tnextt=[];
+
+    switch(field[p.bfi-1].type) {
+      case 'T':
+        tindex = field[p.bfi-1].tindex;
+        tlines = table[tindex-1].item.length;
+        bstr  = new Uint8Array(tlines/8+1);
+        Roots.xpand(tnextt, tlines);
+        Roots.seqlst(tfirst, tlines, tnextt);
+        v[0]=1;
+        for (i=0; i < p.values.length; i++) {
+          if (p.values[i].length > 0) {
+            v[1]=p.values[i].length;
+            Roots.scanprArray(table[tindex-1].item, p.values[i], v, tfirst, tnextt, tmatch);
+            Roots.setbit(tmatch, tnextt, bstr);
+          }
+        }
+        Roots.strprn(base.block, base.cpl, blkfld[p.bfi-1], bstr, p.first, p.nextLine, hits);
+        Roots.conlst(outlst, hits, p.nextLine);
+        break;
+      case 'E':
+        v[0]=1;
+        for (i=0; i < p.values.length; i++) {
+          v[1]=p.values[i].length;
+          Roots.scanpr(base.block, base.cpl, blkfld[p.bfi-1], p.values[i], v, p.first, p.nextLine, hits);
+          Roots.conlst(outlst, hits, p.nextLine);
+        }
+        break;
+      default:
+        throw("NoodleDatabase: Invalid data type");
+    }
+    p.match[0] = outlst[0];
+    return 0;
+  }
+
   this.PruneValues = function(pruneData) {
     switch (pruneData.operation) {
       case "value":
         return valuePrune(pruneData);
-      case "range":
-        break;
       case "scan":
+        return scanPrune(pruneData);
+      case "range":
         break;
       case "mask":
         break;
@@ -395,7 +439,7 @@ function NoodleDatabase(stream) {
   // Clean the database and its tables
 
   this.CleanDataBase = function() {
-    var i, newi, t, used, flds, first, sf=[1];
+    var i, newi, t, used, flds, first=[0], sf=[1];
     var range=[], firstLine=[], dropLine=[];
     var map=[], nextLine=[], group=[], rank=[], sorti=[];
 
@@ -430,7 +474,7 @@ function NoodleDatabase(stream) {
 
       // Generate table entry deletion map
       Roots.zerout(map);
-      first = Roots.seqlst(base.nline, nextLine);
+      Roots.seqlst(first, base.nline, nextLine);
       for (i=0; i < flds.length; i++)
         Roots.idxmap(base.block, base.cpl, flds[i], first, nextLine, map);
       
@@ -440,7 +484,7 @@ function NoodleDatabase(stream) {
         }, sf, group, nextLine, sorti);
 
       // Delete stale table entries, i.e. map(stale)=0
-      first = Roots.seqlst(table[t].length, nextLine);
+      Roots.seqlst(first, table[t].length, nextLine);
       range[0] = range[1] = 0;
       firstLine[0] = first;
       dropLine[0] = 0;
@@ -500,7 +544,7 @@ function NoodleDatabase(stream) {
     }
 
     // Keep the rows with zero valued bits, drop those with 1=bits
-    keep[0] = Roots.seqlst(base.nline, nextLine);
+    Roots.seqlst(keep, base.nline, nextLine);
     Roots.setprn(bstr, keep, nextLine, drop);
     Roots.delent(base.block, base.cpl, nline, drop[0], nextLine);
     base.nline = nline[0];

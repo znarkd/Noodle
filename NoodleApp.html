@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="September 27, 2020">
+  <meta name="version" content="October 11, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -2261,13 +2261,20 @@
       if ("set" in locate === false) {
         var data = [];
         data[0] = document.getElementById("find-data").value.replace(/\s+$/, '');
-        if (db1.PruneBracket(0, "value", locate.bfi, data, {
-          "match": "locate"
+        
+        var pruneOperation = "value";
+        var type = db1.GetDataType(locate.bfi);
+        if (type === "T" || type === "E") {
+          pruneOperation = "scan";
+        }
+
+        if (db1.PruneBracket(0, pruneOperation, locate.bfi, data, {
+          "match": "keepers"
         }))
           return;
       }
 
-      locate.set = "locate";
+      locate.set = "keepers";
       locate.operation = operation;
       locate.starthere = true;
       if (db1.Locate(locate)) {

@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 6, 2020
+ * Release: October 11, 2020
  */
 
 var Roots = Roots || {};
@@ -972,20 +972,157 @@ Roots.runpac = function(block, field) {
     throw "Roots.runpac: Must use 4 or 8 bytes for floating point";
 }
 
+// For all block lines of first/nextLine block[field] is scanned for the
+// substring contained within text[tfield].
+
+// Matching entries are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+// The scanpr method is case insensitive.
+
+Roots.scanpr = function(block, cpl, field, text, tfield, first, nextLine, match) {
+  var n, start, cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+  var s1, s2;
+  var decoder = new TextDecoder("utf-8");
+  
+  n = field[1];
+  if (n > tfield[1]) n = tfield[1];
+
+  if (!(block instanceof Uint8Array))
+    throw "Roots.scanpr: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.scanpr: cpl < 1";
+  if (field[0] <= 0 || tfield[0] <= 0 || n <= 0 || n > cpl)
+    throw "Roots.scanpr: Bad field values";
+  if (field[0] + field[1] - 1 > cpl)
+    throw "Roots.scanpr: Bad field values";
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+  s2 = text.slice(tfield[0]-1, tfield[0]-1+n).toLowerCase();
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.scanpr: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    start = field[0] + (cur_line-1) * cpl - 1;
+    s1 = decoder.decode(block.slice(start, start+n)).toLowerCase();
+    
+    // Match
+    if (s1.includes(s2)) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
+// For all lines of first/nextLine, the string stored at arr[line] is
+// scanned for the substring contained within text[tfield].
+
+// Matching entries are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+// The scanprArray method is case insensitive.
+
+Roots.scanprArray = function(arr, text, tfield, first, nextLine, match) {
+  var cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+  var s1, s2;
+  
+  if (tfield[0] <= 0 || tfield[1] <= 0)
+    throw "Roots.scanprArray: Bad tfield values";
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+  s2 = text.slice(tfield[0]-1, tfield[0]-1+tfield[1]).toLowerCase();
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.scanprArray: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    s1 = arr[cur_line-1].toLowerCase();
+    
+    // Match
+    if (s1.includes(s2)) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
 // Prime a new list
 
-Roots.seqlst = function(nline, nextLine) {
-  var n = nline;
-  if (n === 0)
-    return 0;
+Roots.seqlst = function(first, nline, nextLine) {
+  if (!(first instanceof Array))
+    throw "Roots.seqlst: first must be Array";
+  if (!(nextLine instanceof Array))
+    throw "Roots.seqlst: nextLine must be Array";
 
-  var i = 2,
-    k = 0;
+  var n = nline;
+  if (n === 0) {
+    first[0] = 0;
+    return;
+  }
+
+  var i=2, k=0;
   while (--n > 0) {
     nextLine[k++] = i++;
   }
   nextLine[k] = 0;
-  return 1;
+  first[0] = 1;
 }
 
 // Set bitString[line] to "1" for all lines found in first, nextLine
@@ -997,7 +1134,7 @@ Roots.setbit = function(first, nextLine, bitString) {
   const tbits = new Uint8Array([0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01]);
   var check = nextLine.length;
 
-  for (var line = first; line > 0; line = nextLine[line-1]) {
+  for (var line = first[0]; line > 0; line = nextLine[line-1]) {
     if (check-- <= 0)
       throw "Roots.setbit: Bad input list!";
     bitString[(line-1) >> 3] |= tbits[(line-1) & 0x7];
