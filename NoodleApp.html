@@ -2183,6 +2183,8 @@
 
     var showFind = function () {
       var e, k;
+
+      locate = {};
       
       e = document.getElementById("find-dialog");
       if (!(e.classList.contains("hide"))) {
@@ -2226,7 +2228,6 @@
     var hideFind = function () {
       document.getElementById("find-dialog").classList.toggle("hide", true);
       document.getElementById("find-data").value = "";
-      locate = {};
       if (focusField != undefined)
         document.getElementById(focusField).focus();
     }
