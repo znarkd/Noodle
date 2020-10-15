@@ -2,7 +2,7 @@
  * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
  * The data is assumed to consist of flat tables (rows and columns).
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 11, 2020
+ * Release: October 14, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -1493,6 +1493,14 @@ function Noodle(dataArray, labels) {
 
     recentFirst = recentLine = recentNline = recentPage = 0;
     return 0;
+  }
+
+  // Create a JSON string representation of the data
+  this.stringify = function() {
+    if (mData.stringify != undefined)
+      return mData.stringify();
+    else
+      return JSON.stringify(mData);
   }
 
   // Output encode XML special characters

@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 11, 2020
+ * Release: October 15, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -15,7 +15,7 @@ function NoodleDatabase(stream) {
   // Utility functions
   
   // https://gist.github.com/getify/7325764
-  convertBaseToUint8Array = function(bStr) {
+  convertBinaryStringToUint8Array = function(bStr) {
     var i, len = bStr.length, u8_array = new Uint8Array(len);
     for (i=0; i < len; i++) {
       u8_array[i] = bStr.charCodeAt(i);
@@ -23,7 +23,7 @@ function NoodleDatabase(stream) {
     return u8_array;
   }
   
-  convertBaseToBinaryString = function(u8Array) {
+  convertUint8ArrayToBinaryString = function(u8Array) {
     var i, len = base.cpl * base.nline, b_str = "";
     for (i=0; i < len; i++) {
       b_str += String.fromCharCode(u8Array[i]);
@@ -72,7 +72,7 @@ function NoodleDatabase(stream) {
       name = ary.NoodleDatabase.name;
       field = ary.NoodleDatabase.field;
       base = ary.NoodleDatabase.base;
-      base.block = convertBaseToUint8Array(window.atob(base.block));
+      base.block = convertBinaryStringToUint8Array(window.atob(base.block));
       table = ary.NoodleDatabase.table;
       ndlEditScreen = ary.NoodleDatabase.screen;
       
@@ -92,7 +92,25 @@ function NoodleDatabase(stream) {
       throw("NoodleDatabase: Invalid format. " + err);
     }
   }
+
+  // Convert the database into a text format for data exchange
+
+  this.stringify = function() {
+    var ndl = {};
+    ndl.NoodleDatabase = {};
+    ndl.NoodleDatabase.name = name;
+    ndl.NoodleDatabase.field = field;
+    ndl.NoodleDatabase.base = {};
+    ndl.NoodleDatabase.base.cpl = base.cpl;
+    ndl.NoodleDatabase.base.nline = base.nline;
+    ndl.NoodleDatabase.base.block = window.btoa(convertUint8ArrayToBinaryString(base.block));
+    ndl.NoodleDatabase.table = table;
+    ndl.NoodleDatabase.screen = ndlEditScreen;
+    return JSON.stringify(ndl);
+  }
   
+  // Return the number of rows (lines) in the database
+
   this.length = function() {
     return base.nline;
   }
@@ -307,7 +325,7 @@ function NoodleDatabase(stream) {
     }
   }
 
-  // Select database rows
+  // Select database rows by value
 
   valuePrune = function(p) {
     var bstr, i, index, tindex, v=[];
@@ -379,6 +397,8 @@ function NoodleDatabase(stream) {
     return 0;
   }
 
+  // Select database rows via text scanning
+
   scanPrune = function(p) {
     var bstr, i, index, tindex, v=[];
     var hits=[0], outlst=[0];
@@ -416,6 +436,8 @@ function NoodleDatabase(stream) {
     p.match[0] = outlst[0];
     return 0;
   }
+
+  // Main function for creating prune sets
 
   this.PruneValues = function(pruneData) {
     switch (pruneData.operation) {
