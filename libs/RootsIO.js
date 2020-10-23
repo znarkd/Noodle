@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 26, 2019
+ * Release: October 23, 2020
  */
  
 var Roots = Roots || {};
@@ -201,7 +201,6 @@ _createPicker = function() {
 
 _onPickerApiLoad = function() {
   _APIsLoaded = true;
-  _createPicker();
 }
 
 _handleAuthResult = function(authResult) {
@@ -233,7 +232,7 @@ _pickerCallback = function(data) {
 // Get a file from Google Drive
 Roots.GDriveGetFile = function(callback) {
   _callback = callback;
-  gapi.load('client');
+  //gapi.load('client');
   gapi.load('auth2', _onAuthApiLoad);
   gapi.load('picker', _onPickerApiLoad);
 }
