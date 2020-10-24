@@ -189,14 +189,10 @@ _onAuthApiLoad = function() {
 _createPicker = function() {
   if (_APIsLoaded && _oauthToken) {
     var view1 = new google.picker.DocsView(google.picker.ViewId.DOCS)
-    .setMode(google.picker.DocsViewMode.LIST)
-    .setQuery("*.ndl");
-    var view2 = new google.picker.DocsView(google.picker.ViewId.DOCS)
-    .setMode(google.picker.DocsViewMode.LIST)
-    .setQuery("*.csv");
+      .setMode(google.picker.DocsViewMode.LIST)
+      .setQuery("*.ndl || *.csv");
     var picker = new google.picker.PickerBuilder().
     addView(view1).
-    addView(view2).
     setOAuthToken(_oauthToken).
     setDeveloperKey(_developerKey).
     setCallback(_pickerCallback).
