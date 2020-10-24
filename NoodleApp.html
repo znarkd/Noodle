@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="October 11, 2020">
+  <meta name="version" content="October 24, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -19,7 +19,10 @@
   <script src="libs/node_modules/react-window/dist/index-prod.umd.js"></script>
   <script src="libs/node_modules/react-virtualized/dist/umd/react-virtualized.js"></script>
   <script src="libs/node_modules/react-draggable/web/react-draggable.min.js"></script>
-  <script crossorigin src="https://apis.google.com/js/api.js"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    gapi.load('auth2', function() {});
+  </script>
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
   <script src="libs/RootsIO.js"></script>
@@ -826,6 +829,7 @@
       document.getElementById("cancelscreenchange").addEventListener("click", HideBuildScreen);
       document.getElementById("dropdown").addEventListener("click", dropdownClick);
       document.getElementById("menuopen").addEventListener("click", ShowOpen);
+      document.getElementById("menuSave").addEventListener("click", saveClick);
       document.getElementById("menuXML").addEventListener("click", doReport);
       document.getElementById("menuCSV").addEventListener("click", doExport);
       document.getElementById("menuFind").addEventListener("click", showFind);
@@ -1323,39 +1327,29 @@
     // Read a file from Google Drive
 
     var gdrive = function () {
-      Roots.GDriveGetFile(onGDriveFileLoaded);
-    }
-    var onGDriveFileLoaded = function (stream) {
-      try {
-        var ary = new NoodleDatabase(stream);
-        db1 = new Noodle(ary);
-        editScreen = ary.getScreens();
-        showEditScreen();
-      } catch (err) {
-        alert(err);
-      }
+      Roots.GDriveGetFile(fileLoaded);
     }
 
     // Read a file from the local file system
 
-    var _filetype;
     var fileSelected = function (files) {
       var file = files[0];
-      if (file) {
-        _filetype = file.name.substring(file.name.lastIndexOf('.') + 1, file.name.length) || file.name;
+      if (file)
         Roots.GetLocalFile(file, fileLoaded);
-      }
     }
-    var fileLoaded = function (text) {
+
+    // Create a Noodle object from a file
+
+    var fileLoaded = function (file) {
       try {
-        if (_filetype === "ndl") {
-          var ary = new NoodleDatabase(text);
+        if (file.type === "ndl") {
+          var ary = new NoodleDatabase(file.data);
           db1 = new Noodle(ary);
           editScreen = ary.getScreens();
           showEditScreen();
-        } else if (_filetype === "csv") {
-          var sep = Roots.initCSV(text);
-          var data = Roots.parseCSV(text, sep);
+        } else if (file.type === "csv") {
+          var sep = Roots.initCSV(file.data);
+          var data = Roots.parseCSV(file.data, sep);
 
           // Assume the 1st row contains the column labels
           var labels = data.shift();
@@ -1373,8 +1367,8 @@
             editScreen[0].columns[i].field = db1.FieldName(i + 1);
           }
           showEditScreen();
-        } else if (_filetype === "json") {
-          var data = JSON.parse(text);
+        } else if (file.type === "json") {
+          var data = JSON.parse(file.data);
           db1 = new Noodle(data);
           var nf = db1.FieldCount();
           editScreen = [];
@@ -2177,8 +2171,14 @@
       }
     }
 
+    var saveClick = function() {
+      var d = db1.stringify();
+      Roots.GDrivePutFile("mytestfile.ndl", d);
+    }
+
     var trashClick = function () {
-      alert("Trash not yet implemented");
+      var tok = Roots.GDriveToken();
+      alert(tok);
     }
 
     var showFind = function () {

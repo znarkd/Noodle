@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 15, 2020
+ * Release: October 21, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -91,22 +91,6 @@ function NoodleDatabase(stream) {
     catch(err) {
       throw("NoodleDatabase: Invalid format. " + err);
     }
-  }
-
-  // Convert the database into a text format for data exchange
-
-  this.stringify = function() {
-    var ndl = {};
-    ndl.NoodleDatabase = {};
-    ndl.NoodleDatabase.name = name;
-    ndl.NoodleDatabase.field = field;
-    ndl.NoodleDatabase.base = {};
-    ndl.NoodleDatabase.base.cpl = base.cpl;
-    ndl.NoodleDatabase.base.nline = base.nline;
-    ndl.NoodleDatabase.base.block = window.btoa(convertUint8ArrayToBinaryString(base.block));
-    ndl.NoodleDatabase.table = table;
-    ndl.NoodleDatabase.screen = ndlEditScreen;
-    return JSON.stringify(ndl);
   }
   
   // Return the number of rows (lines) in the database
@@ -460,7 +444,7 @@ function NoodleDatabase(stream) {
 
   // Clean the database and its tables
 
-  this.CleanDataBase = function() {
+  cleanDataBase = function() {
     var i, newi, t, used, flds, first=[0], sf=[1];
     var range=[], firstLine=[], dropLine=[];
     var map=[], nextLine=[], group=[], rank=[], sorti=[];
@@ -532,7 +516,7 @@ function NoodleDatabase(stream) {
 
   // Remove duplicate rows from the database
   
-  this.RemoveDuplicateRows = function() {
+  removeDuplicateRows = function() {
     var i, first, next, ngroup, sf=[1], bstr;
     var keep=[0], drop=[0], nline=[base.nline];
     var group=[], nextLine=[];
@@ -570,6 +554,25 @@ function NoodleDatabase(stream) {
     Roots.setprn(bstr, keep, nextLine, drop);
     Roots.delent(base.block, base.cpl, nline, drop[0], nextLine);
     base.nline = nline[0];
+  }
+  
+  // Convert the database into a text format for data exchange or saving
+
+  this.stringify = function() {
+    cleanDataBase();
+    removeDuplicateRows();
+
+    var ndl = {};
+    ndl.NoodleDatabase = {};
+    ndl.NoodleDatabase.name = name;
+    ndl.NoodleDatabase.field = field;
+    ndl.NoodleDatabase.base = {};
+    ndl.NoodleDatabase.base.cpl = base.cpl;
+    ndl.NoodleDatabase.base.nline = base.nline;
+    ndl.NoodleDatabase.base.block = window.btoa(convertUint8ArrayToBinaryString(base.block));
+    ndl.NoodleDatabase.table = table;
+    ndl.NoodleDatabase.screen = ndlEditScreen;
+    return JSON.stringify(ndl);
   }
   
 }

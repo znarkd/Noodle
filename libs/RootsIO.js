@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 23, 2020
+ * Release: October 24, 2020
  */
  
 var Roots = Roots || {};
@@ -10,20 +10,26 @@ var Roots = Roots || {};
 
 // See: https://www.w3.org/TR/file-upload/
 
-Roots.GetLocalFile = function(fn, callback) {
+Roots.GetLocalFile = function(file, callback) {
   var reader = new FileReader();
   
   reader.onerror = function(e) {
-    alert("Error reading: " + fn);
+    alert("Error reading: " + file.name);
     callback(undefined);
   };
 
   reader.onloadend = function(e) {
-    callback(reader.result);
+    var type = file.name.substring(file.name.lastIndexOf('.') + 1, file.name.length) || file.name;
+    var f = {
+      name: file.name,
+      type: type,
+      data: reader.result
+    }
+    callback(f);
   };
 
   // Read file into memory as UTF-8
-  reader.readAsText(fn, "UTF-8");
+  reader.readAsText(file, "UTF-8");
 }
 
 // Attempt to determine the seperator character
@@ -213,14 +219,29 @@ _handleAuthResult = function(authResult) {
 _pickerCallback = function(data) {
   if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
     var doc = data[google.picker.Response.DOCUMENTS][0];
-    var mimeType = doc.mimeType;
+
+    if (doc.type != "file") {
+      alert("Can't download files of type: " + doc.type);
+      return;
+    }
+
+    var name = doc[google.picker.Document.NAME];
+    var type = name.substring(name.lastIndexOf('.') + 1, name.length) || name;
     var fileId = doc[google.picker.Document.ID];
+    var parentId = doc[google.picker.Document.PARENT_ID];
     var url = 'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media';
 
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
       if (this.status == 200 && this.responseText != null) {
-        _callback(this.responseText);
+        var gfile = {
+          name: name,
+          type: type,
+          id: fileId,
+          parentId: parentId,
+          data: this.responseText
+        };
+        _callback(gfile);
       }
     };
     xhr.open('GET',url);
@@ -232,7 +253,6 @@ _pickerCallback = function(data) {
 // Get a file from Google Drive
 Roots.GDriveGetFile = function(callback) {
   _callback = callback;
-  //gapi.load('client');
   gapi.load('auth2', _onAuthApiLoad);
   gapi.load('picker', _onPickerApiLoad);
 }
