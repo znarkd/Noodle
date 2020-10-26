@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 21, 2020
+ * Release: October 26, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -11,6 +11,8 @@ function NoodleDatabase(stream) {
   var table = [];
   var ndlEditScreen = [];
   var blkfld = [];
+
+  var myself = this;
     
   // Utility functions
   
@@ -36,23 +38,35 @@ function NoodleDatabase(stream) {
       throw("display width < 1");
 
     switch (field[i].type) {
+      // Tabular
       case 'T':
+
+      // Binary
       case 'B':
+
+      // Zero-filled binary
       case 'Z':
         if (field[i].cpl <= 0 || field[i].cpl > 4)
           throw("Invalid cpl for Type-" + field[i].type);
         break;
+
+      // Date
       case 'D':
         if (field[i].cpl != 4)
           throw("cpl for Type-D must equal 4");
         break;
+
+      // Real
       case 'R':
         if (field[i].cpl != 4 && field[i].cpl != 8)
           throw("cpl for Type-R must be 4 or 8");
         if (field[i].decimals === undefined)
           throw("Type-R requires decimals value")
+
+      // Elemental data (stored as found in data source)
       case 'E':
         break;
+
       default:
         throw("Invalid data type");
     }
@@ -212,7 +226,7 @@ function NoodleDatabase(stream) {
     }
   }
   
-  // Add a new line
+  // Add a new line (row) to the database
   
   this.push = function() {
     if (base.cpl <= 0)
@@ -445,8 +459,8 @@ function NoodleDatabase(stream) {
   // Clean the database and its tables
 
   cleanDataBase = function() {
-    var i, newi, t, used, flds, first=[0], sf=[1];
-    var range=[], firstLine=[], dropLine=[];
+    var i, newi, t, oldt, used, flds, first=[0], sf=[1];
+    var range=[], drop=[];
     var map=[], nextLine=[], group=[], rank=[], sorti=[];
 
     // Remove stale table entries
@@ -456,7 +470,7 @@ function NoodleDatabase(stream) {
       used = false;
       flds = [];
       for (i=0; i < field.length; i++) {
-        if (field[i].tindex === t) {
+        if (field[i].tindex-1 === t) {
           used = true;
           flds.push(blkfld[i]);
         }
@@ -466,17 +480,17 @@ function NoodleDatabase(stream) {
 
       // Empty database?
       if (base.nline === 0)
-        table[t].length = 0;
-      if (table[t].length === 0)
+        table[t].item.length = 0;
+      if (table[t].item.length === 0)
         continue;
 
       // Make room for mapping
-      Roots.xpand(map, table[t].length);
-      Roots.xpand(nextLine, table[t].length);
+      Roots.xpand(map, table[t].item.length);
+      Roots.xpand(nextLine, table[t].item.length);
       Roots.xpand(nextLine, base.nline);
-      Roots.xpand(group, table[t].length);
-      Roots.xpand(rank, table[t].length);
-      Roots.xpand(sorti, table[t].length);
+      Roots.xpand(group, table[t].item.length);
+      Roots.xpand(rank, table[t].item.length);
+      Roots.xpand(sorti, table[t].item.length);
 
       // Generate table entry deletion map
       Roots.zerout(map);
@@ -485,28 +499,37 @@ function NoodleDatabase(stream) {
         Roots.idxmap(base.block, base.cpl, flds[i], first, nextLine, map);
       
       // Generate old table's sorti
-      Roots.mrsort(table[t], function(list,a,b) {
+      Roots.mrsort(table[t].item, function(list,a,b) {
           return list[a].localeCompare(list[b]);
         }, sf, group, nextLine, sorti);
 
+      // Save the old table length
+      oldt = table[t].item.length;
+
       // Delete stale table entries, i.e. map(stale)=0
-      Roots.seqlst(first, table[t].length, nextLine);
+      Roots.seqlst(first, table[t].item.length, nextLine);
       range[0] = range[1] = 0;
-      firstLine[0] = first;
-      dropLine[0] = 0;
-      Roots.rngprnArray(map, range, firstLine, nextLine, dropLine);
-      Roots.delentArray(table[t], dropline[0], nextLine);
+      drop[0] = 0;
+      Roots.rngprnArray(map, range, first, nextLine, drop);
+      Roots.delentArray(table[t].item, drop, nextLine);
       
       // Build rank translation.  old-new : rank(sorti)=newi
       Roots.zerout(rank);
       newi = 0;
-      for (i=0; i < table[t].length; i++) {
+      for (i=0; i < oldt; i++) {
         if (map[sorti[i]-1])
           rank[sorti[i]-1] = ++newi;
       }
 
+      // Build sorti for new table given the new rank column
+      newi = 0;
+      for (i=0; i < oldt; i++) {
+        if (rank[i])
+          sorti[rank[i]-1] = ++newi;
+      }      
+
       // Re-arrange the table, i.e. physically sort it
-      Roots.srmoveArray(sorti, table[t]);
+      Roots.srmoveArray(sorti, table[t].item);
 
       // Update table index values in the database
       for (i=0; i < flds.length; i++)
@@ -517,25 +540,29 @@ function NoodleDatabase(stream) {
   // Remove duplicate rows from the database
   
   removeDuplicateRows = function() {
-    var i, first, next, ngroup, sf=[1], bstr;
+    var i, first=[], ngroup, sf=[1], bstr;
     var keep=[0], drop=[0], nline=[base.nline];
     var group=[], nextLine=[];
     Roots.xpand(group, base.nline);
     Roots.xpand(nextLine, base.nline);
 
     _lineCompare = function(list,a,b) {
-      var k, aval, bval;
+      var i, k, aval, bval;
       k = a * base.cpl;
-      aval = base.block.slice(k, k+base.cpl).join('');
+      aval = base.block.slice(k, k+base.cpl);
       k = b * base.cpl;
-      bval = base.block.slice(k, k+base.cpl).join('');
-      return aval.localeCompare(bval);    
+      bval = base.block.slice(k, k+base.cpl);
+      for (i=0; i < base.cpl; i++) {
+        if (aval[i] != bval[i])
+          return aval[i] - bval[i];
+      }
+      return 0;
     }
 
     // Determine if there are any duplicate rows
-    Roots.mrsort(base.block, _lineCompare, sf, group, nextLine);
-    first = group[0];
-    ngroup = Roots.colect(base.block, _lineCompare, sf, first, nextLine, group);
+    Roots.mrsort(myself, _lineCompare, sf, group, nextLine);
+    first[0] = group[0];
+    ngroup = Roots.colect(myself, _lineCompare, sf, first, nextLine, group);
     if (ngroup === base.nline)
       return;
 
@@ -543,16 +570,15 @@ function NoodleDatabase(stream) {
     bstr = new Uint8Array(base.nline/8 + 1);
     Roots.zerout(bstr);
     for (i=0; i < ngroup; i++) {
-      first = group[i];
-      next = nextLine[first-1];
-      if (next)
-        Roots.setbit(next, nextLine, bstr);
+      first[0] = nextLine[group[i]-1];
+      if (first[0])
+        Roots.setbit(first, nextLine, bstr);
     }
 
     // Keep the rows with zero valued bits, drop those with 1=bits
     Roots.seqlst(keep, base.nline, nextLine);
     Roots.setprn(bstr, keep, nextLine, drop);
-    Roots.delent(base.block, base.cpl, nline, drop[0], nextLine);
+    Roots.delent(base.block, base.cpl, nline, drop, nextLine);
     base.nline = nline[0];
   }
   

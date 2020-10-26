@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 11, 2020
+ * Release: October 26, 2020
  */
 
 var Roots = Roots || {};
@@ -33,20 +33,20 @@ Roots.bunpac = function(block, field) {
 
 // Group sorted list items
 
-Roots.colect = function(list, compareFunc, sortColumns, firstLine, nextLine, group) {
+Roots.colect = function(list, compareFunc, sortColumns, first, nextLine, group) {
   var i, last, check, ngroup;
 
   // Empty list?
-  if (firstLine <= 0)
+  if (first[0] <= 0)
     return 0;
 
   ngroup = 1;
-  last = group[0] = firstLine;
+  last = group[0] = first[0];
   check = nextLine.length;
 
   // Compare adjacent list items
 
-  for (i = nextLine[firstLine - 1]; i > 0; i = nextLine[i - 1]) {
+  for (i = nextLine[first[0]- 1]; i > 0; i = nextLine[i - 1]) {
     if (check-- <= 0)
       throw "Roots.colect: Bad input list";
 
@@ -91,16 +91,16 @@ Roots.delent = function(block, cpl, nline, first, nextLine) {
   if (!Array.isArray(nline))
     throw "Roots.delent: nline must be Array"
   
-  if (first === 0)
+  if (first[0] === 0)
     return;
 
   // Initialize the process
   var check = nextLine.length;
   var all = cpl * nline[0];
-  var lines = first - 1;
+  var lines = first[0] - 1;
   var sf=[0,0], df=[0,0], hole, nkeep;
 
-  for (hole = first; hole >= 0; hole = nextLine[hole-1]) {
+  for (hole = first[0]; hole >= 0; hole = nextLine[hole-1]) {
     if (check-- <= 0)
       throw "Roots.delent: Bad input list!";
    
@@ -138,15 +138,15 @@ Roots.delentArray = function(arr, first, nextLine) {
   if (!Array.isArray(arr))
     throw "Roots.delentArray: invalid array";
 
-    if (first === 0)
+    if (first[0] === 0)
       return;
 
     var check = nextLine.length;
     var nline = arr.length;
-    var lines = first - 1;
+    var lines = first[0] - 1;
     var sx, dx, nkeep;
 
-    for (var hole = first; hole >= 0; hole = nextLine[hole-1]) {
+    for (var hole = first[0]; hole >= 0; hole = nextLine[hole-1]) {
       if (check-- <= 0)
         throw "Roots.delentArray: Bad input list!";
 
@@ -256,11 +256,12 @@ Roots.idxmap = function(block, cpl, field, first, nextLine, map) {
   if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
     throw "Roots.idxmap: Bad field values"; 
 
-  var line, num;
-  var v = field;
+  var line, num, v=[];
+  v[0] = field[0];
+  v[1] = field[1];
   var check = nextLine.length;
 
-  for (line = first; line != 0; line = nextLine[line - 1]) {
+  for (line = first[0]; line != 0; line = nextLine[line - 1]) {
     if (check-- <= 0)
       throw "Roots.idxmap: Bad input list!";
     num = Roots.bunpac(block, v);
@@ -390,7 +391,7 @@ Roots.lgmap = function(block, cpl, nline, field, rank) {
   if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
     throw "Roots.lgmap: Bad field values";
   
-    var i, line, v=[];
+  var i, line, v=[];
   
   v[0] = field[0];
   v[1] = field[1];
@@ -1302,15 +1303,15 @@ Roots.srmoveArray = function(sorti, arr) {
     throw "Roots.srmoveArray: invalid array";
 
   var output = [];
-  output.length = sorti.length;
-  var n = sorti.length;
+  var n = arr.length;
   var i = 0;
   while (n--) {
-    output[i] = arr[sorti[i]];
+    output[i] = arr[sorti[i]-1];
     i += 1;
   }
 
-  arr = output;
+  for (i=0; i < output.length; i++)
+    arr[i] = output[i];
 }
 
 // Prune by bit-string.

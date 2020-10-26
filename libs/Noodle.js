@@ -522,7 +522,7 @@ function Noodle(dataArray, labels) {
     if (viewNumHead > 0) {
       viewNumPages = Roots.colect(mData, comparer,
         viewSortFields.slice(0, viewNumHead),
-        first[0], viewNextLine, viewPages);
+        first, viewNextLine, viewPages);
     }
     else {
       viewNumPages = 1;
@@ -551,7 +551,7 @@ function Noodle(dataArray, labels) {
       if (viewNumCol > 0) {
         ngroup = Roots.colect(mData, comparer,
           viewSortFields.slice(viewNumHead, viewSortFields.length),
-          first[0], viewNextLine, viewFirstDetail);
+          first, viewNextLine, viewFirstDetail);
       }
       else {
         viewFirstDetail[0] = first[0];

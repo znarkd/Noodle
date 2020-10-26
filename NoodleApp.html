@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="October 24, 2020">
+  <meta name="version" content="October 26, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -2173,7 +2173,8 @@
 
     var saveClick = function() {
       var d = db1.stringify();
-      Roots.GDrivePutFile("mytestfile.ndl", d);
+      //Roots.GDrivePutFile("mytestfile.ndl", d);
+      showEditScreen();
     }
 
     var trashClick = function () {
