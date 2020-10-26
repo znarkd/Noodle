@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 24, 2020
+ * Release: October 26, 2020
  */
  
 var Roots = Roots || {};
@@ -175,7 +175,7 @@ var _scope = 'https://www.googleapis.com/auth/drive';
 
 var _APIsLoaded = false;
 var _oauthToken = undefined;
-
+var _origin;
 var _callback;
 
 _onAuthApiLoad = function() {
@@ -191,12 +191,13 @@ _createPicker = function() {
     var view1 = new google.picker.DocsView(google.picker.ViewId.DOCS)
       .setMode(google.picker.DocsViewMode.LIST)
       .setQuery("*.ndl || *.csv || *.json");
-    var picker = new google.picker.PickerBuilder().
-    addView(view1).
-    setOAuthToken(_oauthToken).
-    setDeveloperKey(_developerKey).
-    setCallback(_pickerCallback).
-    build();
+    var picker = new google.picker.PickerBuilder()
+      .addView(view1)
+      .setOAuthToken(_oauthToken)
+      .setDeveloperKey(_developerKey)
+      .setCallback(_pickerCallback)
+      .setOrigin(_origin)
+      .build();
     picker.setVisible(true);
   }
 }
@@ -249,6 +250,7 @@ _pickerCallback = function(data) {
 // Get a file from Google Drive
 Roots.GDriveGetFile = function(callback) {
   _callback = callback;
+  _origin = window.location.protocol + '//' + window.location.host;
   gapi.load('auth2', _onAuthApiLoad);
   gapi.load('picker', _onPickerApiLoad);
 }
