@@ -1,8 +1,8 @@
 /*
- * Noodle allows one to construct a dynamic data view representation of a JavaScript array.
- * The data is assumed to consist of flat tables (rows and columns).
+ * Use Noodle to construct dynamic data views of tabular data.
+ * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 14, 2020
+ * Release: October 27, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -1495,8 +1495,31 @@ function Noodle(dataArray, labels) {
     return 0;
   }
 
-  // Create a JSON string representation of the data
+  var RemoveRows;
+  _removerows = function(first, nextLine) {
+    Roots.delentArray(mData, first, nextLine);
+  }
+  if (mData.RemoveRows != undefined)
+    RemoveRows = mData.RemoveRows;
+  else
+    RemoveRows = _removerows;
+
+  // Create a JSON string representation of the data for data exchange or saving
   this.stringify = function() {
+
+    // Delete rows marked for removal
+    var first=[], drop=[], lnextl=[], v=[];
+    var nline = this.Nline();
+    Roots.xpand(lnextl, nline);
+    Roots.seqlst(first, nline, lnextl);
+    v[0] = v[1] = DELETED_ROW;
+    Roots.rngprnArray(viewState, v, first, lnextl, drop);
+    RemoveRows(drop, lnextl);
+
+    // All rows are now active
+    Roots.zerout(viewState);
+
+    // Convert the data into a string
     if (mData.stringify != undefined)
       return mData.stringify();
     else

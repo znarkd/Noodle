@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 26, 2020
+ * Release: October 27, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -454,6 +454,14 @@ function NoodleDatabase(stream) {
         return -1;
     }
     return 0;
+  }
+
+  // Delete rows from the database
+
+  this.RemoveRows = function(first, nextLine) {
+    var nline=[base.nline];
+    Roots.delent(base.block, base.cpl, nline, first, nextLine);
+    base.nline = nline[0];
   }
 
   // Clean the database and its tables
