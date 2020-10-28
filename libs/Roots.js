@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 26, 2020
+ * Release: October 28, 2020
  */
 
 var Roots = Roots || {};
@@ -100,7 +100,7 @@ Roots.delent = function(block, cpl, nline, first, nextLine) {
   var lines = first[0] - 1;
   var sf=[0,0], df=[0,0], hole, nkeep;
 
-  for (hole = first[0]; hole >= 0; hole = nextLine[hole-1]) {
+  for (hole = first[0]; hole != 0; hole = nextLine[hole-1]) {
     if (check-- <= 0)
       throw "Roots.delent: Bad input list!";
    
@@ -146,7 +146,7 @@ Roots.delentArray = function(arr, first, nextLine) {
     var lines = first[0] - 1;
     var sx, dx, nkeep;
 
-    for (var hole = first[0]; hole >= 0; hole = nextLine[hole-1]) {
+    for (var hole = first[0]; hole != 0; hole = nextLine[hole-1]) {
       if (check-- <= 0)
         throw "Roots.delentArray: Bad input list!";
 
@@ -416,10 +416,6 @@ Roots.lgmove = function(block, cpl, nline, sfld, dfld, pad) {
     throw "Roots.lgmove: block must be Uint8Array";
   if (cpl < 1)
     throw "Roots.lgmove: cpl < 1";
-  if (sfld[0] <= 0 || sfld[1] <= 0 || sfld[1] > cpl)
-    throw "Roots.lgmove: Bad source field values";
-  if (dfld[0] <= 0 || dfld[1] <= 0 || dfld[1] > cpl)
-    throw "Roots.lgmove: Bad destination field values";
 
   var s, d, line, move, leftover;
 
