@@ -44,7 +44,7 @@ function NoodleDatabase(stream) {
       // Binary
       case 'B':
 
-      // Zero-filled binary
+      // Binary - displayed with leading zeros
       case 'Z':
         if (field[i].cpl <= 0 || field[i].cpl > 4)
           throw("Invalid cpl for Type-" + field[i].type);
@@ -141,8 +141,8 @@ function NoodleDatabase(stream) {
   // Note: The list parameter is included only for compatibility with Roots.
   
   this.Compare = function(list, a, b, sortColumns) {
-    var aval, bval, v=[], rc;
-    for (var i=0; i < sortColumns.length; i++) {
+    var i, k, aval, bval, v=[], rc;
+    for (i=0; i < sortColumns.length; i++) {
       switch(field[sortColumns[i]-1].type) {
         case 'T':
         case 'B':
@@ -169,12 +169,14 @@ function NoodleDatabase(stream) {
           break;
         case 'E':
           v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0] - 1;
-          aval = base.block.slice(v[0], v[0]+blkfld[sortColumns[i]-1][1]).join('');
+          v[1] = blkfld[sortColumns[i]-1][1];
+          aval = base.block.slice(v[0], v[0]+v[1]);
           v[0] = (b * base.cpl) + blkfld[sortColumns[i]-1][0] - 1;
-          bval = base.block.slice(v[0], v[0]+blkfld[sortColumns[i]-1][1]).join('');
-          rc = aval.localeCompare(bval);
-          if (rc != 0)
-            return rc;
+          bval = base.block.slice(v[0], v[0]+v[1]);
+          for (k=0; k < v[1]; k++) {
+            if (aval[k] != bval[k])
+              return aval[k] - bval[k];
+          }
           break;
         default:
           throw("NoodleDatabase: Invalid data type");
