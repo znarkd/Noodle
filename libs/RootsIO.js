@@ -179,6 +179,7 @@ var _origin;
 var _callback;
 
 _onAuthApiLoad = function() {
+  alert("gapi.auth2.authorize");
   gapi.auth2.authorize({
     client_id: _clientId,
     scope: _scope
@@ -188,6 +189,7 @@ _onAuthApiLoad = function() {
 _handleAuthResult = function(authResult) {
   if (authResult && !authResult.error) {
     _oauthToken = authResult.access_token;
+    alert(_oauthToken);
     _callback();
   }
 }
@@ -197,6 +199,7 @@ _handleAuthResult = function(authResult) {
 Roots.GDriveStart = function(callback) {
   _callback = callback;
   _origin = window.location.protocol + '//' + window.location.host;
+  alert("gapi.load('auth2')");
   gapi.load('auth2', _onAuthApiLoad);
 }
 
