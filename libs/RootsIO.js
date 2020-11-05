@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 4, 2020
+ * Release: November 5, 2020
  */
  
 var Roots = Roots || {};
@@ -187,6 +187,8 @@ _onAuthApiLoad = function() {
   }).then(function () {
     gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
     updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+  }, function(error) {
+    alert(error.details);
   });
 
   /*
@@ -203,11 +205,13 @@ function updateSigninStatus(isSignedIn) {
     _oauthToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
     if (_callback)
       _callback();
-  } else {
+  }
+  else {
     gapi.auth2.getAuthInstance().signIn();
   }
 }
 
+/*
 _handleAuthResult = function(authResult) {
   if (authResult) {
     if (!authResult.error) {
@@ -218,6 +222,7 @@ _handleAuthResult = function(authResult) {
       alert(authResult.error);
   }
 }
+*/
 
 // Start a Google Drive process
 
