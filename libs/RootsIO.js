@@ -193,7 +193,7 @@ _handleAuthResult = function(authResult) {
     _callback();
   }
   if (authResult.error)
-    alert(authResult.error.text);
+    alert(authResult.error.error_description);
 }
 
 // Start a Google Drive process
