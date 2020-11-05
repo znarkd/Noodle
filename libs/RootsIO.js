@@ -179,10 +179,33 @@ var _origin;
 var _callback;
 
 _onAuthApiLoad = function() {
+
+  gapi.client.init({
+    apiKey: _developerKey,
+    clientId: _clientId,
+    scope: _scope
+  }).then(function () {
+    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+  });
+
+  /*
   gapi.auth2.authorize({
     client_id: _clientId,
     scope: _scope
   }, _handleAuthResult);
+  */
+
+}
+
+function updateSigninStatus(isSignedIn) {
+  if (isSignedIn) {
+    _oauthToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+    if (_callback)
+      _callback();
+  } else {
+    gapi.auth2.getAuthInstance().signIn();
+  }
 }
 
 _handleAuthResult = function(authResult) {
@@ -201,7 +224,8 @@ _handleAuthResult = function(authResult) {
 Roots.GDriveStart = function(callback) {
   _callback = callback;
   _origin = window.location.protocol + '//' + window.location.host;
-  gapi.load('auth2', _onAuthApiLoad);
+  //gapi.load('auth2', _onAuthApiLoad);
+  gapi.load('client:auth2', _onAuthApiLoad);
 }
 
 // Get a list of files from Google Drive
