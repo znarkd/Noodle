@@ -192,6 +192,8 @@ _handleAuthResult = function(authResult) {
     alert(_oauthToken);
     _callback();
   }
+  if (authResult.error)
+    alert(authResult.error.text);
 }
 
 // Start a Google Drive process
