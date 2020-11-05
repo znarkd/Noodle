@@ -186,12 +186,14 @@ _onAuthApiLoad = function() {
 }
 
 _handleAuthResult = function(authResult) {
-  if (authResult && !authResult.error) {
-    _oauthToken = authResult.access_token;
-    _callback();
+  if (authResult) {
+    if (!authResult.error) {
+      _oauthToken = authResult.access_token;
+      _callback();
+    }
+    else
+      alert(authResult.error);
   }
-  if (authResult.error)
-    alert(authResult.error);
 }
 
 // Start a Google Drive process
