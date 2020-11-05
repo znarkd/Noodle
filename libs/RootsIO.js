@@ -1,7 +1,7 @@
 /*
- * Roots.js
+ * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 26, 2020
+ * Release: November 4, 2020
  */
  
 var Roots = Roots || {};
@@ -23,7 +23,8 @@ Roots.GetLocalFile = function(file, callback) {
     var f = {
       name: file.name,
       type: type,
-      data: reader.result
+      data: reader.result,
+      source: "FileSystem"
     }
     callback(f);
   };
@@ -173,7 +174,6 @@ _developerKey += '\x35\x67\x47\x55';
 
 var _scope = 'https://www.googleapis.com/auth/drive';
 
-var _APIsLoaded = false;
 var _oauthToken = undefined;
 var _origin;
 var _callback;
@@ -185,72 +185,105 @@ _onAuthApiLoad = function() {
   }, _handleAuthResult);
 }
 
-// Create and render a Picker object for selecting user files.
-_createPicker = function() {
-  if (_APIsLoaded && _oauthToken) {
-    var view1 = new google.picker.DocsView(google.picker.ViewId.DOCS)
-      .setMode(google.picker.DocsViewMode.LIST)
-      .setQuery("*.ndl || *.csv || *.json");
-    var picker = new google.picker.PickerBuilder()
-      .addView(view1)
-      .setOAuthToken(_oauthToken)
-      .setDeveloperKey(_developerKey)
-      .setCallback(_pickerCallback)
-      .setOrigin(_origin)
-      .build();
-    picker.setVisible(true);
-  }
-}
-
-_onPickerApiLoad = function() {
-  _APIsLoaded = true;
-}
-
 _handleAuthResult = function(authResult) {
   if (authResult && !authResult.error) {
     _oauthToken = authResult.access_token;
-    _createPicker();
+    _callback();
   }
 }
 
-_pickerCallback = function(data) {
-  if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
-    var doc = data[google.picker.Response.DOCUMENTS][0];
+// Start a Google Drive process
 
-    if (doc.type != "file") {
-      alert("Can't download files of type: " + doc.type);
-      return;
-    }
-
-    var name = doc[google.picker.Document.NAME];
-    var type = name.substring(name.lastIndexOf('.') + 1, name.length) || name;
-    var fileId = doc[google.picker.Document.ID];
-    var parentId = doc[google.picker.Document.PARENT_ID];
-    var url = 'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media';
-
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-      if (this.status == 200 && this.responseText != null) {
-        var gfile = {
-          name: name,
-          type: type,
-          id: fileId,
-          parentId: parentId,
-          data: this.responseText
-        };
-        _callback(gfile);
-      }
-    };
-    xhr.open('GET',url);
-    xhr.setRequestHeader('Authorization', 'Bearer ' + _oauthToken);
-    xhr.send();
-  }
-}
-
-// Get a file from Google Drive
-Roots.GDriveGetFile = function(callback) {
+Roots.GDriveStart = function(callback) {
   _callback = callback;
   _origin = window.location.protocol + '//' + window.location.host;
   gapi.load('auth2', _onAuthApiLoad);
-  gapi.load('picker', _onPickerApiLoad);
+}
+
+// Get a list of files from Google Drive
+
+Roots.GDriveList = function(callback, parentId) {
+  var url = 'https://www.googleapis.com/drive/v3/files?';
+  url += "fields=files(id,name,mimeType,parents,fileExtension,headRevisionId)&q=";
+  if (parentId === undefined)
+    url += "\"root\" in parents and trashed=false";
+  else {
+    url += parentId;
+    url += " in parents and trashed=false";
+  }
+  url += " and mimeType != 'application/vnd.google-apps.document'";
+  url += " and mimeType != 'application/vnd.google-apps.spreadsheet'";
+  url += " and (mimeType = 'application/vnd.google-apps.folder'";
+  url += " or fileExtension = 'ndl'";
+  url += " or fileExtension = 'csv'";
+  url += " or fileExtension = 'json')";
+  url += "&pageSize=1000";
+
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    if (this.status == 200 && this.responseText != null) {
+      if (callback != undefined)
+        callback(this.responseText);
+    }
+  };
+  xhr.open('GET', url);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + _oauthToken);
+  xhr.send();
+}
+
+// Get a file from Google Drive
+
+Roots.GDriveGetFile = function(file, callback) {
+  var url = 'https://www.googleapis.com/drive/v3/files/' + file.id + '?alt=media';
+  
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function(e) {
+    if (this.status == 200 && this.responseText != null) {
+      var gfile = {
+        name: file.name,
+        type: file.fileExtension,
+        id: file.id,
+        parentId: file.parents[0],
+        data: this.responseText,
+        source: "GDrive"
+      };
+      if (callback != undefined)
+        callback(gfile);
+    }
+  };
+  xhr.open('GET', url);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + _oauthToken);
+  xhr.send();
+}
+
+// Write a file to Google Drive
+// https://tanaikech.github.io/2018/08/13/upload-files-to-google-drive-using-javascript/
+
+Roots.GDrivePutFile = function(file, callback) {
+  var method="POST", metadata, form;
+  var gfile = new Blob([file.data], {type: 'application/json'});
+  var url = "https://www.googleapis.com/upload/drive/v3/files";
+ 
+  if (file.id != undefined) {
+    url += "/" + file.id;
+    method = "PATCH";
+  }
+  
+  url += "?uploadType=multipart&fields=id,name,mimeType,parents,fileExtension,headRevisionId";
+  metadata = {
+    'name': file.name,
+    'mimeType': 'application/json'
+  };
+  form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+  form.append('file', gfile);
+
+  var xhr = new XMLHttpRequest();
+  xhr.open(method, url);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + _oauthToken);
+  xhr.responseType = 'json';
+  xhr.onload = function() {
+    callback(xhr.response);
+  };
+  xhr.send(form);
 }
