@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="November 4, 2020">
+  <meta name="version" content="November 6, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -573,22 +573,48 @@
       outline: none;
     }
 
-    /* The modal screen builder */
+    /* File list */
 
     #file-screen {
-      display: block;
-      position: fixed;
-      z-index: 1;
-      padding-top: 10px;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgb(0, 0, 0);
-      background-color: rgba(0, 0, 0, 0.4);
+      margin: auto;
+      width: 60%;
+      background-color: lightgray;
+      border: 1px solid gray;
+      overflow: hidden;
     }
 
+    #file-list {
+      font-size: 1.5em;
+      display: flex;
+      justify-content: center;
+      padding-top: 10px;
+      align-items: stretch;
+      flex-direction: row;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      overflow: auto;
+    }
+
+    .file-item {
+      margin: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .folder-icon {
+      color: #f2f539;
+      margin-right: 6px;
+    }
+
+    .file-icon {
+      color: #798dfa;
+      margin-right: 6px;
+    }
+
+    .file-list-buttons {
+      float: right;
+      padding: 20px;
+    }
   </style>
 </head>
 
@@ -632,8 +658,10 @@
     <div id="file-screen" class="hide">
       <div id="file-list">
       </div>
-      <button id="file-list-open">Open</button>
-      <button id="file-list-cancel">Cancel</button>
+      <div class="file-list-buttons">
+        <button id="file-list-open">Open</button>
+        <button id="file-list-cancel">Cancel</button>
+      </div>
     </div>
     <div id="build-screen" class="hide">
       <div id="build-screen-form">
@@ -1364,7 +1392,7 @@
       _externalFiles = JSON.parse(data).files;
       _externalFiles.sort(function(a,b) {return a.name.localeCompare(b.name);});
 
-      var i, n, sel, fragment, elem;
+      var i, n, sel, fragment, elem, div1, icon, text;
 
       // Build a list of files from the external file source
       sel = document.getElementById("file-list");
@@ -1372,17 +1400,29 @@
       fragment = document.createDocumentFragment();
       n = _externalFiles.length;
       for (i = 0; i < n; i++) {
-        elem = document.createElement("div");
-        elem.innerText = _externalFiles[i].name;
+        elem = document.createElement("span");
         elem.setAttribute("id", i.toString());
-        elem.className = "field_name";
+        elem.className = "file-item";
         elem.onclick = function () {
           externalFileSelected(this);
         };
+
+        icon = document.createElement("i");
+        if (_externalFiles[i].mimeType.includes("folder"))
+          icon.className = "fa fa-folder folder-icon";
+        else
+          icon.className = "fa fa-file-text file-icon";
+        elem.appendChild(icon);
+
+        text = document.createElement("span");
+        text.innerText = _externalFiles[i].name;
+        elem.appendChild(text);
+
         fragment.appendChild(elem);
       }
       sel.appendChild(fragment);
 
+      document.getElementById("open-screen").style.display = "none";
       document.getElementById("file-screen").classList.toggle("hide", false);
     }
 
@@ -1394,6 +1434,7 @@
 
     var hideFileList = function() {
       document.getElementById("file-screen").classList.toggle("hide", true);
+      document.getElementById("open-screen").style.display = "block";
     }
 
     // Read a file from the local file system
