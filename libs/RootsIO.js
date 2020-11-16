@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 13, 2020
+ * Release: November 16, 2020
  */
 
 var Roots = Roots || {};
@@ -187,7 +187,7 @@ _onAuthApiLoad = function() {
     gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
     updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
   }, function(error) {
-    alert(error.details);
+    alert(error.message);
   });
 }
 
