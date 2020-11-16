@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 27, 2020
+ * Release: November 15, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -164,7 +164,7 @@ function Noodle(dataArray, labels) {
     return mNumFields;
   }
 
-  this.getBaseType = function() {
+  this.GetBaseType = function() {
     return mType;
   }
 
@@ -195,8 +195,8 @@ function Noodle(dataArray, labels) {
   }
 
   this.GetEditScreens = function () {
-    if (mData instanceof NoodleDatabase)
-      return mData.getScreens();
+    if (mData.GetEditScreens != undefined)
+      return mData.GetEditScreens();
   }
 
   this.InitializeView = function () {

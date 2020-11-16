@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 27, 2020
+ * Release: November 15, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -132,7 +132,7 @@ function NoodleDatabase(stream) {
   
   // Get the database's edit screens
   
-  this.getScreens = function() {
+  this.GetEditScreens = function() {
     return ndlEditScreen;
   }
   

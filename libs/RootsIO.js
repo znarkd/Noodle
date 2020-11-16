@@ -1,9 +1,9 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 5, 2020
+ * Release: November 13, 2020
  */
- 
+
 var Roots = Roots || {};
 
 // ----- Local file using File API --------------------------------------------
@@ -179,7 +179,6 @@ var _origin;
 var _callback;
 
 _onAuthApiLoad = function() {
-
   gapi.client.init({
     apiKey: _developerKey,
     clientId: _clientId,
@@ -190,14 +189,6 @@ _onAuthApiLoad = function() {
   }, function(error) {
     alert(error.details);
   });
-
-  /*
-  gapi.auth2.authorize({
-    client_id: _clientId,
-    scope: _scope
-  }, _handleAuthResult);
-  */
-
 }
 
 function updateSigninStatus(isSignedIn) {
@@ -211,25 +202,11 @@ function updateSigninStatus(isSignedIn) {
   }
 }
 
-/*
-_handleAuthResult = function(authResult) {
-  if (authResult) {
-    if (!authResult.error) {
-      _oauthToken = authResult.access_token;
-      _callback();
-    }
-    else
-      alert(authResult.error);
-  }
-}
-*/
-
 // Start a Google Drive process
 
 Roots.GDriveStart = function(callback) {
   _callback = callback;
   _origin = window.location.protocol + '//' + window.location.host;
-  //gapi.load('auth2', _onAuthApiLoad);
   gapi.load('client:auth2', _onAuthApiLoad);
 }
 
