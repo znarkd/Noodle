@@ -62,6 +62,9 @@ db1.PutValue("XYZ", page, line, bfi);
 bfi = 2;
 db1.PutValue("Z", page, 0, bfi);
 ```
+### Documentation
+Documentation can be found in the [Noodle wiki](https://github.com/znarkd/Noodle/wiki)
+
 ### Demo
 
 [NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html)
