@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 28, 2020
+ * Release: November 22, 2020
  */
 
 var Roots = Roots || {};
@@ -771,8 +771,8 @@ Roots.pcrlst = function(rnum, block, cpl, field, first, nextLine) {
 // For all block lines of first/nextLine, the floating point number
 // stored at block[field] is compared with range.
 
-// Entries falling within the range are entered in match/lnextl.
-// Non-matching entries remain in first/lnextl.
+// Entries falling within the range are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
 
 Roots.rgrprn = function(block, cpl, field, range, first, nextLine, match) {
   if (!(block instanceof Uint8Array))
@@ -833,8 +833,8 @@ Roots.rgrprn = function(block, cpl, field, range, first, nextLine, match) {
 // For all block lines of first/nextLine, the number stored at block[field]
 // is compared with range.
 
-// Entries falling within the range are entered in match/lnextl.
-// Non-matching entries remain in first/lnextl.
+// Entries falling within the range are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
 
 Roots.rngprn = function(block, cpl, field, range, first, nextLine, match) {
   if (!(block instanceof Uint8Array))
