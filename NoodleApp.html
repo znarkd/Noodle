@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="November 22, 2020">
+  <meta name="version" content="November 23, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1449,11 +1449,11 @@
     // Create a Noodle object from a file
 
     var fileLoaded = function (file) {
+      editScreen = [];
       try {
         if (file.type === "ndl") {
           var ary = new NoodleDatabase(file.data);
           db1 = new Noodle(ary);
-          editScreen = ary.GetEditScreens();
           showEditScreen();
         } else if (file.type === "csv") {
           var sep = Roots.initCSV(file.data);
@@ -1466,7 +1466,6 @@
 
           // Build a sample edit screen
           var nf = db1.FieldCount();
-          editScreen = [];
           editScreen[0] = {};
           editScreen[0].name = "raw data";
           editScreen[0].columns = [];
@@ -1479,7 +1478,6 @@
           var data = JSON.parse(file.data);
           db1 = new Noodle(data);
           var nf = db1.FieldCount();
-          editScreen = [];
           editScreen[0] = {};
           editScreen[0].name = "raw data";
           editScreen[0].columns = [];
@@ -1509,8 +1507,7 @@
     }
 
     var ScreenGet = function () {
-      //if (db1.GetEditScreens != undefined)
-      //  editScreen = db1.GetEditScreens();
+      editScreen = db1.GetEditScreens(editScreen);
 
       // Build a menu of screens
       var sel = document.getElementById("screentitle");
@@ -1701,6 +1698,9 @@
 
       // Load data into the newly created screen page
       FillPage();
+
+      if (editScreen === undefined || editScreen.length === 0)
+        return;
 
       if (editScreen[currentScreen - 1].columns != undefined) {
         if (editScreen[currentScreen - 1].columns.length > 0)
