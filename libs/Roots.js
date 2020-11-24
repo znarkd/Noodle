@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 22, 2020
+ * Release: November 23, 2020
  */
 
 var Roots = Roots || {};
@@ -969,11 +969,11 @@ Roots.runpac = function(block, field) {
     throw "Roots.runpac: Must use 4 or 8 bytes for floating point";
 }
 
-// For all block lines of first/nextLine block[field] is scanned for the
-// substring contained within text[tfield].
+// For all block lines of first/nextLine block(field) is scanned for the
+// substring contained within text(tfield).
 
-// Matching entries are entered in match/lnextl.
-// Non-matching entries remain in first/lnextl.
+// Matching entries are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
 
 // The scanpr method is case insensitive.
 
@@ -1040,11 +1040,11 @@ Roots.scanpr = function(block, cpl, field, text, tfield, first, nextLine, match)
     nextLine[last_match-1] = 0;
 }
 
-// For all lines of first/nextLine, the string stored at arr[line] is
-// scanned for the substring contained within text[tfield].
+// For all lines of first/nextLine, the string stored at arr(line) is
+// scanned for the substring contained within text(tfield).
 
-// Matching entries are entered in match/lnextl.
-// Non-matching entries remain in first/lnextl.
+// Matching entries are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
 
 // The scanprArray method is case insensitive.
 
@@ -1122,7 +1122,7 @@ Roots.seqlst = function(first, nline, nextLine) {
   first[0] = 1;
 }
 
-// Set bitString[line] to "1" for all lines found in first, nextLine
+// Set bitString(line) to "1" for all lines found in first/nextLine
 
 Roots.setbit = function(first, nextLine, bitString) {
   if (!(bitString instanceof Uint8Array))
@@ -1138,52 +1138,47 @@ Roots.setbit = function(first, nextLine, bitString) {
   }
 }
 
-// The nf bit fields of bitString are set to all ones.
+// The bit field of bitString is set to all ones.
 
-Roots.setone = function(bitString, fields, nf) {
+Roots.setone = function(bitString, field) {
   if (!(bitString instanceof Uint8Array))
     throw "Roots.setone: bitString must be Uint8Array";
 
-  var n, field_start, field_length;
-  var i, f, n, byte1, bit1, bytel, bitl;
+  var field_start, field_length, byte1, bit1, bytel, bitl;
   mask = new Uint8Array(1);
-
   const leftzero  = new Uint8Array([0xFF,0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01]);
   const rightzero = new Uint8Array([0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE,0xFF]);
 
-  // Process each bit field
-  f = 0;
-  for (n = nf; n--;) {
-    field_start = fields[f++];
-    --field_start;
-    field_length = fields[f++];
+  // Process the bit field
+  field_start = field[0];
+  --field_start;
+  field_length = field[1];
 
-    // Determine the first and last bytes
-    byte1 = field_start >> 3;
-    bit1 = field_start % 8;
-    bytel = (field_start+field_length-1) >> 3;
-    bitl = (field_start+field_length-1) % 8;
+  // Determine the first and last bytes
+  byte1 = field_start >> 3;
+  bit1 = field_start % 8;
+  bytel = (field_start+field_length-1) >> 3;
+  bitl = (field_start+field_length-1) % 8;
 
-    // Bit string is contained in a single byte
-    if (byte1 === bytel) {
-      mask[0] = 0xFF;
-      mask[0] &= leftzero[bit1];
-      mask[0] &= rightzero[bitl];
-      bitString[byte1] |= mask[0];
-    }
+  // Bit string is contained in a single byte
+  if (byte1 === bytel) {
+    mask[0] = 0xFF;
+    mask[0] &= leftzero[bit1];
+    mask[0] &= rightzero[bitl];
+    bitString[byte1] |= mask[0];
+  }
 
-    // Bit string spans several bytes
-    else {
-      // Turn on bits in the first byte
-      bitString[byte1] |= leftzero[bit1];
+  // Bit string spans several bytes
+  else {
+    // Turn on bits in the first byte
+    bitString[byte1] |= leftzero[bit1];
 
-      // Turn on bits in the last byte
-      bitString[bytel] |= rightzero[bitl];
+    // Turn on bits in the last byte
+    bitString[bytel] |= rightzero[bitl];
 
-      // Set in-between bytes to all zeros
-      for (byte1 += 1; byte1 != bytel; byte1 += 1)
-        bitString[byte1] = 0xFF;
-    }
+    // Set in-between bytes to all ones
+    for (byte1 += 1; byte1 != bytel; byte1 += 1)
+      bitString[byte1] = 0xFF;
   }
 }
 
@@ -1240,52 +1235,47 @@ Roots.setprn = function(bitString, first, nextLine, match) {
     nextLine[last_match-1] = 0;
 }
 
-// The nf bit fields of bitString are set to all zeros.
+// The bit field of bitString is set to all zeros.
 
-Roots.setzer = function(bitString, fields, nf) {
+Roots.setzer = function(bitString, field) {
   if (!(bitString instanceof Uint8Array))
     throw "Roots.setzer: bitString must be Uint8Array";
 
-  var n, field_start, field_length;
-  var i, f, n, byte1, bit1, bytel, bitl;
+  var field_start, field_length, byte1, bit1, bytel, bitl;
   mask = new Uint8Array(1);
-
   const leftones  = new Uint8Array([0x00,0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE]);
   const rightones = new Uint8Array([0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01,0x00]);
 
-  // Process each bit field
-  f = 0;
-  for (n = nf; n--;) {
-    field_start = fields[f++];
-    --field_start;
-    field_length = fields[f++];
+  // Process the bit field
+  field_start = fields[0];
+  --field_start;
+  field_length = fields[1];
 
-    // Determine the first and last bytes
-    byte1 = field_start >> 3;
-    bit1 = field_start % 8;
-    bytel = (field_start+field_length-1) >> 3;
-    bitl = (field_start+field_length-1) % 8;
+  // Determine the first and last bytes
+  byte1 = field_start >> 3;
+  bit1 = field_start % 8;
+  bytel = (field_start+field_length-1) >> 3;
+  bitl = (field_start+field_length-1) % 8;
 
-    // Bit string is contained in a single byte
-    if (byte1 === bytel) {
-      mask[0] = 0x00;
-      mask[0] |= leftones[bit1];
-      mask[0] |= rightones[bitl];
-      bitString[byte1] &= mask[0];
-    }
+  // Bit string is contained in a single byte
+  if (byte1 === bytel) {
+    mask[0] = 0x00;
+    mask[0] |= leftones[bit1];
+    mask[0] |= rightones[bitl];
+    bitString[byte1] &= mask[0];
+  }
 
-    // Bit string spans several bytes
-    else {
-      // Turn on bits in the first byte
-      bitString[byte1] &= leftones[bit1];
+  // Bit string spans several bytes
+  else {
+    // Turn off bits in the first byte
+    bitString[byte1] &= leftones[bit1];
 
-      // Turn on bits in the last byte
-      bitString[bytel] &= rightones[bitl];
+    // Turn off bits in the last byte
+    bitString[bytel] &= rightones[bitl];
 
-      // Set in-between bytes to all zeros
-      for (byte1 += 1; byte1 != bytel; byte1 += 1)
-        bitString[byte1] = 0x00;
-    }
+    // Set in-between bytes to all zeros
+    for (byte1 += 1; byte1 != bytel; byte1 += 1)
+      bitString[byte1] = 0x00;
   }
 }
 
@@ -1381,10 +1371,10 @@ Roots.strprn = function(block, cpl, field, string, first, nextLine, match) {
 }
 
 // For all block lines of first/nextLine, the text string stored
-// at block[field] is compared with text[tfield].
+// at block(field) is compared with text(tfield).
 
-// Matching entries are entered in match/lnextl.
-// Non-matching entries remain in first/lnextl.
+// Matching entries are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
 
 Roots.txtprn = function(block, cpl, field, text, tfield, first, nextLine, match) {
   var n, start, cur_line, next_line, prev_line, last_match;
@@ -1453,8 +1443,8 @@ Roots.txtprn = function(block, cpl, field, text, tfield, first, nextLine, match)
 // For all lines of first/nextLine, the value stored at arr[line][col]
 // is compared with an array of values.  
 
-// Entries which match one of the values are entered in match/lnextl.
-// Non-matching entries remain in first/lnextl.
+// Entries which match one of the values are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
 
 Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
   if (!Array.isArray(arr))

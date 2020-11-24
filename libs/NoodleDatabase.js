@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: November 15, 2020
+ * Release: November 23, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -341,7 +341,7 @@ function NoodleDatabase(stream) {
             if (index > 0) {
               v[0] = index;
               v[1] = 1;
-              Roots.setone(bstr, v, 1);
+              Roots.setone(bstr, v);
             }
           }
           else {
