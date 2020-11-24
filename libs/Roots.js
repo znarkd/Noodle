@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 23, 2020
+ * Release: November 24, 2020
  */
 
 var Roots = Roots || {};
@@ -1280,7 +1280,7 @@ Roots.setzer = function(bitString, field) {
 }
 
 // Array elements are physically re-arranged according to the sequence
-// expressed by sorti; i.e. arr[sorti[i]] is moved to block[i].
+// expressed by sorti; i.e. arr(sorti(i)) is moved to arr(i).
 //
 // The output array replaces the input array.
 
@@ -1288,15 +1288,13 @@ Roots.srmoveArray = function(sorti, arr) {
   if (!Array.isArray(arr))
     throw "Roots.srmoveArray: invalid array";
 
-  var output = [];
-  var n = arr.length;
-  var i = 0;
-  while (n--) {
-    output[i] = arr[sorti[i]-1];
-    i += 1;
-  }
+  var i, n = arr.length;
+  var output = new Array(n);
 
-  for (i=0; i < output.length; i++)
+  for (i=0; i < n; i++)
+    output[i] = arr[sorti[i]-1];
+
+  for (i=0; i < n; i++)
     arr[i] = output[i];
 }
 
