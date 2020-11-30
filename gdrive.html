@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  Thank you to Dimitri Witkowski for this technique.
+  https://github.com/keeweb
+-->
+  <head>
+    <meta charset="UTF-8" />
+    <title>Noodle</title>
+  </head>
+  <body>
+    <script>
+      //alert("Use for debugging gdrive.html");
+      const parsedUrl = new URL(window.location.href.replace("#","?"));
+      var access_token = parsedUrl.searchParams.get("access_token");
+      var expiration = parsedUrl.searchParams.get("expires_in");
+      window.opener.postMessage(
+        {
+          storage: 'gdrive',
+          token: access_token,
+          expires: expiration
+        },
+        window.location.origin
+      );
+      window.close();
+    </script>
+  </body>
+</html>
