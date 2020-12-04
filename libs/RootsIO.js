@@ -197,7 +197,7 @@ Roots.GDriveStart = function(callback) {
   }
   else {
     _callback = callback;
-    _stateValue = "zNoodle " + Date.now().toString() + "\x7a\x63\x7a\x63";
+    _stateValue = "zNoodle" + Date.now().toString() + "\x7a\x63\x7a\x63";
     var uri = window.location.href.slice(0, window.location.href.lastIndexOf("/")) + "/gdrive.html";
     var url = "https://accounts.google.com/o/oauth2/v2/auth?scope=";
     url += _scope;
