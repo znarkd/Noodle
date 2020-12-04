@@ -179,7 +179,8 @@ var _stateValue;
 var _callback;
 
 function messageSent(event) {
-  if (event.data.state === _stateValue && event.data.token != undefined) {
+  if (event.data.token != undefined) {
+  //if (event.data.state === _stateValue && event.data.token != undefined) {
     _oauthToken = event.data.token.toString();
     window.removeEventListener("message", messageSent);
     _expires += ((event.data.expires-60) * 1000);
