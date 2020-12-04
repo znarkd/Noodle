@@ -14,7 +14,7 @@
       const parsedUrl = new URL(window.location.href.replace("#","?"));
       var access_token = parsedUrl.searchParams.get("access_token");
       var expiration = parsedUrl.searchParams.get("expires_in");
-      var state = parseUrl.searchParams.get("state");
+      var state = parsedUrl.searchParams.get("state");
       window.opener.postMessage(
         {
           storage: 'gdrive',
