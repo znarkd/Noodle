@@ -14,11 +14,13 @@
       const parsedUrl = new URL(window.location.href.replace("#","?"));
       var access_token = parsedUrl.searchParams.get("access_token");
       var expiration = parsedUrl.searchParams.get("expires_in");
+      var state = parseUrl.searchParams.get("state");
       window.opener.postMessage(
         {
           storage: 'gdrive',
           token: access_token,
-          expires: expiration
+          expires: expiration,
+          state: state
         },
         window.location.origin
       );
