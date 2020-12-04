@@ -197,7 +197,7 @@ Roots.GDriveStart = function(callback) {
   else {
     _callback = callback;
 
-    var uri = window.location.protocol + "//" + window.location.host + "/gdrive.html";
+    var uri = window.location.href.slice(0, window.location.href.lastIndexOf("/")) + "/gdrive.html";
     var url = "https://accounts.google.com/o/oauth2/v2/auth?scope=";
     url += _scope;
     url += "&include_granted_scopes=true&response_type=token&state=";
