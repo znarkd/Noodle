@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 28, 2020
+ * Release: December 4, 2020
  */
 
 var Roots = Roots || {};
@@ -19,7 +19,7 @@ Roots.GetLocalFile = function(file, callback) {
   };
 
   reader.onloadend = function(e) {
-    var type = file.name.substring(file.name.lastIndexOf('.') + 1, file.name.length) || file.name;
+    var type = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1);
     var f = {
       name: file.name,
       type: type,
@@ -158,7 +158,6 @@ Roots.parseCSV = function(text, seperator) {
 // ----- Google Drive ---------------------------------------------------------
 
 // The Client ID obtained from the Google API Console.
-// Replace with your own Client ID.
 var _clientId = '\x39\x34\x35\x38\x34\x37\x35\x35\x32\x34\x37\x39';
 _clientId += '\x2d\x63\x6e\x66\x6e\x75\x73\x76\x68\x68\x70\x70\x73';
 _clientId += '\x71\x70\x68\x76\x66\x65\x6b\x6d\x71\x69\x62\x30\x39';
@@ -175,39 +174,64 @@ _developerKey += '\x35\x67\x47\x55';
 var _scope = 'https://www.googleapis.com/auth/drive';
 
 var _oauthToken = undefined;
-var _origin;
+var _expires;
 var _callback;
 
-_onAuthApiLoad = function() {
-  gapi.client.init({
-    apiKey: _developerKey,
-    clientId: _clientId,
-    scope: _scope
-  }).then(function () {
-    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-  }, function(reason) {
-    alert(reason.result.error.message);
-  });
-}
-
-function updateSigninStatus(isSignedIn) {
-  if (isSignedIn) {
-    _oauthToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-    if (_callback)
+function messageSent(event) {
+  if (event.data.token != undefined) {
+    _oauthToken = event.data.token.toString();
+    window.removeEventListener("message", messageSent);
+    _expires += (event.data.expires * 1000);
+    if (_callback != undefined)
       _callback();
-  }
-  else {
-    gapi.auth2.getAuthInstance().signIn();
   }
 }
 
 // Start a Google Drive process
 
 Roots.GDriveStart = function(callback) {
-  _callback = callback;
-  _origin = window.location.protocol + '//' + window.location.host;
-  gapi.load('client:auth2', _onAuthApiLoad);
+  if (_expires > Date.now()) {
+    if (callback)
+      callback();
+  }
+  else {
+    _callback = callback;
+
+    var uri = window.location.protocol + "//" + window.location.host + "/gdrive.html";
+    var url = "https://accounts.google.com/o/oauth2/v2/auth?scope=";
+    url += _scope;
+    url += "&include_granted_scopes=true&response_type=token&state=";
+    url += "statevalue";
+    url += ("&client_id=" + _clientId);
+    url += ("&redirect_uri=" + uri);
+
+    window.addEventListener("message", messageSent);
+    _expires = Date.now();
+
+    var newWindow = window.open(url, 'name', 'height=600,width=450');
+    if (window.focus)
+      newWindow.focus();
+  }
+}
+
+Roots.GDriveSelectFile = function(callback) {
+  gapi.load('picker', function() {
+    if (_oauthToken) {
+      var view = new google.picker.DocsView(google.picker.ViewId.DOCS);
+      view.setParent("root");
+      view.setMode(google.picker.DocsViewMode.LIST);
+      view.setIncludeFolders(true);
+      //view.setSelectFolderEnabled(true);
+      view.setEnableDrives(true);
+      var picker = new google.picker.PickerBuilder().
+        addView(view).
+        setOAuthToken(_oauthToken).
+        setDeveloperKey(_developerKey).
+        setCallback(callback).
+        build();
+      picker.setVisible(true);
+    }
+  });
 }
 
 // Get a list of files from Google Drive
@@ -251,9 +275,9 @@ Roots.GDriveGetFile = function(file, callback) {
     if (this.status == 200 && this.responseText != null) {
       var gfile = {
         name: file.name,
-        type: file.fileExtension,
+        type: file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1),
         id: file.id,
-        parentId: file.parents[0],
+        parentId: file.parentId,
         data: this.responseText,
         source: "GDrive"
       };

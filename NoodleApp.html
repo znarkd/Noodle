@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="November 23, 2020">
+  <meta name="version" content="December 4, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -913,7 +913,7 @@
         doFind("Previous");
       });
       document.getElementById("find-close").addEventListener("click", hideFind);
-      document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
+      //document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
     }
      
     var showDemo = function () {
@@ -1380,62 +1380,13 @@
     // Read a file from Google Drive
 
     var gdrive = function() {
-      Roots.GDriveStart(fileList);
-    }
-
-    var fileList = function() {
-      Roots.GDriveList(showFileList);
-    }
-
-    var _externalFiles;
-
-    var showFileList = function(data) {
-      _externalFiles = JSON.parse(data).files;
-      _externalFiles.sort(function(a,b) {return a.name.localeCompare(b.name);});
-
-      var i, n, sel, fragment, elem, div1, icon, text;
-
-      // Build a list of files from the external file source
-      sel = document.getElementById("file-list");
-      RemoveChildElements("file-list");
-      fragment = document.createDocumentFragment();
-      n = _externalFiles.length;
-      for (i = 0; i < n; i++) {
-        elem = document.createElement("span");
-        elem.setAttribute("id", i.toString());
-        elem.className = "file-item";
-        elem.onclick = function () {
-          externalFileSelected(this);
-        };
-
-        icon = document.createElement("i");
-        if (_externalFiles[i].mimeType.includes("folder"))
-          icon.className = "fa fa-folder folder-icon";
-        else
-          icon.className = "fa fa-file-text file-icon";
-        elem.appendChild(icon);
-
-        text = document.createElement("span");
-        text.innerText = _externalFiles[i].name;
-        elem.appendChild(text);
-
-        fragment.appendChild(elem);
-      }
-      sel.appendChild(fragment);
-
-      document.getElementById("open-screen").style.display = "none";
-      document.getElementById("file-screen").classList.toggle("hide", false);
-    }
-
-    var externalFileSelected = function(e) {
-      document.getElementById("file-screen").classList.toggle("hide", true);
-      currentFile = _externalFiles[e.id];
-      Roots.GDriveGetFile(currentFile, fileLoaded);
-    }
-
-    var hideFileList = function() {
-      document.getElementById("file-screen").classList.toggle("hide", true);
-      document.getElementById("open-screen").style.display = "block";
+      Roots.GDriveStart( function() {
+        Roots.GDriveSelectFile( function(data) {
+          if (data.action == google.picker.Action.PICKED) {
+            Roots.GDriveGetFile(data.docs[0], fileLoaded);
+          }
+        });
+      });
     }
 
     // Read a file from the local file system

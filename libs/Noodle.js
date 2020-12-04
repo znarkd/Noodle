@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 23, 2020
+ * Release: November 29, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -148,9 +148,8 @@ function Noodle(dataArray, labels) {
   var DELETED_ROW = 1;
   var PRUNED_ROW = 2;
 
-  // Prune bracket and locate storage
+  // Prune bracket storage
   var prune = {};
-  var locate = {};
 
   ErrorMsg = function (msg) {
     alert(msg);
