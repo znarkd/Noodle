@@ -175,13 +175,14 @@ var _scope = 'https://www.googleapis.com/auth/drive';
 
 var _oauthToken = undefined;
 var _expires;
+var _stateValue;
 var _callback;
 
 function messageSent(event) {
-  if (event.data.token != undefined) {
+  if (event.data.state === _stateValue && event.data.token != undefined) {
     _oauthToken = event.data.token.toString();
     window.removeEventListener("message", messageSent);
-    _expires += (event.data.expires * 1000);
+    _expires += ((event.data.expires-60) * 1000);
     if (_callback != undefined)
       _callback();
   }
@@ -190,18 +191,18 @@ function messageSent(event) {
 // Start a Google Drive process
 
 Roots.GDriveStart = function(callback) {
-  if (_expires > Date.now()) {
+  if (_oauthToken && _expires > Date.now()) {
     if (callback)
       callback();
   }
   else {
     _callback = callback;
-
+    _stateValue = "zNoodle " + Date.now().toString() + "\x7a\x63\x7a\x63";
     var uri = window.location.href.slice(0, window.location.href.lastIndexOf("/")) + "/gdrive.html";
     var url = "https://accounts.google.com/o/oauth2/v2/auth?scope=";
     url += _scope;
     url += "&include_granted_scopes=true&response_type=token&state=";
-    url += "statevalue";
+    url += _stateValue;
     url += ("&client_id=" + _clientId);
     url += ("&redirect_uri=" + uri);
 
@@ -216,7 +217,7 @@ Roots.GDriveStart = function(callback) {
 
 Roots.GDriveSelectFile = function(callback) {
   gapi.load('picker', function() {
-    if (_oauthToken) {
+    if (_oauthToken && _expires > Date.now()) {
       var view = new google.picker.DocsView(google.picker.ViewId.DOCS);
       view.setParent("root");
       view.setMode(google.picker.DocsViewMode.LIST);
