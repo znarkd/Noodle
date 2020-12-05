@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 4, 2020
+ * Release: December 5, 2020
  */
 
 var Roots = Roots || {};
@@ -19,10 +19,10 @@ Roots.GetLocalFile = function(file, callback) {
   };
 
   reader.onloadend = function(e) {
-    var type = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1);
+    var ext = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1);
     var f = {
       name: file.name,
-      type: type,
+      ext: ext,
       data: reader.result,
       source: "FileSystem"
     }
@@ -276,7 +276,7 @@ Roots.GDriveGetFile = function(file, callback) {
     if (this.status == 200 && this.responseText != null) {
       var gfile = {
         name: file.name,
-        type: file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1),
+        ext: file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1),
         id: file.id,
         parentId: file.parentId,
         data: this.responseText,

@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="December 4, 2020">
+  <meta name="version" content="December 5, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1383,7 +1383,8 @@
       Roots.GDriveStart( function() {
         Roots.GDriveSelectFile( function(data) {
           if (data.action == google.picker.Action.PICKED) {
-            Roots.GDriveGetFile(data.docs[0], fileLoaded);
+            currentFile = data.docs[0];
+            Roots.GDriveGetFile(currentFile, fileLoaded);
           }
         });
       });
@@ -1402,11 +1403,11 @@
     var fileLoaded = function (file) {
       editScreen = [];
       try {
-        if (file.type === "ndl") {
+        if (file.ext === "ndl") {
           var ary = new NoodleDatabase(file.data);
           db1 = new Noodle(ary);
           showEditScreen();
-        } else if (file.type === "csv") {
+        } else if (file.ext === "csv") {
           var sep = Roots.initCSV(file.data);
           var data = Roots.parseCSV(file.data, sep);
 
@@ -1425,7 +1426,7 @@
             editScreen[0].columns[i].field = db1.FieldName(i + 1);
           }
           showEditScreen();
-        } else if (file.type === "json") {
+        } else if (file.ext === "json") {
           var data = JSON.parse(file.data);
           db1 = new Noodle(data);
           var nf = db1.FieldCount();
