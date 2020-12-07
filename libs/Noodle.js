@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 29, 2020
+ * Release: December 7, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -1547,7 +1547,7 @@ function Noodle(dataArray, labels) {
   }
 
   // Create an XML file the represents the current screen's data view
-  this.XMLReport = function (title, fn, page1) {
+  this.XMLReport = function (title, fn, page1, save) {
     var i, page, start, end, line, bfi;
     var xmldata, blob, alink;
 
@@ -1615,6 +1615,9 @@ function Noodle(dataArray, labels) {
 
     xmldata += "</report>\n";
 
+    if (!save)
+    return xmldata;
+
     // Create a temporary link to download the data
 
     blob = new Blob([xmldata], {
@@ -1645,43 +1648,37 @@ function Noodle(dataArray, labels) {
     return s2;
   }
 
-  this.WriteCsvFile = function (fn, separator) {
-    var i, page, line, output, sep, blob;
+  this.WriteCsvFile = function (fn, separator, save) {
+    var r, c, nline=this.Nline(), nf=mLabels.length;
+    var output, sep, blob;
 
     //StreamWriter writer = new StreamWriter(path);
 
-    // Write a line with the view's column names
+    // Build a line with column names
     output = "";
     sep = "";
-    for (i = 0; i < viewHeaderFields.length; i++) {
+    for (c=0; c < nf; c++) {
       output += sep;
-      output += GetCsvWritableValue(mLabels[viewHeaderFields[i] - 1]);
-      sep = separator;
-    }
-    for (i = 0; i < viewColumnarFields.length; i++) {
-      output += sep;
-      output += GetCsvWritableValue(mLabels[viewColumnarFields[i] - 1]);
+      output += GetCsvWritableValue(mLabels[c]);
       sep = separator;
     }
     output += "\n";
 
-    // Save the current view data
-    for (page = 1; page <= viewNumPages; page++) {
-      for (line = 1; line <= this.LineCount(page); line++) {
+    // Build output data with active rows only
+    for (r=1; r <= nline; r++) {
+      if (viewState[r-1] != DELETED_ROW) {
         sep = "";
-        for (i = 0; i < viewHeaderFields.length; i++) {
+        for (c=1; c <= nf; c++) {
           output += sep;
-          output += GetCsvWritableValue(this.GetValue(page, 0, viewHeaderFields[i]));
-          sep = separator;
-        }
-        for (i = 0; i < viewColumnarFields.length; i++) {
-          output += sep;
-          output += GetCsvWritableValue(this.GetValue(page, line, viewColumnarFields[i]));
+          output += GetCsvWritableValue(LineValue(r,c));
           sep = separator;
         }
         output += "\n";
       }
     }
+
+    if (!save)
+      return output;
 
     // Create a temporary link to download the data
 

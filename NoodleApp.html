@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="December 5, 2020">
+  <meta name="version" content="December 7, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1401,6 +1401,7 @@
     // Create a Noodle object from a file
 
     var fileLoaded = function (file) {
+      currentFile.source = file.source;
       editScreen = [];
       try {
         if (file.ext === "ndl") {
@@ -1447,14 +1448,28 @@
     // Save the current file
 
     var saveClick = function() {
-      currentFile.data = db1.stringify();
-      Roots.GDrivePutFile(currentFile, function(resp) {
-        if (resp.error) {
-          alert(resp.error.message);
+      if (currentFile.source != "GDrive") {
+        var r = confirm("Save only supports Google Drive right now.   Save there?");
+        if (!r)
           return;
-        }
-        currentFile = resp;
-        showEditScreen();
+      }
+      
+      var ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
+      if (ext == "csv")
+        currentFile.data = db1.WriteCsvFile(currentFile.name, ',', false);
+      else
+        currentFile.data = db1.stringify();
+      
+      Roots.GDriveStart( function() {
+        Roots.GDrivePutFile(currentFile, function(resp) {
+          if (resp.error) {
+            alert(resp.error.message);
+            return;
+          }
+          currentFile = resp;
+          currentFile.source = "GDrive";
+          showEditScreen();
+        });
       });
     }
 
