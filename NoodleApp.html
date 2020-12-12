@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="December 7, 2020">
+  <meta name="version" content="December 12, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1859,6 +1859,7 @@
           id: this.props.id,
           className: this.props.className,
           style: this.props.style,
+          autoComplete: "off",
           type: this.props.type,
           defaultValue: this.props.defaultValue,
           onChange: this.onChange.bind(this),

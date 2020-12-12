@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: November 23, 2020
+ * Release: December 12, 2020
  */
 
 function NoodleDatabase(stream) {
@@ -54,6 +54,12 @@ function NoodleDatabase(stream) {
       case 'D':
         if (field[i].cpl != 4)
           throw("cpl for Type-D must equal 4");
+        break;
+
+      // Date & Time in milliseconds
+      case 'M':
+        if (field[i].cpl != 8)
+          throw("cpl for Type-M must equal 8");
         break;
 
       // Real
@@ -157,6 +163,7 @@ function NoodleDatabase(stream) {
           if (rc != 0)
             return rc;
           break;
+        case 'M':
         case 'R':
           v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0];
           v[1] = blkfld[sortColumns[i]-1][1];
@@ -214,6 +221,12 @@ function NoodleDatabase(stream) {
         var m = "0" + Math.trunc((num%10000)/100);
         var d = "0" + Math.trunc(num%100);
         return m.slice(-2) + '/' + d.slice(-2) + '/' + y;
+      case 'M':
+        num = Roots.runpac(base.block, v);
+        if (num === 0 || isNaN(num))
+          return "";
+        num = new Date(num);
+        return num.toLocaleString();
       case 'Z':
         num = Roots.bunpac(base.block, v);
         return num.toString().padStart(field[bfi-1].width, '0');
@@ -282,19 +295,25 @@ function NoodleDatabase(stream) {
         break;
       case 'B':
       case 'Z':
-        if (Number(val) != NaN) {
+        if (!isNaN(val)) {
           if (Math.trunc(val) <= _maxval[v[1]])
             Roots.pacbin(Math.trunc(val), base.block, v);
-          else
+          else {
             alert("The number input is too large");
+            return false;
+          }
         }
-        else
+        else {
           alert("Not a number");
+          return false;
+        }
         break;
       case 'D':
         var date = new Date(val);
-        if (date === "Invalid Date")
+        if (isNaN(date.getTime())) {
           alert("Invalid Date");
+          return false;
+        }
         else {
           var y = date.getFullYear();
           var m = date.getMonth() + 1;
@@ -303,11 +322,24 @@ function NoodleDatabase(stream) {
           Roots.pacbin(ymd, base.block, v);
         }
         break;
+      case 'M':
+        var date = new Date(val);
+        if (isNaN(date.getTime())) {
+          alert("Invalid Date");
+          return false;
+        }
+        else {
+          Roots.pacrel(date, base.block, v);
+        }
+        break;
       case 'R':
-        if (Number(val) != NaN)
+        if (!isNaN(val)) {
           Roots.pacrel(val, base.block, v);
-        else
-          Roots.pacrel(0, base.block, v);
+        }
+        else {
+          alert("Not a number");
+          return false;
+        }
         break;
       case 'E':
         var vstr = val.split('');
@@ -323,6 +355,7 @@ function NoodleDatabase(stream) {
       default:
         throw("NoodleDatabase: Invalid data type");
     }
+    return true;
   }
 
   // Select database rows by value
@@ -369,6 +402,17 @@ function NoodleDatabase(stream) {
           if (date != "Invalid Date") {
             v[0]=v[1]=(date.getFullYear()*10000)+((date.getMonth()+1)*100)+date.getDate();
             Roots.rngprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            Roots.conlst(outlst, hits, p.nextLine);
+          }
+        }
+        break;
+      case 'M':
+        for (i=0; i < p.values.length; i++) {
+          date = new Date(p.values[i]);
+          if (date != "Invalid Date") {
+            v[0] = date;
+            v[1] = date + 86399999;   // disregard time
+            Roots.rgrprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
             Roots.conlst(outlst, hits, p.nextLine);
           }
         }
@@ -431,7 +475,7 @@ function NoodleDatabase(stream) {
         }
         break;
       default:
-        throw("NoodleDatabase: Invalid data type");
+        throw("NoodleDatabase: Invalid data type for scanPrune");
     }
     p.match[0] = outlst[0];
     return 0;

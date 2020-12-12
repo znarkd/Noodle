@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 7, 2020
+ * Release: December 12, 2020
  */
 
 function Noodle(dataArray, labels) {
@@ -104,6 +104,7 @@ function Noodle(dataArray, labels) {
       mData[line - 1][mKeys[bfi - 1]] = new Date(val);
     else
       mData[line - 1][mKeys[bfi - 1]] = val;
+    return true;
   }
   if (mData.PutLineValue != undefined)
     PutLineValue = mData.PutLineValue;
@@ -665,7 +666,8 @@ function Noodle(dataArray, labels) {
         SOS(mLabels[bfi - 1] + " is not a Header field.");
 
       for (first = viewPages[page - 1]; first > 0; first = viewNextLine[first - 1]) {
-        PutLineValue(val, first, bfi);
+        if (!PutLineValue(val, first, bfi))
+          break;
         for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
           PutLineValue(val, clone, bfi);
       }
@@ -681,7 +683,8 @@ function Noodle(dataArray, labels) {
         SOS("Line number not on page");
 
       first = firstOf(page, line);
-      PutLineValue(val, first, bfi);
+      if (!PutLineValue(val, first, bfi))
+        return;
       for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
         PutLineValue(val, clone, bfi);
     }
