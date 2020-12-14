@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="December 12, 2020">
+  <meta name="version" content="December 14, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1675,10 +1675,12 @@
       }
 
       // Set focus to first edit field
+      /*
       if (view.hedlin != 0)
         document.getElementById("hedit0").focus();
       else
         document.getElementById("1,1").focus();
+      */
     }
 
     // Save the id of the edit field that just got the focus
@@ -1894,7 +1896,7 @@
       if (!parms.scrollUpdateWasRequested) {
         var element = document.activeElement;
         element.blur();
-        element.focus();
+        //element.focus();
       }
     }
 
@@ -2273,8 +2275,8 @@
       e = document.getElementById("find-dialog");
       if (!(e.classList.contains("hide"))) {
         e.classList.toggle("hide", true);
-        if (focusField != undefined)
-          document.getElementById(focusField).focus();
+        //if (focusField != undefined)
+        //  document.getElementById(focusField).focus();
         return;
       }
 
@@ -2312,8 +2314,8 @@
     var hideFind = function () {
       document.getElementById("find-dialog").classList.toggle("hide", true);
       document.getElementById("find-data").value = "";
-      if (focusField != undefined)
-        document.getElementById(focusField).focus();
+      //if (focusField != undefined)
+      //  document.getElementById(focusField).focus();
     }
 
     var doFind = function (operation) {
