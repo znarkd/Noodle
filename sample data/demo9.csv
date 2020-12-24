@@ -1,0 +1,10 @@
+Seq,Letter,Answer,Item,Category,Color
+1,D,Maybe,Grass,Vegetable,Green
+2,K,True,Grass,Vegetable,Brown
+9,Z,Yes,Tree,Vegetable,Green
+57,N,True,Algae,Vegetable,Green
+123,A,False,Moss,Vegetable,Yellow
+1234,R,No,Fern,Vegetable,Green
+2345,K,Yes,Grass,Vegetable,Blue
+2525,D,So,Flower,Vegetable,Red
+4567,A,True,Tree,Vegetable,White
