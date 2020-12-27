@@ -267,7 +267,8 @@
     }
 
     .header {
-      max-height: 70%;
+      height: auto;
+      max-height: calc(70% - 41px);
       width: 100%;
       padding-top: 6px;
       background-color: lightgray;
@@ -298,6 +299,7 @@
       background-color: lightgray;
       width: auto;
       height: auto;
+      min-height: 30%;
     }
 
     .detail_grid {
@@ -914,6 +916,28 @@
       });
       document.getElementById("find-close").addEventListener("click", hideFind);
       //document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
+    }
+
+    function canUseDOM() {
+      return !!(typeof window !== 'undefined' && window.document && window.document.createElement);
+    }
+
+    var __sbsize;
+    function scrollbarSize(recalc) {
+      if (!__sbsize && __sbsize !== 0 || recalc) {
+        if (canUseDOM()) {
+          var scrollDiv = document.createElement('div');
+          scrollDiv.style.position = 'absolute';
+          scrollDiv.style.top = '-9999px';
+          scrollDiv.style.width = '50px';
+          scrollDiv.style.height = '50px';
+          scrollDiv.style.overflow = 'scroll';
+          document.body.appendChild(scrollDiv);
+          __sbsize = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+          document.body.removeChild(scrollDiv);
+        }
+      }
+      return __sbsize;
     }
      
     var showDemo = function () {
@@ -2212,6 +2236,10 @@
         lineCount = db1.LineCount(page);
         rowcount = lineCount + 1;
       }
+
+      var headerheight = document.getElementById("navbar").offsetHeight + 
+        document.getElementById("header").offsetHeight + scrollbarSize();
+      document.getElementById("detail").style.height = `calc(100% - ${headerheight}px)`;
 
       // Grid parameters
       var gparms = {};
