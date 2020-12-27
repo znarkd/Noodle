@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="December 23, 2020">
+  <meta name="version" content="December 27, 2020">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -918,24 +918,18 @@
       //document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
     }
 
-    function canUseDOM() {
-      return !!(typeof window !== 'undefined' && window.document && window.document.createElement);
-    }
-
-    var __sbsize;
-    function scrollbarSize(recalc) {
-      if (!__sbsize && __sbsize !== 0 || recalc) {
-        if (canUseDOM()) {
-          var scrollDiv = document.createElement('div');
-          scrollDiv.style.position = 'absolute';
-          scrollDiv.style.top = '-9999px';
-          scrollDiv.style.width = '50px';
-          scrollDiv.style.height = '50px';
-          scrollDiv.style.overflow = 'scroll';
-          document.body.appendChild(scrollDiv);
-          __sbsize = scrollDiv.offsetWidth - scrollDiv.clientWidth;
-          document.body.removeChild(scrollDiv);
-        }
+    // Copied from "react-window" package.  Original version from "dom-helpers" package.
+    var __sbsize = -1;
+    var getScrollbarSize = function(recalculate) {
+      if (__sbsize === -1 || recalculate) {
+        const div = document.createElement('div');
+        const style = div.style;
+        style.width = '50px';
+        style.height = '50px';
+        style.overflow = 'scroll';
+        document.body.appendChild(div);
+        __sbsize = div.offsetWidth - div.clientWidth;
+        document.body.removeChild(div);
       }
       return __sbsize;
     }
@@ -2237,8 +2231,9 @@
         rowcount = lineCount + 1;
       }
 
-      var headerheight = document.getElementById("navbar").offsetHeight + 
-        document.getElementById("header").offsetHeight + scrollbarSize();
+      var headerheight = document.getElementById("header").offsetHeight;
+      headerheight += getScrollbarSize();
+      headerheight += 4;
       document.getElementById("detail").style.height = `calc(100% - ${headerheight}px)`;
 
       // Grid parameters
