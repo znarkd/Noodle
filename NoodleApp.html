@@ -916,6 +916,7 @@
       });
       document.getElementById("find-close").addEventListener("click", hideFind);
       //document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
+      window.addEventListener("resize", resizeEditDisplay);
     }
 
     // Copied from "react-window" package.  Original version from "dom-helpers" package.
@@ -2285,6 +2286,16 @@
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
         gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
+    }
+
+    var resizeEditDisplay = function() {
+      document.getElementById("find-dialog").classList.toggle("hide", true);
+      if (view.hedlin)
+        FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
+      if (view.collin) {
+        FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
+      }      
     }
 
     var trashClick = function () {
