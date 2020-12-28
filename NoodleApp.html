@@ -917,6 +917,7 @@
       document.getElementById("find-close").addEventListener("click", hideFind);
       //document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
       window.addEventListener("resize", resizeEditDisplay);
+      window.addEventListener("orientationchange", resizeEditDisplay);
     }
 
     // Copied from "react-window" package.  Original version from "dom-helpers" package.
