@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="February 3, 2021">
+  <meta name="version" content="February 4, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -340,6 +340,28 @@
       background-color: white;
     }
 
+    .sticky-grid__container {
+      position: relative;
+      white-space: nowrap;
+      float: left;
+    }
+
+    .sticky-grid__header__base {
+      z-index: 3;
+      background-color: #b9b7b7;
+      position: sticky;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      padding-left: 4px;
+      border-right: 1px solid gray;
+      border-bottom: 1px solid gray;
+      float: left;
+    }
+    
     .sticky-grid__header {
       position: sticky;
       top: 0;
@@ -347,19 +369,6 @@
       display: flex;
       flex-direction: row;
       z-index: 2;
-    }
-
-    .sticky-grid__header__base {
-      z-index: 3;
-      background-color: #b9b7b7;
-      position: sticky;
-      left: 0;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      padding-left: 4px;
-      border-right: 1px solid gray;
-      border-bottom: 1px solid gray;
     }
 
     .sticky-grid__header__scrollable {
@@ -372,6 +381,7 @@
       display: flex;
       flex-direction: row;
       align-items: center;
+      justify-content: center;
       padding-left: 4px;
       border-bottom: 1px solid gray;
       border-right: 1px solid gray;
@@ -390,7 +400,8 @@
       display: flex;
       flex-direction: row;
       align-items: center;
-      padding-left: 4px;
+      justify-content: center;
+      padding-left: 10px;
       border-bottom: 1px solid gray;
       border-right: 1px solid gray;
     }
@@ -403,7 +414,7 @@
       display: flex;
       flex-direction: row;
       align-items: center;
-      padding-left: 4px;
+      padding-left: 10px;
       border-right: 1px solid gray;
       border-bottom: 1px solid gray;
     }
@@ -2036,14 +2047,7 @@
       });
     };
 
-    const StickyHeader = function ({ stickyHeight, stickyWidth, headerColumns }) {
-      const baseStyle = {
-        height: stickyHeight,
-        width: stickyWidth
-      };
-      const scrollableStyle = {
-        left: stickyWidth
-      };
+    const StickyHeader = ({ stickyHeight, stickyWidth, headerColumns }) => {
       return React.createElement(
         "div",
         {
@@ -2052,16 +2056,7 @@
         React.createElement(
           "div",
           {
-            className: "sticky-grid__header__base",
-            style: baseStyle
-          },
-          "+"
-        ),
-        React.createElement(
-          "div",
-          {
             className: "sticky-grid__header__scrollable",
-            style: scrollableStyle
           },
           headerColumns.map(({ label, ...style }, i) =>
             React.createElement(
@@ -2071,13 +2066,7 @@
                 style: style,
                 key: i
               },
-              React.createElement(
-                "div",
-                {
-                  className: "labelText"
-                },
-                label
-              )
+              label
             )
           )
         )
@@ -2118,10 +2107,7 @@
 
     const StickyGridContext = React.createContext();
     StickyGridContext.displayName = "StickyGridContext";
-    const innerGridElementType = React.forwardRef(({
-      children,
-      ...rest
-    }, ref) =>
+    const innerGridElementType = React.forwardRef(({ children, ...rest }, ref) =>
       React.createElement(
         StickyGridContext.Consumer,
         null,
@@ -2162,12 +2148,21 @@
             top: stickyHeight,
             left: stickyWidth
           };
+          const baseStyle = {
+            height: stickyHeight,
+            width: stickyWidth
+          };
           return React.createElement(
-            "div", {
-            className: "sticky-grid__container",
-            ref: ref,
-            ...containerProps
-          },
+            "div",
+            {
+              className: "sticky-grid__container",
+              ref: ref,
+              ...containerProps
+            },
+            React.createElement("div", {
+              className: "sticky-grid__header__base",
+              style: baseStyle
+            }, "#"),
             React.createElement(StickyHeader, {
               headerColumns: headerColumns,
               stickyHeight: stickyHeight,
@@ -2179,10 +2174,11 @@
               stickyWidth: stickyWidth
             }),
             React.createElement(
-              "div", {
-              className: "sticky-grid__data__container",
-              style: gridDataContainerStyle
-            },
+              "div",
+              {
+                className: "sticky-grid__data__container",
+                style: gridDataContainerStyle
+              },
               children
             )
           );
