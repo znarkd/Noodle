@@ -1626,7 +1626,7 @@
       //	Fill the columnar portion
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
     }
 
@@ -2209,7 +2209,7 @@
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
     }
 
@@ -2221,7 +2221,7 @@
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
     }
 
@@ -2231,7 +2231,7 @@
         FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
       }
     }
 
@@ -2350,7 +2350,7 @@
       if (db1.WhereIsField(locate.bfi) & HEADER_FIELD)
         document.getElementById(focusField).focus();
       else {
-        gridRef.current.scrollToItem({ align: "auto", columnIndex: 0, rowIndex: locate.line });
+        gridRef.current.scrollToItem({ align: "smart", columnIndex: 0, rowIndex: locate.line });
         focusField = locate.line + "," + focusColumn;
         document.getElementById(focusField).focus();
       }
@@ -2446,7 +2446,7 @@
       // Update the page counter
       view.npage = db1.PageCount();
       document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
-      gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
+      gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
     }
 
     var DeleteRow = function () {
