@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="February 4, 2021">
+  <meta name="version" content="February 11, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -308,6 +308,60 @@
       background-color: lightgray;
     }
 
+    .Grid {
+      border: 1px solid gray;
+    }
+
+    .GridBase,
+    .GridHeader,
+    .LeftSide,
+    .GridItemEven,
+    .GridItemOdd {
+      direction: ltr;
+      height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-right: 1px solid gray;
+      border-bottom: 1px solid gray;
+      padding: 2px;
+    }
+
+    .GridBase {
+      background: #b9b7b7;
+    }
+
+    .GridHeader,
+    .LeftSide {
+      background: lightgray;
+    }
+
+    .GridItemEven,
+    .GridItemOdd {
+      border: 1px solid #d9dddd;
+      border-radius: 0;
+      outline: none;
+    }
+
+    .GridItemEven {
+      background-color: #f4f4f4;
+    }
+
+    .GridItemOdd {
+      background-color: white;
+    }
+
+    .GridInput {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding-left: 10px;
+      border-right: 1px solid gray;
+      border-bottom: 1px solid gray;
+    }
+
     .labelCell {
       display: flex;
       align-items: center;
@@ -321,102 +375,6 @@
       display: flex;
       text-align: center;
       overflow: hidden;
-    }
-
-    .evenCell,
-    .oddCell {
-      display: flex;
-      align-items: center;
-      border: 1px solid #d9dddd;
-      border-radius: 0;
-      outline: none;
-    }
-
-    .evenCell {
-      background-color: #f4f4f4;
-    }
-
-    .oddCell {
-      background-color: white;
-    }
-
-    .sticky-grid__container {
-      position: relative;
-      white-space: nowrap;
-      float: left;
-    }
-
-    .sticky-grid__header__base {
-      z-index: 3;
-      background-color: #b9b7b7;
-      position: sticky;
-      top: 0;
-      left: 0;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      padding-left: 4px;
-      border-right: 1px solid gray;
-      border-bottom: 1px solid gray;
-      float: left;
-    }
-    
-    .sticky-grid__header {
-      position: sticky;
-      top: 0;
-      left: 0;
-      display: flex;
-      flex-direction: row;
-      z-index: 2;
-    }
-
-    .sticky-grid__header__scrollable {
-      position: absolute;
-    }
-
-    .sticky-grid__header__scrollable__column {
-      position: absolute;
-      background-color: lightgray;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      padding-left: 4px;
-      border-bottom: 1px solid gray;
-      border-right: 1px solid gray;
-    }
-
-    .sticky-grid__sticky-columns__container {
-      position: sticky;
-      left: 0;
-      z-index: 1;
-      background: lightgray;
-      width: min-content;
-    }
-
-    .sticky-grid__sticky-columns__row {
-      position: absolute;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      padding-left: 10px;
-      border-bottom: 1px solid gray;
-      border-right: 1px solid gray;
-    }
-
-    .sticky-grid__data__container {
-      position: absolute;
-    }
-
-    .sticky-grid__data__column {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      padding-left: 10px;
-      border-right: 1px solid gray;
-      border-bottom: 1px solid gray;
     }
 
     #fileInput {
@@ -929,12 +887,12 @@
       //document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
       window.addEventListener("resize", resizeEditDisplay);
       window.addEventListener("orientationchange", resizeEditDisplay);
-      document.addEventListener("touchmove", function(event) { event.preventDefault(); });
+      document.addEventListener("touchmove", function (event) { event.preventDefault(); });
     }
 
     // Copied from "react-window" package.  Original version from "dom-helpers" package.
     var __sbsize = -1;
-    var getScrollbarSize = function(recalculate) {
+    var getScrollbarSize = function (recalculate) {
       if (__sbsize === -1 || recalculate) {
         const div = document.createElement('div');
         const style = div.style;
@@ -947,7 +905,7 @@
       }
       return __sbsize;
     }
-     
+
     var showDemo = function () {
 
       // Prepare a large data set
@@ -1412,9 +1370,9 @@
 
     // Read a file from Google Drive
 
-    var gdrive = function() {
-      Roots.GDriveStart( function() {
-        Roots.GDriveSelectFile( function(data) {
+    var gdrive = function () {
+      Roots.GDriveStart(function () {
+        Roots.GDriveSelectFile(function (data) {
           if (data.action == google.picker.Action.PICKED) {
             currentFile = data.docs[0];
             Roots.GDriveGetFile(currentFile, fileLoaded);
@@ -1480,21 +1438,21 @@
 
     // Save the current file
 
-    var saveClick = function() {
+    var saveClick = function () {
       if (currentFile.source != "GDrive") {
         var r = confirm("Save only supports Google Drive right now.   Save there?");
         if (!r)
           return;
       }
-      
+
       var ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
       if (ext == "csv")
         currentFile.data = db1.WriteCsvFile(currentFile.name, ',', false);
       else
         currentFile.data = db1.stringify();
-      
-      Roots.GDriveStart( function() {
-        Roots.GDrivePutFile(currentFile, function(resp) {
+
+      Roots.GDriveStart(function () {
+        Roots.GDrivePutFile(currentFile, function (resp) {
           if (resp.error) {
             alert(resp.error.message);
             return;
@@ -1668,7 +1626,7 @@
       //	Fill the columnar portion
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
       }
     }
 
@@ -1822,12 +1780,12 @@
 
     // Get the width of grid columns
     var getColumnWidth = function (index) {
-      if (index >= view.collin)
+      if (index === 0 || index-1 >= view.collin)
         return 60;
-      var w = editScreen[currentScreen - 1].columns[index].width;
+      var w = editScreen[currentScreen - 1].columns[index-1].width;
       if (w === undefined) {
         w = 140;
-        editScreen[currentScreen - 1].columns[index].width = w;
+        editScreen[currentScreen - 1].columns[index-1].width = w;
       }
       return w;
     }
@@ -1915,7 +1873,7 @@
         return;
       if (parms.index > editScreen[currentScreen - 1].columns.length)
         return;
-      var w = getColumnWidth(parms);
+      var w = getColumnWidth(parms.index);
       w += parms.deltaX;
       if (w < 10)
         w = 10;
@@ -1935,289 +1893,271 @@
 
     // react-window by Brian Vaughn, https://github.com/bvaughn/react-window
     // StickyGrid by Andrew Storchous, https://codesandbox.io/s/react-window-sticky-grid-liwsd
-    // Revisions for VariableSizeGrid by me :)
+    // GridWithStickyCells by Konstantin Vasilev, https://codesandbox.io/s/kwsed
+    // Revisions for iOS devices by me :)
 
-    const getRenderedCursor = children =>
-      children.reduce(
-        (
-          [minRow, maxRow, minColumn, maxColumn], {
-            props: {
-              columnIndex,
-              rowIndex
-            }
-          }
-        ) => {
-          if (rowIndex < minRow) {
-            minRow = rowIndex;
-          }
-
-          if (rowIndex > maxRow) {
-            maxRow = rowIndex;
-          }
-
-          if (columnIndex < minColumn) {
-            minColumn = columnIndex;
-          }
-
-          if (columnIndex > maxColumn) {
-            maxColumn = columnIndex;
-          }
-
-          return [minRow, maxRow, minColumn, maxColumn];
-        }, [
-        Number.POSITIVE_INFINITY,
-        Number.NEGATIVE_INFINITY,
-        Number.POSITIVE_INFINITY,
-        Number.NEGATIVE_INFINITY
-      ]
-      );
-
-    const headerBuilder = (minColumn, maxColumn, columnWidth, stickyHeight) => {
-      const columns = [];
-      let left = [0], pos = 0, value;
-
-      for (let c = 1; c <= maxColumn; c++) {
-        pos += columnWidth(c - 1);
-        left.push(pos);
+    function Cell({ columnIndex, rowIndex, style }) {
+      if (rowIndex === 0 && columnIndex === 0) {
+        return React.createElement(
+          "div",
+          {
+            className: "GridBase labelText",
+            style: style
+          },
+          "#"
+        );
       }
 
-      for (let i = minColumn; i <= maxColumn; i++) {
-        if (i === maxColumn)
+      if (rowIndex === 0) {
+        let value;
+        if (columnIndex-1 === view.collin)
           value = "*";
         else
-          value = db1.FieldName(view.bficol[i]);
-        columns.push({
-          height: stickyHeight,
-          width: columnWidth(i),
-          left: left[i],
-          label: value
-        });
+          value = db1.FieldName(view.bficol[columnIndex-1]);
+        return React.createElement(
+          "div",
+          {
+            className: "GridHeader",
+            style: style
+          },
+          value
+        );
       }
 
-      return columns;
-    };
-
-    const columnsBuilder = (minRow, maxRow, rowHeight, stickyWidth) => {
-      const rows = [];
-      let top = [0], pos = 0;
-
-      for (let c = 1; c <= maxRow; c++) {
-        pos += rowHeight(c - 1);
-        top.push(pos);
+      if (columnIndex === 0) {
+        return React.createElement(
+          "div",
+          {
+            className: "LeftSide",
+            style: style
+          },
+          rowIndex
+        );
       }
 
-      for (let i = minRow; i <= maxRow; i++) {
-        rows.push({
-          height: rowHeight(i),
-          width: stickyWidth,
-          top: top[i],
-          label: i + 1
-        });
-      }
-
-      return rows;
-    };
-
-    const GridColumn = ({
-      rowIndex,
-      columnIndex,
-      style
-    }) => {
       let value;
-      if (rowIndex >= lineCount)
+      if (rowIndex > lineCount)
         value = "";
-      else if (columnIndex === view.collin) {
-        value = db1.RecordCount(view.curpag, rowIndex + 1);
+      else if (columnIndex > view.collin) {
+        value = db1.RecordCount(view.curpag, rowIndex);
         if (value === 1)
           value = "";
       }
       else
-        value = db1.GetValue(view.curpag, rowIndex + 1, view.bficol[columnIndex]);
-
+        value = db1.GetValue(view.curpag, rowIndex, view.bficol[columnIndex-1]);
       return React.createElement(
         CellInput, {
-        id: (rowIndex + 1) + ',' + (columnIndex + 1),
-        className: ((rowIndex % 2) === 0) ? "sticky-grid__data__column oddCell" : "sticky-grid__data__column evenCell",
+        id: rowIndex + ',' + columnIndex,
+        className: (rowIndex % 2 === 0 ? "GridInput GridItemEven" : "GridInput GridItemOdd"),
         style: style,
         type: "text",
         defaultValue: value,
-        cellChange: detailChange,
-        line: rowIndex + 1,
-        bfi: view.bficol[columnIndex],
+        cellChange: detailChange
+      }
+      );
+    }
+
+    function getCellIndicies(child) {
+      return { row: child.props.rowIndex, column: child.props.columnIndex };
+    }
+
+    function getShownIndicies(children) {
+      let minRow = Infinity;
+      let maxRow = -Infinity;
+      let minColumn = Infinity;
+      let maxColumn = -Infinity;
+
+      React.Children.forEach(children, (child) => {
+        const { row, column } = getCellIndicies(child);
+        minRow = Math.min(minRow, row);
+        maxRow = Math.max(maxRow, row);
+        minColumn = Math.min(minColumn, column);
+        maxColumn = Math.max(maxColumn, column);
       });
-    };
 
-    const StickyHeader = ({ stickyHeight, stickyWidth, headerColumns }) => {
-      return React.createElement(
-        "div",
-        {
-          className: "sticky-grid__header"
+      return {
+        from: {
+          row: minRow,
+          column: minColumn
         },
-        React.createElement(
-          "div",
-          {
-            className: "sticky-grid__header__scrollable",
-          },
-          headerColumns.map(({ label, ...style }, i) =>
-            React.createElement(
-              "div",
-              {
-                className: "sticky-grid__header__scrollable__column",
-                style: style,
-                key: i
-              },
-              label
-            )
-          )
-        )
-      );
-    };
-
-    const StickyColumns = ({
-      rows,
-      stickyHeight,
-      stickyWidth
-    }) => {
-      const leftSideStyle = {
-        top: stickyHeight,
-        width: stickyWidth,
-        height: `calc(100% - ${stickyHeight}px)`
+        to: {
+          row: maxRow,
+          column: maxColumn
+        }
       };
+    }
+
+    function useInnerElementType(Cell, columnWidth, rowHeight) {
+      return React.useMemo(
+        () =>
+          React.forwardRef((props, ref) => {
+            function sumRowsHeights(index) {
+              let sum = 0;
+
+              while (index > 1) {
+                sum += rowHeight(index - 1);
+                index -= 1;
+              }
+
+              return sum;
+            }
+
+            function sumColumnWidths(index) {
+              let sum = 0;
+
+              while (index > 1) {
+                sum += columnWidth(index - 1);
+                index -= 1;
+              }
+
+              return sum;
+            }
+
+            const shownIndicies = getShownIndicies(props.children);
+
+            const children = React.Children.map(props.children, (child) => {
+              const { column, row } = getCellIndicies(child);
+
+              // do not render non-sticky cells in sticky cell positions
+              if (column === 0 || row === 0) {
+                return null;
+              }
+
+              return child;
+            });
+
+            var base = [];
+
+            base.push(
+              React.createElement(Cell, {
+                key: "0:0",
+                rowIndex: 0,
+                columnIndex: 0,
+                style: {
+                  display: "block",
+                  float: "left",
+                  width: columnWidth(0),
+                  height: rowHeight(0),
+                  position: "sticky",
+                  top: 0,
+                  left: 0,
+                  zIndex: 5
+                }
+              })
+            );
+
+            const shownColumnsCount =
+              shownIndicies.to.column - shownIndicies.from.column;
+
+            var header = [];
+
+            for (let i = 1; i <= shownColumnsCount; i += 1) {
+              const columnIndex = i + shownIndicies.from.column;
+              const rowIndex = 0;
+              const width = columnWidth(columnIndex);
+              const height = rowHeight(rowIndex);
+
+              const marginLeft = i === 1 ? sumColumnWidths(columnIndex) : undefined;
+
+              header.push(
+                React.createElement(Cell, {
+                  key: `${keyValue}:${rowIndex}:${columnIndex}`,
+                  rowIndex,
+                  columnIndex,
+                  style: {
+                    marginLeft,
+                    display: "inline-flex",
+                    width,
+                    height,
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 3
+                  }
+                })
+              );
+            }
+
+            const shownRowsCount = shownIndicies.to.row - shownIndicies.from.row;
+
+            for (let i = 1; i <= shownRowsCount; i += 1) {
+              const columnIndex = 0;
+              const rowIndex = i + shownIndicies.from.row;
+              const width = columnWidth(columnIndex);
+              const height = rowHeight(rowIndex);
+
+              const marginTop = i === 1 ? sumRowsHeights(rowIndex) : undefined;
+
+              children.push(
+                React.createElement(Cell, {
+                  rowIndex,
+                  columnIndex,
+                  style: {
+                    marginTop,
+                    width,
+                    height,
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 2
+                  }
+                })
+              );
+            }
+
+            return React.createElement(
+              "div", {
+              className: "GridContainer",
+              style: {
+                display: "block",
+                position: "relative"
+              },
+              ref: ref,
+              ...props
+            },
+              base,
+              React.createElement("div", {
+                className: "HeaderContainer",
+                style: {
+                  position: "sticky",
+                  top: "0px",
+                  left: "0px",
+                  zIndex: 4
+                }
+              },
+                React.createElement("div", {
+                  className: "HeaderInner",
+                  style: {
+                    position: "relative"
+                  }
+                },
+                  header
+                )
+              ),
+              children
+            );
+          }),
+        [Cell, columnWidth, rowHeight]
+      );
+    }
+
+    function GridWithStickyCells(props) {
+      
+      // Add a column for the sticky, leftside, row number column,
+      // and add a row for the sticky, header row.
+      props.columnCount += 1;
+      props.rowCount += 1;
 
       return React.createElement(
-        "div", {
-        className: "sticky-grid__sticky-columns__container",
-        style: leftSideStyle
-      },
-        rows.map(({
-          label,
-          ...style
-        }, i) =>
-          React.createElement(
-            "div", {
-            className: "sticky-grid__sticky-columns__row",
-            style: style,
-            key: i
-          },
-            label
-          )
+        ReactWindow.VariableSizeGrid, {
+        ...props,
+        ref: gridRef,
+        innerElementType: useInnerElementType(
+          props.children,
+          props.columnWidth,
+          props.rowHeight
         )
+      }
       );
-    };
-
-    const StickyGridContext = React.createContext();
-    StickyGridContext.displayName = "StickyGridContext";
-    const innerGridElementType = React.forwardRef(({ children, ...rest }, ref) =>
-      React.createElement(
-        StickyGridContext.Consumer,
-        null,
-        ({
-          stickyHeight,
-          stickyWidth,
-          headerBuilder,
-          columnsBuilder,
-          columnWidth,
-          rowHeight
-        }) => {
-          const [minRow, maxRow, minColumn, maxColumn] = getRenderedCursor(
-            children
-          ); // TODO maybe there is more elegant way to get this
-
-          const headerColumns = headerBuilder(
-            minColumn,
-            maxColumn,
-            columnWidth,
-            stickyHeight
-          );
-          const leftSideRows = columnsBuilder(
-            minRow,
-            maxRow,
-            rowHeight,
-            stickyWidth
-          );
-          const containerStyle = {
-            ...rest.style,
-            width: `${parseFloat(rest.style.width) + stickyWidth}px`,
-            height: `${parseFloat(rest.style.height) + stickyHeight}px`
-          };
-          const containerProps = {
-            ...rest,
-            style: containerStyle
-          };
-          const gridDataContainerStyle = {
-            top: stickyHeight,
-            left: stickyWidth
-          };
-          const baseStyle = {
-            height: stickyHeight,
-            width: stickyWidth
-          };
-          return React.createElement(
-            "div",
-            {
-              className: "sticky-grid__container",
-              ref: ref,
-              ...containerProps
-            },
-            React.createElement("div", {
-              className: "sticky-grid__header__base",
-              style: baseStyle
-            }, "#"),
-            React.createElement(StickyHeader, {
-              headerColumns: headerColumns,
-              stickyHeight: stickyHeight,
-              stickyWidth: stickyWidth
-            }),
-            React.createElement(StickyColumns, {
-              rows: leftSideRows,
-              stickyHeight: stickyHeight,
-              stickyWidth: stickyWidth
-            }),
-            React.createElement(
-              "div",
-              {
-                className: "sticky-grid__data__container",
-                style: gridDataContainerStyle
-              },
-              children
-            )
-          );
-        }
-      )
-    );
-
-    const StickyGrid = ({
-      stickyHeight,
-      stickyWidth,
-      columnWidth,
-      rowHeight,
-      children,
-      ...rest
-    }) =>
-      React.createElement(
-        StickyGridContext.Provider, {
-        value: {
-          stickyHeight,
-          stickyWidth,
-          columnWidth,
-          rowHeight,
-          headerBuilder,
-          columnsBuilder
-        }
-      },
-        React.createElement(
-          ReactWindow.VariableSizeGrid, {
-          columnWidth: columnWidth,
-          rowHeight: rowHeight,
-          innerElementType: innerGridElementType,
-          ref: gridRef,
-          itemKey: getKeyValue,
-          ...rest
-        },
-          children
-        )
-      );
-
+    }
 
     // Display the columnar portion of the edit screen
     var FillColumns = function (page, npage, bficol, collin, refresh) {
@@ -2245,8 +2185,7 @@
       gparms.onScroll = handleGridScroll;
       gparms.overscanColumnCount = 2;
       gparms.overscanRowCount = 8;
-      gparms.stickyHeight = 30;
-      gparms.stickyWidth = 60;
+      gparms.itemKey = getKeyValue;
 
       // Let React know that the page changed
       gparms.number = ++keyValue;
@@ -2256,7 +2195,7 @@
         function (params) {
           gparms.height = params.height;
           gparms.width = params.width;
-          return React.createElement(StickyGrid, gparms, GridColumn);
+          return React.createElement(GridWithStickyCells, gparms, Cell);
         }), document.getElementById("detail"));
     }
 
@@ -2270,7 +2209,7 @@
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
       }
     }
 
@@ -2282,18 +2221,18 @@
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
       }
     }
 
-    var resizeEditDisplay = function() {
+    var resizeEditDisplay = function () {
       document.getElementById("find-dialog").classList.toggle("hide", true);
       if (view.hedlin)
         FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
         FillColumns(view.curpag, view.npage, view.bficol, view.collin, false);
-        gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
-      }      
+        gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
+      }
     }
 
     var trashClick = function () {
@@ -2304,7 +2243,7 @@
       var e, k;
 
       locate = {};
-      
+
       e = document.getElementById("find-dialog");
       if (!(e.classList.contains("hide"))) {
         e.classList.toggle("hide", true);
@@ -2327,7 +2266,7 @@
       if (focusField.startsWith("hedit")) {
         locate.bfi = view.bfihed[focusColumn];
         locate.line = 0;
-      } 
+      }
       else {
         locate.bfi = view.bficol[focusColumn - 1];
         k = focusField.split(',');
@@ -2340,7 +2279,7 @@
       document.getElementById("find-data").focus();
     }
 
-    var changeFindData = function() {
+    var changeFindData = function () {
       delete locate.set;
     }
 
@@ -2357,15 +2296,15 @@
 
       if (db1.WhereIsField(locate.bfi) & HEADER_FIELD) {
         if (operation === "Next") {
-			    locate.page = view.curpag + 1;
-			    locate.line = 0;
-		    }
-		    else {
-			    locate.page = view.curpag;
-			    locate.line = 0;
-		    }
-	    }
-	    else {
+          locate.page = view.curpag + 1;
+          locate.line = 0;
+        }
+        else {
+          locate.page = view.curpag;
+          locate.line = 0;
+        }
+      }
+      else {
         locate.page = view.curpag;
         var k = focusField.split(',');
         locate.line = parseInt(k[0]);
@@ -2373,15 +2312,15 @@
           locate.line += 1;
         else
           locate.line -= 1;
-	    }
-     
+      }
+
       // Do the locate.
       // Trailing whitespace is trimmed.
 
       if ("set" in locate === false) {
         var data = [];
         data[0] = document.getElementById("find-data").value.replace(/\s+$/, '');
-        
+
         var pruneOperation = "value";
         var type = db1.GetDataType(locate.bfi);
         if (type === "T" || type === "E") {
@@ -2413,7 +2352,7 @@
       else {
         gridRef.current.scrollToItem({ align: "auto", columnIndex: 0, rowIndex: locate.line });
         focusField = locate.line + "," + focusColumn;
-        document.getElementById(focusField).focus();        
+        document.getElementById(focusField).focus();
       }
     }
 
@@ -2507,7 +2446,7 @@
       // Update the page counter
       view.npage = db1.PageCount();
       document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
-      gridRef.current.scrollToItem({ align: "start", columnIndex: 0, rowIndex: 0 });
+      gridRef.current.scrollToItem({ align: "start", columnIndex: 1, rowIndex: 1 });
     }
 
     var DeleteRow = function () {
