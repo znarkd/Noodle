@@ -362,6 +362,12 @@
       border-bottom: 1px solid gray;
     }
 
+    /*
+    .GridInput:focus {
+      border: 2px solid #0b6fcc;
+    }
+    */
+
     .labelCell {
       display: flex;
       align-items: center;
@@ -2089,6 +2095,7 @@
 
               children.push(
                 React.createElement(Cell, {
+                  key: `${keyValue}:${rowIndex}:${columnIndex}`,
                   rowIndex,
                   columnIndex,
                   style: {
