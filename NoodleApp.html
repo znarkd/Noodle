@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="February 16, 2021">
+  <meta name="version" content="February 22, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -605,20 +605,20 @@
         </div>
       </div>
       <div class="open__icons">
-        <div id="fileIcon" class="open__icon open__icon-open">
-          <i class="fa fa-lock open__icon-i"></i>
+        <div id="fileIcon" class="open__icon">
+          <i class="fa fa-lock open__icon-i" aria-hidden="true"></i>
           <div class="open__icon-text">Open</div>
           <input type="file" id="fileInput" accept=".csv,.json,.ndl" />
         </div>
-        <div class="open__icon open__icon-new">
+        <div class="open__icon">
           <i class="fa fa-plus open__icon-i"></i>
           <div class="open__icon-text">New</div>
         </div>
-        <div id="demo" class="open__icon open__icon-demo">
-          <i class="fa fa-magic open__icon-i"></i>
+        <div id="demo" class="open__icon">
+          <i class="fa fa-magic open__icon-i" aria-hidden="true"></i>
           <div class="open__icon-text">Demo</div>
         </div>
-        <div id="gdrive" class="open__icon open__icon-storage svg-btn" data-storage="gdrive">
+        <div id="gdrive" class="open__icon" data-storage="gdrive">
           <div class="open__icon-svg"><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"
               viewBox="0 0 128 128">
               <path
@@ -627,9 +627,9 @@
             </svg></div>
           <div class="open__icon-text">Google Drive</div>
         </div>
-        <div class="open__icon open__icon-more">
-          <i class="fa fa-ellipsis-h open__icon-i"></i>
-          <div class="open__icon-text">More</div>
+        <div id="elink" class="open__icon">
+          <i class="fa fa-external-link open__icon-i" aria-hidden="true"></i>
+          <div class="open__icon-text">External Link</div>
         </div>
       </div>
     </div>
@@ -846,6 +846,7 @@
       });
       document.getElementById("demo").addEventListener("click", showDemo);
       document.getElementById("gdrive").addEventListener("click", gdrive);
+      document.getElementById("elink").addEventListener("click", external_link);
       document.getElementById("screen-name").addEventListener("change", ScreenNameChange);
       document.getElementById("addheader").addEventListener("click", addScreenHeader);
       document.getElementById("deleteheader").addEventListener("click", deleteScreenHeader);
@@ -1393,6 +1394,16 @@
       currentFile = files[0];
       if (currentFile)
         Roots.GetLocalFile(currentFile, fileLoaded);
+    }
+
+
+    // Read a file from a website
+    
+    var external_link = function() {
+      var site = prompt("Enter a URL","https://");
+      if (site === null || site === "") return;
+
+      Roots.Wget(site, fileLoaded);
     }
 
     // Create a Noodle object from a file

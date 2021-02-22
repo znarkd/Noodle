@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 5, 2020
+ * Release: February 22, 2021
  */
 
 var Roots = Roots || {};
@@ -321,4 +321,34 @@ Roots.GDrivePutFile = function(file, callback) {
     callback(xhr.response);
   };
   xhr.send(form);
+}
+
+// ----- Get a file from a URL ------------------------------------------------
+
+Roots.Wget = function(url, callback) {
+  var xhr = new XMLHttpRequest();
+  
+  xhr.onerror = function(e) {
+    alert("An error occurred");
+  }
+ 
+  xhr.onload = function (e) {
+    if (this.status == 200 && this.responseText != null) {
+      var file = {
+        name: url.slice((Math.max(0, url.lastIndexOf("/")) || Infinity) + 1),
+        ext: url.slice((Math.max(0, url.lastIndexOf(".")) || Infinity) + 1),
+        data: this.responseText,
+        source: "URL"
+      };
+      if (callback != undefined)
+        callback(file);
+    }
+    else {
+      alert("Error: response status: " + this.status);
+    }
+  };
+
+  // Open the URL, bypass the browser cache
+  xhr.open("GET", url + ((/\?/).test(url) ? "&" : "?") + (new Date()).getTime());
+  xhr.send();
 }
