@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="February 22, 2021">
+  <meta name="version" content="February 23, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -362,17 +362,9 @@
       border-bottom: 1px solid gray;
     }
 
-    /*
-    .GridInput:focus {
-      border: 2px solid #0b6fcc;
-    }
-    */
-
     .labelCell {
       display: flex;
       align-items: center;
-      border: 2px solid #949494;
-      background-color: lightgray;
     }
 
     .labelText {
@@ -389,19 +381,19 @@
 
     .DragHandle {
       flex: 0 0 4px;
-      z-index: 2;
+      z-index: 4;
       cursor: col-resize;
       color: #0085ff;
     }
 
     .DragHandle:hover {
-      background-color: rgba(0, 0, 0, 0.1);
+      background-color: rgba(0, 0, 0, 0.2);
     }
 
     .DragHandleActive,
     .DragHandleActive:hover {
       color: #0b6fcc;
-      z-index: 3;
+      z-index: 5;
     }
 
     .column-sizer {
@@ -1931,13 +1923,31 @@
           value = "*";
         else
           value = db1.FieldName(view.bficol[columnIndex-1]);
-        return React.createElement(
-          "div",
-          {
-            className: "GridHeader",
+
+        return React.createElement('div', {
+            className: "GridHeader labelCell",
             style: style
-          },
-          value
+          }, React.createElement('div', {
+            className: "labelText"
+          }, value),
+          React.createElement(window.ReactDraggable, {
+            axis: "x",
+            defaultClassName: "DragHandle",
+            defaultClassNameDragging: "DragHandleActive",
+            onDrag: function onDrag(event, _ref2) {
+              var deltaX = _ref2.deltaX;
+              return resizeRow({
+                index: columnIndex,
+                deltaX: deltaX
+              });
+            },
+            position: {
+              x: 0
+            },
+            zIndex: 999
+          }, React.createElement("div", {
+            className: "column-sizer"
+          }))
         );
       }
 
