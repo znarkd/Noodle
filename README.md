@@ -69,7 +69,7 @@ Documentation can be found in the [Noodle wiki](https://github.com/znarkd/Noodle
 
 ### Demo
 
-[NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html?rev=20210223.0)
+[NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html?rev=20210223.1)
 
 
 ### License
