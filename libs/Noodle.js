@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 12, 2020
+ * Release: February 24, 2021
  */
 
 function Noodle(dataArray, labels) {
@@ -11,6 +11,16 @@ function Noodle(dataArray, labels) {
   var mLabels;
   var mNumFields;
   var mType = undefined;
+
+  // Error handling
+ 
+  ErrorMsg = function(msg) {
+    alert(msg);
+  }
+
+  SOS = function(msg) {
+    throw ("Noodle: " + msg);
+  }
 
   // Setup
 
@@ -34,10 +44,10 @@ function Noodle(dataArray, labels) {
       }
     }
     if (mData === undefined)
-      SOS("Noodle: Data does not contain an array!");
+      SOS("Data does not contain an array!");
 
     if (mData.length === 0)
-      SOS("Noodle can't work with empty arrays!");
+      SOS("Can't work with empty arrays!");
 
     // Array of arrays
     if (Array.isArray(mData[0]))
@@ -73,9 +83,11 @@ function Noodle(dataArray, labels) {
   var LineValue;
   _linevalue = function (line, bfi) {
     var val = mData[line - 1][mKeys[bfi - 1]];
-    if (val != undefined)
-      return val;
-    return null;
+    if (!val)
+      return "";
+    if (Array.isArray(val))
+      return val.join(', ');  
+    return val;
   }
   if (mData.LineValue != undefined)
     LineValue = mData.LineValue;
@@ -151,14 +163,6 @@ function Noodle(dataArray, labels) {
 
   // Prune bracket storage
   var prune = {};
-
-  ErrorMsg = function (msg) {
-    alert(msg);
-  }
-
-  SOS = function (msg) {
-    throw ("Noodle: " + msg);
-  }
 
   this.FieldCount = function () {
     return mNumFields;
@@ -440,18 +444,25 @@ function Noodle(dataArray, labels) {
 
     for (i = 0; i < sortColumns.length; i++) {
       fx = mKeys[sortColumns[i] - 1];
-      if (aRow[fx] === undefined) {
-        if (bRow[fx] === undefined)
+      if (!aRow[fx]) {
+        if (!bRow[fx])
           continue;
         return -1;
       }
-      if (bRow[fx] === undefined)
+      if (!bRow[fx])
         return 1;
       rc = aRow[fx].toString().localeCompare(bRow[fx].toString());
       if (rc != 0)
         return rc;
     }
     return 0;
+  }
+
+  PrimeNewLine = function (line) {
+    if (mData instanceof NoodleDatabase)
+      return;
+    for (var i = 1; i <= mNumFields; i++)
+      PutLineValue("", line, i);
   }
 
   this.GenerateView = function (compareFunc) {
@@ -690,19 +701,23 @@ function Noodle(dataArray, labels) {
     }
   }
 
-  PrimeNewLine = function (line) {
-    if (mData instanceof NoodleDatabase)
+  AdjustPruneBitMatrix = function (nline) {
+    if ("sets" in prune === false)
       return;
-    for (var i = 1; i <= mNumFields; i++)
-      PutLineValue("", line, i);
+    var keys = Object.keys(prune.sets);
+    var need = Math.ceil(nline / 8);
+    for (var key in keys) {
+      if (need > prune.sets[keys[key]].length)
+        prune.sets[keys[key]] = Roots.transfer(prune.sets[keys[key]], need + 25);
+    }
   }
 
   this.CreateNewPage = function () {
     if (!viewGenerated)
-      SOS("Noodle: View was not generated!");
+      SOS("View was not generated!");
 
     if (!viewNumHead)
-      SOS("Noodle: View has no header fields.");
+      SOS("View has no header fields.");
 
     // Add a new row to the dataset
     var nline;
@@ -819,17 +834,6 @@ function Noodle(dataArray, labels) {
     PruneValues = mData.PruneValues;
   else
     PruneValues = _prunevalues;
-
-  AdjustPruneBitMatrix = function (nline) {
-    if ("sets" in prune === false)
-      return;
-    var keys = Object.keys(prune.sets);
-    var need = Math.ceil(nline / 8);
-    for (var key in keys) {
-      if (need > prune.sets[keys[key]].length)
-        prune.sets[keys[key]] = Roots.transfer(prune.sets[keys[key]], need + 25);
-    }
-  }
 
   // Create a prune set
   this.PruneBracket = function (inputs, operation, bfi, values, outputs) {

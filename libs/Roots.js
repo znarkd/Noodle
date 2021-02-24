@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: November 24, 2020
+ * Release: February 24, 2021
  */
 
 var Roots = Roots || {};
@@ -1461,7 +1461,7 @@ Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
     next_line = nextLine[cur_line-1];
 
     // Match
-    if (values.indexOf(arr[cur_line-1][col].toString()) >= 0) {
+    if (arr[cur_line-1][col] && values.indexOf(arr[cur_line-1][col].toString()) >= 0) {
 
       // Disconnect current line from top of input list
       if (prev_line === 0)
