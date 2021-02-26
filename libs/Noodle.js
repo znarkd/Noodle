@@ -85,8 +85,21 @@ function Noodle(dataArray, labels) {
     var val = mData[line - 1][mKeys[bfi - 1]];
     if (!val)
       return "";
-    if (Array.isArray(val))
-      return val.join(', ');  
+    if (Array.isArray(val)) {
+      if (typeof val[0] === "object") {
+        let output = "";
+        for (let i=0; i < val.length; i++) {
+          if (i != 0)
+            output += ", ";
+          output += `${i+1})`;
+          for (const property in val[i]) {
+            output += ` ${property}: ${val[i][property]}`;
+          }
+        }
+        return output;
+      }
+      return val.join(', ');
+    }
     return val;
   }
   if (mData.LineValue != undefined)
