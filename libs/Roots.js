@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 24, 2021
+ * Release: February 27, 2021
  */
 
 var Roots = Roots || {};
@@ -1049,6 +1049,9 @@ Roots.scanpr = function(block, cpl, field, text, tfield, first, nextLine, match)
 // The scanprArray method is case insensitive.
 
 Roots.scanprArray = function(arr, text, tfield, first, nextLine, match) {
+  if (!Array.isArray(arr))
+    throw ("Roots.scanprArray: invalid array");
+
   var cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
   var s1, s2;
@@ -1068,6 +1071,69 @@ Roots.scanprArray = function(arr, text, tfield, first, nextLine, match) {
     
     s1 = arr[cur_line-1].toLowerCase();
     
+    // Match
+    if (s1.includes(s2)) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
+// For all lines of first/nextLine, the value stored at arr[line][col]
+// is scanned for the substring contained within text(tfield).
+
+// Matching entries are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
+
+// The scanprArrayCol method is case insensitive.
+
+Roots.scanprArrayCol = function(arr, col, text, tfield, first, nextLine, match) {
+  if (!Array.isArray(arr))
+    throw ("Roots.scanprArrayCol: invalid array");
+
+  var cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+  var s1, s2;
+
+  if (tfield[0] <= 0 || tfield[1] <= 0)
+    throw "Roots.scanprArrayCol: Bad tfield values";
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+  s2 = text.slice(tfield[0]-1, tfield[0]-1+tfield[1]).toLowerCase();
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.scanprArrayCol: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+
+    s1 = arr[cur_line-1][col].toLowerCase();
+
     // Match
     if (s1.includes(s2)) {
 

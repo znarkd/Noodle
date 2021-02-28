@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="February 26, 2021">
+  <meta name="version" content="February 28, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -373,6 +373,10 @@
       display: flex;
       text-align: center;
       overflow: hidden;
+    }
+
+    .focus {
+      background-color: #dbe0d0;
     }
 
     #fileInput {
@@ -961,6 +965,7 @@
         d["Count"] = 1;
       }
       currentFile.name = "demo.json";
+      currentFile.ext = "json";
 
       zData.keys = Object.keys(zData[0]);
 
@@ -1401,7 +1406,9 @@
 
     var fileLoaded = function (file) {
       currentFile.source = file.source;
+      currentFile.ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
       editScreen = [];
+
       try {
         if (file.ext === "ndl") {
           var ary = new NoodleDatabase(file.data);
@@ -1453,8 +1460,7 @@
           return;
       }
 
-      var ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
-      if (ext == "csv")
+      if (currentFile.ext == "csv")
         currentFile.data = db1.WriteCsvFile(currentFile.name, ',', false);
       else
         currentFile.data = db1.stringify();
@@ -1466,6 +1472,7 @@
             return;
           }
           currentFile = resp;
+          currentFile.ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
           currentFile.source = "GDrive";
           showEditScreen();
         });
@@ -1672,20 +1679,18 @@
         if (editScreen[currentScreen - 1].columns.length > 0)
           refreshGrid();
       }
-
-      // Set focus to first edit field
-      /*
-      if (view.hedlin != 0)
-        document.getElementById("hedit0").focus();
-      else
-        document.getElementById("1,1").focus();
-      */
     }
 
     // Save the id of the edit field that just got the focus
     var fieldFocus = function (e) {
+      if (focusField) {
+        let e = document.getElementById(focusField);
+        if (e)
+          document.getElementById(focusField).classList.toggle("focus", false);
+      }
       focusField = e.target.id;
       focusColumn = parseInt(focusField.substring(5));
+      document.getElementById(focusField).classList.toggle("focus", true);
     }
 
     var headerChange = function (e) {
@@ -1838,8 +1843,14 @@
 
       // The cell has gained focus
       onFocus(event) {
+        if (focusField) {
+          let e = document.getElementById(focusField);
+          if (e)
+            document.getElementById(focusField).classList.toggle("focus", false);
+        }
         focusField = event.target.id;
         focusColumn = parseInt(focusField.split(',')[1]);
+        document.getElementById(focusField).classList.toggle("focus", true);
       }
 
       // The cell lost focus; i.e. was blurred
@@ -1895,7 +1906,6 @@
       if (!parms.scrollUpdateWasRequested) {
         var element = document.activeElement;
         element.blur();
-        //element.focus();
       }
     }
 
@@ -2274,8 +2284,6 @@
       e = document.getElementById("find-dialog");
       if (!(e.classList.contains("hide"))) {
         e.classList.toggle("hide", true);
-        //if (focusField != undefined)
-        //  document.getElementById(focusField).focus();
         return;
       }
 
@@ -2292,10 +2300,12 @@
       // Set placeholder value for find input box
       if (focusField.startsWith("hedit")) {
         locate.bfi = view.bfihed[focusColumn];
+        locate.focus = focusField;
         locate.line = 0;
       }
       else {
         locate.bfi = view.bficol[focusColumn - 1];
+        locate.focus = focusColumn;
         k = focusField.split(',');
         locate.line = parseInt(k[0]);
       }
@@ -2313,8 +2323,6 @@
     var hideFind = function () {
       document.getElementById("find-dialog").classList.toggle("hide", true);
       document.getElementById("find-data").value = "";
-      //if (focusField != undefined)
-      //  document.getElementById(focusField).focus();
     }
 
     var doFind = function (operation) {
@@ -2348,10 +2356,11 @@
         var data = [];
         data[0] = document.getElementById("find-data").value.replace(/\s+$/, '');
 
-        var pruneOperation = "value";
+        var pruneOperation = "scan";
         var type = db1.GetDataType(locate.bfi);
-        if (type === "T" || type === "E") {
-          pruneOperation = "scan";
+        if (type === "number" || type === "B" || type === "R"
+        || type === "bigint") {
+          pruneOperation = "value";
         }
 
         if (db1.PruneBracket(0, pruneOperation, locate.bfi, data, {
@@ -2374,11 +2383,17 @@
       view.curpag = locate.page;
       FillPage();
 
+      if (focusField) {
+        let e = document.getElementById(focusField);
+        if (e)
+          document.getElementById(focusField).classList.toggle("focus", false);
+      }
+
       if (db1.WhereIsField(locate.bfi) & HEADER_FIELD)
-        document.getElementById(focusField).focus();
+        document.getElementById(locate.focus).focus();
       else {
         gridRef.current.scrollToItem({ align: "smart", columnIndex: 0, rowIndex: locate.line });
-        focusField = locate.line + "," + focusColumn;
+        focusField = locate.line + "," + locate.focus;
         document.getElementById(focusField).focus();
       }
     }
