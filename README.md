@@ -69,7 +69,8 @@ Documentation can be found in the [Noodle wiki](https://github.com/znarkd/Noodle
 
 ### Demo
 
-[NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html?rev=20210228.1)
+[NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html?rev=20210228.1) - an unhosted 
+web app that exhibits Noodle's capabilities.
 
 
 ### License
