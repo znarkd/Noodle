@@ -72,6 +72,12 @@ Documentation can be found in the [Noodle wiki](https://github.com/znarkd/Noodle
 [NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html?rev=20210228.1) - an unhosted 
 web app that exhibits Noodle's capabilities.
 
+Select the "Demo" link to view 20,000 rows of sample data.  Try changing data views (screens)
+from the dropdown.  Try building a new screen or modifying an existing screen.  Each screen is
+a different representation of the same 20,000 rows.
+
+View your own data by selecting either "Open" or "External Link."
+
 
 ### License
 Copyright © [Dan Kranz](https://github.com/znarkd?tab=repositories).  All rights reserved.
