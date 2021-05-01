@@ -65,7 +65,16 @@ bfi = 2;
 db1.PutValue("Z", page, 0, bfi);
 ```
 ### Documentation
-Documentation can be found in the [Noodle wiki](https://github.com/znarkd/Noodle/wiki)
+[Installing Noodle](https://github.com/znarkd/Noodle/wiki)
+
+[Noodle Object](https://github.com/znarkd/Noodle/wiki/Noodle-object)
+
+[Roots Library](https://github.com/znarkd/Noodle/wiki/Roots-library)
+
+[List Processing Structures](https://github.com/znarkd/Noodle/wiki/List-Processing-Structures)
+
+[the Tabular Data Type](https://github.com/znarkd/Noodle/wiki/The-Tabular-Data-Type)
+
 
 ### Demo
 
