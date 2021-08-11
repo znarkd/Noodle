@@ -1,6 +1,8 @@
 # Noodle
 Use Noodle to construct dynamic data views of tabular data.  It provides set-based data retrieval and updates without SQL.
 
+Noodle may be used with any array-like object.
+
 Noodle is built upon *Roots*.  The Roots library provides a foundation for creating an efficient in-memory database.
 Its unique [list processing structures](https://github.com/znarkd/Noodle/wiki/List-Processing-Structures)
 simplify programming logic and allow the developer to rapidly sort, group, and select data.
