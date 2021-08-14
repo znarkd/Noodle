@@ -77,7 +77,7 @@ db1.PutValue("Z", page, 0, bfi);
 
 [the Tabular Data Type](https://github.com/znarkd/Noodle/wiki/The-Tabular-Data-Type)
 
-[Merge Sort with Lists](https://github.com/znarkd/Noodle/wiki/Merge-Sort-with-Lists)
+[Natural Merge Sort with Lists](https://github.com/znarkd/Noodle/wiki/Natural-Merge-Sort-with-Lists)
 
 
 ### Demo
