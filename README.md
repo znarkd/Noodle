@@ -90,7 +90,9 @@ Select the "Demo" link to view 20,000 rows of sample data.  Try changing data vi
 from the dropdown.  Try building a new screen or modifying an existing screen.  Each screen is
 a different representation of the same 20,000 rows.
 
-View your own data by selecting either "Open" or "External Link."
+Revise data elements from the various screens.  One small edit can affect multiple data rows.
+
+View and revise your own data by selecting either "Open" or "External Link."
 
 
 ### License
