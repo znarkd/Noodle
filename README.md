@@ -91,6 +91,7 @@ from the dropdown.  Try building a new screen or modifying an existing screen.  
 a different representation of the same 20,000 rows.
 
 Revise data elements from the various screens.  One small edit can affect multiple data rows.
+Use data views to your advantage to minimize data editing chores.
 
 View and revise your own data by selecting either "Open" or "External Link."
 
