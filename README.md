@@ -1,5 +1,6 @@
 # Noodle
-Use Noodle to construct dynamic data views of tabular data.  It provides set-based data retrieval and updates without SQL.
+Use Noodle as an in-memory database for your JavaScript application. With it, one can construct dynamic data views of tabular data.
+Noodle provides set-based data retrieval and updates without SQL.
 
 Noodle may be used with any array-like object.
 
