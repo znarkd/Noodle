@@ -1,5 +1,5 @@
 # Noodle
-Use Noodle as an in-memory database for your JavaScript application. With it, one can construct dynamic data views of tabular data.
+Noodle is an in-memory database for JavaScript applications. With it, one can construct dynamic data views of tabular data.
 Noodle provides set-based data retrieval and updates without SQL.
 
 Noodle may be used with any array-like object.
