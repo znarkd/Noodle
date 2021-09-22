@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 27, 2021
+ * Release: September 22, 2021
  */
 
 function Noodle(dataArray, labels) {
@@ -830,6 +830,7 @@ function Noodle(dataArray, labels) {
           pruneData.first, pruneData.nextLine, pruneData.match);
         break;
       case "range":
+        // string_a.localeCompare(string_b);
         break;
       case "scan":
         var v = [];
@@ -839,6 +840,11 @@ function Noodle(dataArray, labels) {
           pruneData.first, pruneData.nextLine, pruneData.match);
         break;
       case "mask":
+      case "regex":
+        // string.search(searchvalue)
+        //
+        // var patt = new RegExp("e");
+        // var res = patt.test(str);
         break;
       case "compare":
         break;
@@ -905,10 +911,17 @@ function Noodle(dataArray, labels) {
     }
 
     // Perform the requested prune operation
+
     prune.operation = operation;
     prune.bfi = bfi;
     prune.fx = mKeys[bfi - 1];
-    prune.values = values;
+    
+    if (!Array.isArray(values)) {
+      prune.values = [];
+      prune.values[0] = values;
+    }
+    else prune.values = values;
+    
     if (PruneValues(prune) === -1)
       return -1;
 
@@ -923,12 +936,12 @@ function Noodle(dataArray, labels) {
       Roots.zerout(prune.sets[outputs.leftover]);
       Roots.setbit(prune.first, prune.nextLine, prune.sets[outputs.leftover]);
     }
-    if ("greaterthan" in outputs && outputs.greaterthan != 0) {
+    if ("greater_than" in outputs && outputs.greaterthan != 0) {
       prune.sets[outputs.greaterthan] = new Uint8Array(Math.ceil(prune.nline / 8));
       Roots.zerout(prune.sets[outputs.greaterthan]);
       Roots.setbit(prune.greaterthan, prune.nextLine, prune.sets[outputs.greaterthan]);
     }
-    if ("lessthan" in outputs && outputs.lessthan != 0) {
+    if ("less_than" in outputs && outputs.lessthan != 0) {
       prune.sets[outputs.lessthan] = new Uint8Array(Math.ceil(prune.nline / 8));
       Roots.zerout(prune.sets[outputs.lessthan]);
       Roots.setbit(prune.lessthan, prune.nextLine, prune.sets[outputs.lessthan]);
