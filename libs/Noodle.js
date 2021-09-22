@@ -1589,11 +1589,13 @@ function Noodle(dataArray, labels) {
     var i, page, start, end, line, bfi;
     var xmldata, blob, alink;
 
+    if (title === undefined)
+      title = "Report";
     if (fn === undefined)
       fn = "report.xml";
 
     start = end = page1;
-    if (start === undefined) {
+    if (start === undefined || start === 0) {
       start = 1;
       end = viewNumPages;
     }
@@ -1610,7 +1612,7 @@ function Noodle(dataArray, labels) {
     xmldata += "</title>\n";
 
     for (page = start; page <= end; page++) {
-      xmldata = xmldata + "<page seq=\"" + page + "\">\n";
+      xmldata = xmldata + "<page number=\"" + page + "\">\n";
 
       // Header info
       if (viewHeaderFields.length > 0) {

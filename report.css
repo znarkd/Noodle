@@ -1,0 +1,37 @@
+/* Defaults for the entire document */
+report {
+   font-family: "New York", "Times New Roman", serif;
+   font-size: 12pt;
+   margin-left: 8pt;
+}
+
+title {
+   display: block;
+   font-family: Helvetica, Arial, sans-serif;
+   font-size: 20pt;
+   font-weight: bold;
+   text-align: left;
+}
+
+page {
+   display: block;
+   margin-top: 36pt;
+}
+
+header {
+   display: block;
+   margin-top: 24pt;
+}
+
+
+detail {
+   display: table;
+}
+
+line {
+   display: table-row;
+}
+
+field {
+   display: table-cell;
+}
