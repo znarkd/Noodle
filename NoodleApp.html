@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="February 28, 2021">
+  <meta name="version" content="September 26, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -803,6 +803,13 @@
     var COLUMNAR_FIELD = 4;
     var COLUMNAR_SUM = 8;
 
+    // Field attributes
+    var ATTR_NUMBER = 1;
+    var ATTR_DATE = 2;
+    var ATTR_SUMMARY = 4;
+    var ATTR_PROTECTED = 8;
+    var ATTR_HYPERLINK = 0x10;
+
     // Data view - initialized in showEditScreen()
     var view = {};
     var focusField;
@@ -848,7 +855,12 @@
       document.getElementById("deleteheader").addEventListener("click", deleteScreenHeader);
       document.getElementById("addcolumn").addEventListener("click", addScreenCol);
       document.getElementById("deletecolumn").addEventListener("click", deleteScreenCol);
-      document.getElementById("field-width").addEventListener("change", widthChange);
+      document.getElementById("field-width").addEventListener("change", widthAttributeChange);
+      document.getElementById("field-number").addEventListener("change", fieldAttributeChange);
+      document.getElementById("field-date").addEventListener("change", fieldAttributeChange);
+      document.getElementById("field-summary").addEventListener("change", fieldAttributeChange);
+      document.getElementById("field-protected").addEventListener("change", fieldAttributeChange);
+      document.getElementById("field-hyperlink").addEventListener("change", fieldAttributeChange);
       document.getElementById("moveup").addEventListener("click", moveFieldUp);
       document.getElementById("movedown").addEventListener("click", moveFieldDown);
       document.getElementById("savescreenchange").addEventListener("click", SaveScreen);
@@ -1011,19 +1023,9 @@
         },
         {
           "field": "Count",
-          "width": 100
-        },
-        {
-          "field": "Count",
-          "width": 100
-        },
-        {
-          "field": "Count",
-          "width": 100
-        },
-        {
-          "field": "Count",
-          "width": 100
+          "width": 100,
+          number: true,
+          summary: true
         }
         ],
         "columns": [{
@@ -1039,15 +1041,18 @@
         },
         {
           "field": "Num",
-          "width": 80
+          "width": 80,
+          "number": true
         },
         {
           "field": "RNum",
-          "width": 100
+          "width": 100,
+          "number": true
         },
         {
           "field": "Date",
-          "width": 424
+          "width": 424,
+          "date": true
         }
         ]
       };
@@ -1076,7 +1081,8 @@
         "name": "Raw data",
         "columns": [{
           "field": "Seq",
-          "width": 60
+          "width": 60,
+          "number": true
         },
         {
           "field": "Letter",
@@ -1098,18 +1104,22 @@
         },
         {
           "field": "RNum",
-          "width": 100
+          "width": 100,
+          "number": true
         },
         {
           "field": "Num",
-          "width": 80
+          "width": 80,
+          "number": true
         },
         {
-          "field": "Date"
+          "field": "Date",
+          "date": true
         },
         {
           "field": "Count",
-          "width": 60
+          "width": 60,
+          "number": true
         }
         ]
       };
@@ -1276,11 +1286,50 @@
       }
     }
 
+    var clearFieldAttributes = function() {
+      document.getElementById("screen-name").value = _escreen.name;
+      document.getElementById("field-number").checked = false;
+      document.getElementById("field-date").checked = false;
+      document.getElementById("field-summary").checked = false;
+      document.getElementById("field-protected").checked = false;
+      document.getElementById("field-hyperlink").checked = false;
+      document.getElementById("field-width").value = "";
+    }
+
+    var setFieldAttributes = function(obj) {
+      if (obj.width != undefined)
+        document.getElementById("field-width").value = obj.width;
+      if (obj.number != undefined)
+        document.getElementById("field-number").checked = obj.number;
+      if (obj.date != undefined)
+        document.getElementById("field-date").checked = obj.date;
+      if (obj.summary != undefined)
+        document.getElementById("field-summary").checked = obj.summary;
+      if (obj.protected != undefined)
+        document.getElementById("field-protected").checked = obj.protected;
+      if (obj.hyperlink != undefined)
+        document.getElementById("field-hyperlink").checked = obj.hyperlink;
+    }
+
     var ScreenNameChange = function (event) {
       _escreen.name = event.target.value;
     }
 
-    var widthChange = function (event) {
+    var fieldAttributeChange = function(event) {
+      if (_build_screen_selected_id === undefined)
+        return false;
+      var element = event.target.value;
+      if (element === undefined)
+        return false;
+        
+      var i = parseInt(_build_screen_selected_id.substring(3));
+      if (_build_screen_selected_id.startsWith("hed"))
+        _escreen.header[i][element] = event.target.checked;
+      else
+        _escreen.columns[i][element] = event.target.checked;
+    }
+
+    var widthAttributeChange = function (event) {
       if (_build_screen_selected_id === undefined)
         return false;
       var val = parseInt(event.target.value);
@@ -1301,15 +1350,13 @@
       document.getElementById(id).classList.toggle("highlight", true);
       _build_screen_selected_id = id;
 
+      clearFieldAttributes();
+
       var i = parseInt(_build_screen_selected_id.substring(3));
-      var val;
       if (_build_screen_selected_id.startsWith("hed"))
-        val = _escreen.header[i].width;
+        setFieldAttributes(_escreen.header[i]);
       else
-        val = _escreen.columns[i].width;
-      if (val === undefined)
-        val = "";
-      document.getElementById("field-width").value = val;
+        setFieldAttributes(_escreen.columns[i]);
       return true;
     }
 
@@ -1325,9 +1372,7 @@
       _newscreen = newscreen;
 
       document.getElementById("build-screen").classList.toggle("hide", false);
-      document.getElementById("screen-name").value = _escreen.name;
-      document.getElementById("field-width").value = "";
-
+      clearFieldAttributes();
       updateScreenHeader();
       updateScreenDetail();
     }
@@ -1526,8 +1571,10 @@
       // Initialize the data view
       view.hedlin = 0;
       view.bfihed = [];
+      view.hAttribute = [];
       view.collin = 0;
       view.bficol = [];
+      view.cAttribute = [];
       view.npage = 0;
       view.curpag = 0;
 
@@ -1585,6 +1632,17 @@
         view.hedlin = 0;
       for (i = 0; i < view.hedlin; i++) {
         view.bfihed[i] = db1.BFI(editScreen[currentScreen - 1].header[i].field);
+        view.hAttribute[i] = 0;
+        if (editScreen[currentScreen - 1].header[i].number === true)
+          view.hAttribute[i] |= ATTR_NUMBER;
+        if (editScreen[currentScreen - 1].header[i].date === true)
+          view.hAttribute[i] |= ATTR_DATE;
+        if (editScreen[currentScreen - 1].header[i].summary === true)
+          view.hAttribute[i] |= ATTR_SUMMARY;
+        if (editScreen[currentScreen - 1].header[i].protected === true)
+          view.hAttribute[i] |= ATTR_PROTECTED;
+        if (editScreen[currentScreen - 1].header[i].hyperlink === true)
+          view.hAttribute[i] |= ATTR_HYPERLINK;
       }
 
       // Extract columnar fields
@@ -1594,6 +1652,17 @@
         view.collin = 0;
       for (i = 0; i < view.collin; i++) {
         view.bficol[i] = db1.BFI(editScreen[currentScreen - 1].columns[i].field);
+        view.cAttribute[i] = 0;
+        if (editScreen[currentScreen - 1].columns[i].number === true)
+          view.cAttribute[i] |= ATTR_NUMBER;
+        if (editScreen[currentScreen - 1].columns[i].date === true)
+          view.cAttribute[i] |= ATTR_DATE;
+        if (editScreen[currentScreen - 1].columns[i].summary === true)
+          view.cAttribute[i] |= ATTR_SUMMARY;
+        if (editScreen[currentScreen - 1].columns[i].protected === true)
+          view.cAttribute[i] |= ATTR_PROTECTED;
+        if (editScreen[currentScreen - 1].columns[i].hyperlink === true)
+          view.cAttribute[i] |= ATTR_HYPERLINK;
       }
 
       return true;
@@ -1609,16 +1678,16 @@
       // Set the data base view
       db1.InitializeView();
       for (i = 0; i < view.hedlin; i++) {
-        //if (screen.layout->hAttribute[i].style & ATTR_SUMMARY)
-        //	db1.EnterHeaderSum(view.bfihed[i]);
-        //else
-        db1.EnterHeader(view.bfihed[i]);
+        if (view.hAttribute[i] & ATTR_SUMMARY)
+          db1.EnterHeaderSum(view.bfihed[i]);
+        else
+          db1.EnterHeader(view.bfihed[i]);
       }
       for (i = 0; i < view.collin; i++) {
-        //if (screen.layout->cAttribute[i].style & ATTR_SUMMARY)
-        //	db1.EnterColumnarSum(view.bficol[i]);
-        //else
-        db1.EnterColumnar(view.bficol[i]);
+        if (view.cAttribute[i] & ATTR_SUMMARY)
+          db1.EnterColumnarSum(view.bficol[i]);
+        else
+          db1.EnterColumnar(view.bficol[i]);
       }
       db1.GenerateView();
 
