@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 22, 2021
+ * Release: September 29, 2021
  */
 
 function Noodle(dataArray, labels) {
@@ -137,25 +137,26 @@ function Noodle(dataArray, labels) {
     PutLineValue = _putlinevalue;
 
   // View information
-  var viewInitialized = false; // Was the view initialized?
-  var viewGenerated = false; // Was the view generated?
-  var viewHeaderFields = []; // Fields in header
-  var viewHeaderSumFields = []; // Summary header fields
-  var viewNumHead = 0; // Number of header fields
-  var viewColumnarFields = []; // Fields in columnar detail
-  var viewColumnarSumFields = []; // Summary columnar fields
-  var viewNumCol = 0; // Number of columnar fields
-  var viewType = []; // Field type (header, columnar, sum)
-  var viewSum = []; // viewSums index value
-  var viewSortFields = []; // The fields to sort on (no sum fields)
-  var viewNextLine = []; // Used for raw sort
-  var viewPrevLine = []; // Previous Line
-  var viewPages = []; // Page groups (header fields)
-  var viewNumPages = 0; // Number of pages
-  var viewFirstDetail = []; // Page detail (columnar fields)
-  var viewNextDetail = []; // Page detail clones
-  var viewState = []; // Line (Row) status
-  var viewSums = []; // Sums data
+  var view = {};
+  view.Initialized = false; // Was the view initialized?
+  view.Generated = false; // Was the view generated?
+  view.HeaderFields = []; // Fields in header
+  view.HeaderSumFields = []; // Summary header fields
+  view.NumHead = 0; // Number of header fields
+  view.ColumnarFields = []; // Fields in columnar detail
+  view.ColumnarSumFields = []; // Summary columnar fields
+  view.NumCol = 0; // Number of columnar fields
+  view.Type = []; // Field type (header, columnar, sum)
+  view.Sum = []; // view.Sums index value
+  view.SortFields = []; // The fields to sort on (no sum fields)
+  view.NextLine = []; // Used for raw sort
+  view.PrevLine = []; // Previous Line
+  view.Pages = []; // Page groups (header fields)
+  view.NumPages = 0; // Number of pages
+  view.FirstDetail = []; // Page detail (columnar fields)
+  view.NextDetail = []; // Page detail clones
+  view.State = []; // Line (Row) status
+  view.Sums = []; // Sums data
 
   // Trail of recent queries for line on page
   var recentFirst = 0;
@@ -186,12 +187,12 @@ function Noodle(dataArray, labels) {
   }
 
   this.WhereIsField = function (bfi) {
-    if (viewInitialized != true) {
+    if (view.Initialized != true) {
       ErrorMsg("View was not initialized!\n" +
         "Please: initialize and define a view first!");
 	    return 0;
     }
-    return viewType[bfi-1];
+    return view.Type[bfi-1];
   }
 
   this.FieldName = function (bfi) {
@@ -227,74 +228,74 @@ function Noodle(dataArray, labels) {
   }
 
   this.InitializeView = function () {
-    viewHeaderFields.length = 0;
-    viewHeaderSumFields.length = 0;
-    viewColumnarFields.length = 0;
-    viewColumnarSumFields.length = 0;
-    viewSums.length = 0;
-    viewSum.length = mNumFields;
-    viewInitialized = true;
-    viewGenerated = false;
+    view.HeaderFields.length = 0;
+    view.HeaderSumFields.length = 0;
+    view.ColumnarFields.length = 0;
+    view.ColumnarSumFields.length = 0;
+    view.Sums.length = 0;
+    view.Sum.length = mNumFields;
+    view.Initialized = true;
+    view.Generated = false;
   }
 
   this.EnterHeader = function (bfi) {
-    if (!viewInitialized)
+    if (!view.Initialized)
       SOS("View was not initialized.");
-    if (viewGenerated)
+    if (view.Generated)
       SOS("View was already generated.");
     if (bfi <= 0 || bfi > mNumFields)
       SOS("Field index is out of range.");
-    viewHeaderFields.push(bfi);
-    viewType[bfi - 1] = HEADER_FIELD;
+    view.HeaderFields.push(bfi);
+    view.Type[bfi - 1] = HEADER_FIELD;
   }
 
   this.EnterHeaderSum = function (bfi) {
-    if (!viewInitialized)
+    if (!view.Initialized)
       SOS("View was not initialized.");
-    if (viewGenerated)
+    if (view.Generated)
       SOS("View was already generated.");
     if (bfi <= 0 || bfi > mNumFields)
       SOS("Field index is out of range.");
 
-    viewHeaderFields.push(bfi);
-    viewType[bfi - 1] |= HEADER_SUM;
-    viewHeaderSumFields.push(bfi);
+    view.HeaderFields.push(bfi);
+    view.Type[bfi - 1] |= HEADER_SUM;
+    view.HeaderSumFields.push(bfi);
     var sum = [];
-    viewSums.push(sum);
-    viewSum[bfi - 1] = viewSums.length;
+    view.Sums.push(sum);
+    view.Sum[bfi - 1] = view.Sums.length;
   }
 
   this.EnterColumnar = function (bfi) {
-    if (!viewInitialized)
+    if (!view.Initialized)
       SOS("View was not initialized.");
-    if (viewGenerated)
+    if (view.Generated)
       SOS("View was already generated.");
     if (bfi <= 0 || bfi > mNumFields)
       SOS("Field index is out of range.");
-    viewColumnarFields.push(bfi);
-    viewType[bfi - 1] = COLUMNAR_FIELD;
+    view.ColumnarFields.push(bfi);
+    view.Type[bfi - 1] = COLUMNAR_FIELD;
   }
 
   this.EnterColumnarSum = function (bfi) {
-    if (!viewInitialized)
+    if (!view.Initialized)
       SOS("View was not initialized.");
-    if (viewGenerated)
+    if (view.Generated)
       SOS("View was already generated.");
     if (bfi <= 0 || bfi > mNumFields)
       SOS("Field index is out of range.");
 
-    viewColumnarFields.push(bfi);
-    viewType[bfi - 1] |= COLUMNAR_SUM;
-    viewColumnarSumFields.push(bfi);
+    view.ColumnarFields.push(bfi);
+    view.Type[bfi - 1] |= COLUMNAR_SUM;
+    view.ColumnarSumFields.push(bfi);
     var sum = [];
-    viewSums.push(sum);
-    viewSum[bfi - 1] = viewSums.length;
+    view.Sums.push(sum);
+    view.Sum[bfi - 1] = view.Sums.length;
   }
 
   this.PageCount = function () {
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View wasn't generated.");
-    return viewNumPages;
+    return view.NumPages;
   }
 
   // Make room for a new dataset row
@@ -308,15 +309,15 @@ function Noodle(dataArray, labels) {
       nline = mData.push({});
 
     // Add space to sums
-    for (var i = 0; i < viewSums.length; i++)
-      viewSums[i].push(0.0);
+    for (var i = 0; i < view.Sums.length; i++)
+      view.Sums[i].push(0.0);
  
     // Keep list arrays in similar dimensions
-    Roots.xpand(viewFirstDetail, nline);
-    Roots.xpand(viewNextDetail, nline);
-    Roots.xpand(viewNextLine, nline);
-    Roots.xpand(viewPrevLine, nline);
-    Roots.xpand(viewState, nline);
+    Roots.xpand(view.FirstDetail, nline);
+    Roots.xpand(view.NextDetail, nline);
+    Roots.xpand(view.NextLine, nline);
+    Roots.xpand(view.PrevLine, nline);
+    Roots.xpand(view.State, nline);
   }
 
   // Get the actual line number for a data row
@@ -329,21 +330,21 @@ function Noodle(dataArray, labels) {
     if (recentPage != page) {
       recentPage = page;
       recentNline = 0;
-      ln = viewPages[page - 1];
+      ln = view.Pages[page - 1];
       while (ln > 0) {
         recentNline++;
-        ln = viewNextLine[ln - 1];
+        ln = view.NextLine[ln - 1];
       }
 
       if (line > recentNline)
         SOS("Method firstOf called with invalid line number.");
 
       recentLine = 0;
-      ln = viewPages[page - 1];
+      ln = view.Pages[page - 1];
       while (ln >= 0) {
         if (++recentLine === line)
           break;
-        ln = viewNextLine[ln - 1];
+        ln = view.NextLine[ln - 1];
       }
       recentFirst = ln;
     }
@@ -351,7 +352,7 @@ function Noodle(dataArray, labels) {
     // Use existing information
     else {
       if (recentLine === 0) {
-        recentFirst = viewPages[recentPage - 1];
+        recentFirst = view.Pages[recentPage - 1];
         recentLine = 1;
       }
 
@@ -363,22 +364,22 @@ function Noodle(dataArray, labels) {
 
       // search down
       if (recentLine < line) {
-        ln = viewNextLine[recentFirst - 1];
+        ln = view.NextLine[recentFirst - 1];
         while (ln >= 0) {
           if (++recentLine === line)
             break;
-          ln = viewNextLine[ln - 1];
+          ln = view.NextLine[ln - 1];
         }
         recentFirst = ln;
       }
 
       // search up
       else {
-        ln = viewPrevLine[recentFirst - 1];
+        ln = view.PrevLine[recentFirst - 1];
         while (ln > 0) {
           if (--recentLine === line)
             break;
-          ln = viewPrevLine[ln - 1];
+          ln = view.PrevLine[ln - 1];
         }
         recentFirst = ln;
       }
@@ -392,18 +393,18 @@ function Noodle(dataArray, labels) {
       return recentNline;
     recentPage = page;
     recentNline = recentFirst = recentLine = 0;
-    line = viewPages[page - 1];
+    line = view.Pages[page - 1];
     while (line > 0) {
       recentNline++;
-      line = viewNextLine[line - 1];
+      line = view.NextLine[line - 1];
     }
     return recentNline;
   }
 
   this.LineCount = function (page) {
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View wasn't generated.");
-    if (page <= 0 || page > viewNumPages)
+    if (page <= 0 || page > view.NumPages)
       SOS("Invalid page number for LineCount method.");
     return nlineOf(page);
   }
@@ -412,30 +413,30 @@ function Noodle(dataArray, labels) {
   this.RecordCount = function (page, line) {
     var first, c, count = 1;
 
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View wasn't generated.");
-    if (page < 0 || page > viewNumPages)
+    if (page < 0 || page > view.NumPages)
       SOS("Invalid page number for RecordCount method.");
-    if (viewColumnarFields.length === 0)
+    if (view.ColumnarFields.length === 0)
       SOS("Can't count records in pure Header view.");
 
     first = firstOf(page, line);
-    for (c = viewNextDetail[first - 1]; c > 0; c = viewNextLine[c - 1])
+    for (c = view.NextDetail[first - 1]; c > 0; c = view.NextLine[c - 1])
       ++count;
 
     return count;
   }
 
   fieldAudits = function (page, line, bfi) {
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated.");
     if (bfi < 0 || bfi > mNumFields)
       SOS("Invalid field index.");
-    if (viewType[bfi - 1] === undefined)
+    if (view.Type[bfi - 1] === undefined)
       SOS("Field: " + mLabels[bfi - 1] + " is not in view.");
-    if (page <= 0 || page > viewNumPages)
+    if (page <= 0 || page > view.NumPages)
       SOS("Page number " + page + " outside valid range.");
-    if (viewColumnarFields.length === 0 && line > 0)
+    if (view.ColumnarFields.length === 0 && line > 0)
       SOS("Use line = 0 for a view without columnar fields.");
   }
 
@@ -485,7 +486,7 @@ function Noodle(dataArray, labels) {
       ngroup = 0, g, member, line;
     var comparer;
 
-    if (!viewInitialized)
+    if (!view.Initialized)
       SOS("View was not initialized.");
 
     if (compareFunc != undefined)
@@ -505,102 +506,102 @@ function Noodle(dataArray, labels) {
     }
 
     // Make room for summary data
-    for (i = 0; i < viewSums.length; i++)
-      Roots.xpand(viewSums[i], rowcount);
+    for (i = 0; i < view.Sums.length; i++)
+      Roots.xpand(view.Sums[i], rowcount);
 
     // Sort the data
 
-    viewSortFields.length = 0;
+    view.SortFields.length = 0;
 
-    for (i = 0; i < viewHeaderFields.length; i++) {
-      bfi = viewHeaderFields[i];
-      if ((viewType[bfi - 1] & HEADER_SUM) != 0)
+    for (i = 0; i < view.HeaderFields.length; i++) {
+      bfi = view.HeaderFields[i];
+      if ((view.Type[bfi - 1] & HEADER_SUM) != 0)
         continue;
-      viewSortFields.push(bfi);
+      view.SortFields.push(bfi);
     }
-    viewNumHead = viewSortFields.length;
+    view.NumHead = view.SortFields.length;
 
-    for (i = 0; i < viewColumnarFields.length; i++) {
-      bfi = viewColumnarFields[i];
-      if ((viewType[bfi - 1] & COLUMNAR_SUM) != 0)
+    for (i = 0; i < view.ColumnarFields.length; i++) {
+      bfi = view.ColumnarFields[i];
+      if ((view.Type[bfi - 1] & COLUMNAR_SUM) != 0)
         continue;
-      viewSortFields.push(bfi);
+      view.SortFields.push(bfi);
     }
-    viewNumCol = viewSortFields.length - viewNumHead;
+    view.NumCol = view.SortFields.length - view.NumHead;
 
-    Roots.xpand(viewNextLine, rowcount);
-    Roots.xpand(viewPrevLine, rowcount);
-    Roots.xpand(viewPages, rowcount);
-    Roots.xpand(viewFirstDetail, rowcount);
-    Roots.xpand(viewNextDetail, rowcount);
-    Roots.xpand(viewState, rowcount);
+    Roots.xpand(view.NextLine, rowcount);
+    Roots.xpand(view.PrevLine, rowcount);
+    Roots.xpand(view.Pages, rowcount);
+    Roots.xpand(view.FirstDetail, rowcount);
+    Roots.xpand(view.NextDetail, rowcount);
+    Roots.xpand(view.State, rowcount);
 
-    if (viewSortFields.length > 0) {
-      Roots.mrsort(mData, comparer, viewSortFields, viewPages, viewNextLine);
-      first[0] = viewPages[0];
+    if (view.SortFields.length > 0) {
+      Roots.mrsort(mData, comparer, view.SortFields, view.Pages, view.NextLine);
+      first[0] = view.Pages[0];
     }
     else {
-      Roots.seqlst(first, rowcount, viewNextLine);
+      Roots.seqlst(first, rowcount, view.NextLine);
     }
 
     // Drop out records which have been deleted or filtered out
     drop[0] = first[0];
     v[0] = v[1] = ACTIVE_ROW;
-    Roots.rngprnArray(viewState, v, drop, viewNextLine, first);
+    Roots.rngprnArray(view.State, v, drop, view.NextLine, first);
     if (first[0] === 0) {
       ErrorMsg("Empty dataset.");
       return false;
     }
 
     // Build page groups
-    if (viewNumHead > 0) {
-      viewNumPages = Roots.colect(mData, comparer,
-        viewSortFields.slice(0, viewNumHead),
-        first, viewNextLine, viewPages);
+    if (view.NumHead > 0) {
+      view.NumPages = Roots.colect(mData, comparer,
+        view.SortFields.slice(0, view.NumHead),
+        first, view.NextLine, view.Pages);
     }
     else {
-      viewNumPages = 1;
-      viewPages[0] = first[0];
+      view.NumPages = 1;
+      view.Pages[0] = first[0];
     }
 
     // Build header sums
-    for (g = 0; g < viewNumPages; g++) {
-      first[0] = viewPages[g];
-      for (i = 0; i < viewHeaderSumFields.length; i++) {
-        bfi = viewHeaderSumFields[i];
-        dsum = groupSum(bfi, first[0], viewNextLine);
-        member = viewSum[bfi - 1];
-        for (line = first[0]; line > 0; line = viewNextLine[line - 1]) {
-          viewSums[member - 1][line - 1] = dsum;
+    for (g = 0; g < view.NumPages; g++) {
+      first[0] = view.Pages[g];
+      for (i = 0; i < view.HeaderSumFields.length; i++) {
+        bfi = view.HeaderSumFields[i];
+        dsum = groupSum(bfi, first[0], view.NextLine);
+        member = view.Sum[bfi - 1];
+        for (line = first[0]; line > 0; line = view.NextLine[line - 1]) {
+          view.Sums[member - 1][line - 1] = dsum;
         }
       }
     }
 
     // Build groups of unique detail lines
 
-    for (page = 0; page < viewNumPages; page++) {
+    for (page = 0; page < view.NumPages; page++) {
 
       // Build the groups for current page's detail sublist
-      first[0] = viewPages[page];
-      if (viewNumCol > 0) {
+      first[0] = view.Pages[page];
+      if (view.NumCol > 0) {
         ngroup = Roots.colect(mData, comparer,
-          viewSortFields.slice(viewNumHead, viewSortFields.length),
-          first, viewNextLine, viewFirstDetail);
+          view.SortFields.slice(view.NumHead, view.SortFields.length),
+          first, view.NextLine, view.FirstDetail);
       }
       else {
-        viewFirstDetail[0] = first[0];
+        view.FirstDetail[0] = first[0];
         ngroup = 1;
       }
 
       // Build columnar sums
       for (g = 0; g < ngroup; g++) {
-        first[0] = viewFirstDetail[g];
-        for (i = 0; i < viewColumnarSumFields.length; i++) {
-          bfi = viewColumnarSumFields[i];
-          dsum = groupSum(bfi, first[0], viewNextLine);
-          member = viewSum[bfi - 1];
-          for (line = first[0]; line > 0; line = viewNextLine[line - 1]) {
-            viewSums[member - 1][line - 1] = dsum;
+        first[0] = view.FirstDetail[g];
+        for (i = 0; i < view.ColumnarSumFields.length; i++) {
+          bfi = view.ColumnarSumFields[i];
+          dsum = groupSum(bfi, first[0], view.NextLine);
+          member = view.Sum[bfi - 1];
+          for (line = first[0]; line > 0; line = view.NextLine[line - 1]) {
+            view.Sums[member - 1][line - 1] = dsum;
           }
         }
       }
@@ -609,30 +610,30 @@ function Noodle(dataArray, labels) {
       // and build clone sublists
       prev = 0;
       for (g = 0; g < ngroup; g++) {
-        member = viewFirstDetail[g];
-        viewNextDetail[member - 1] = viewNextLine[member - 1];
-        viewNextLine[member - 1] = 0;
+        member = view.FirstDetail[g];
+        view.NextDetail[member - 1] = view.NextLine[member - 1];
+        view.NextLine[member - 1] = 0;
         if (prev > 0)
-          viewNextLine[prev - 1] = member;
+          view.NextLine[prev - 1] = member;
         prev = member;
       }
     }
 
     // Build previous list
-    for (page = 0; page < viewNumPages; page++) {
+    for (page = 0; page < view.NumPages; page++) {
       prev = 0;
-      member = viewPages[page];
+      member = view.Pages[page];
       while (member > 0) {
-        viewPrevLine[member - 1] = prev;
+        view.PrevLine[member - 1] = prev;
         prev = member;
-        member = viewNextLine[member - 1];
+        member = view.NextLine[member - 1];
       }
     }
 
     recentFirst = recentLine = recentNline = recentPage = 0;
     i = firstOf(1, 1);
 
-    viewGenerated = true;
+    view.Generated = true;
     return true;
   }
 
@@ -657,20 +658,20 @@ function Noodle(dataArray, labels) {
 
     // Field in header
     else
-      first = viewPages[page - 1];
+      first = view.Pages[page - 1];
 
     // Get the data from data set
 
     // Regular field
-    if ((viewType[bfi - 1] & COLUMNAR_FIELD) != 0 ||
-      (viewType[bfi - 1] & HEADER_FIELD) != 0) {
+    if ((view.Type[bfi - 1] & COLUMNAR_FIELD) != 0 ||
+      (view.Type[bfi - 1] & HEADER_FIELD) != 0) {
       return LineValue(first, bfi);
     }
 
     // Summary field
     else {
-      var i = viewSum[bfi - 1];
-      return viewSums[i - 1][first - 1];
+      var i = view.Sum[bfi - 1];
+      return view.Sums[i - 1][first - 1];
     }
   }
 
@@ -684,24 +685,24 @@ function Noodle(dataArray, labels) {
 
     // Field in header
     if (line === 0) {
-      if ((viewType[bfi - 1] & HEADER_SUM) != 0)
+      if ((view.Type[bfi - 1] & HEADER_SUM) != 0)
         SOS("Can't input into summary field");
-      if ((viewType[bfi - 1] & HEADER_FIELD) === 0)
+      if ((view.Type[bfi - 1] & HEADER_FIELD) === 0)
         SOS(mLabels[bfi - 1] + " is not a Header field.");
 
-      for (first = viewPages[page - 1]; first > 0; first = viewNextLine[first - 1]) {
+      for (first = view.Pages[page - 1]; first > 0; first = view.NextLine[first - 1]) {
         if (!PutLineValue(val, first, bfi))
           break;
-        for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
+        for (clone = view.NextDetail[first - 1]; clone > 0; clone = view.NextLine[clone - 1])
           PutLineValue(val, clone, bfi);
       }
     }
 
     // Field is in detail
     else {
-      if ((viewType[bfi - 1] & COLUMNAR_SUM) != 0)
+      if ((view.Type[bfi - 1] & COLUMNAR_SUM) != 0)
         SOS("Can't input into summary field.");
-      if ((viewType[bfi - 1] & COLUMNAR_FIELD) === 0)
+      if ((view.Type[bfi - 1] & COLUMNAR_FIELD) === 0)
         SOS(mLabels[bfi - 1] + " is not a Columnar field.");
       if (line > nlineOf(page))
         SOS("Line number not on page");
@@ -709,7 +710,7 @@ function Noodle(dataArray, labels) {
       first = firstOf(page, line);
       if (!PutLineValue(val, first, bfi))
         return;
-      for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
+      for (clone = view.NextDetail[first - 1]; clone > 0; clone = view.NextLine[clone - 1])
         PutLineValue(val, clone, bfi);
     }
   }
@@ -726,10 +727,10 @@ function Noodle(dataArray, labels) {
   }
 
   this.CreateNewPage = function () {
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated!");
 
-    if (!viewNumHead)
+    if (!view.NumHead)
       SOS("View has no header fields.");
 
     // Add a new row to the dataset
@@ -739,51 +740,51 @@ function Noodle(dataArray, labels) {
     else
       nline = mData.push({});
     PrimeNewLine(nline);
-    for (var i = 0; i < viewSums.length; i++)
-      viewSums[i].push(0.0);
+    for (var i = 0; i < view.Sums.length; i++)
+      view.Sums[i].push(0.0);
 
     //	update lists
     var newLine = nline - 1;
-    Roots.xpand(viewPages, nline);
-    viewPages[viewNumPages] = nline;
-    viewNumPages++;
-    Roots.xpand(viewNextLine, nline);
-    Roots.xpand(viewPrevLine, nline);
-    Roots.xpand(viewFirstDetail, nline);
-    Roots.xpand(viewNextDetail, nline);
-    Roots.xpand(viewState, nline);
-    viewNextLine[newLine] = 0;
-    viewPrevLine[newLine] = 0;
-    viewFirstDetail[newLine] = 0;
-    viewNextDetail[newLine] = 0;
-    viewState[newLine] = ACTIVE_ROW;
+    Roots.xpand(view.Pages, nline);
+    view.Pages[view.NumPages] = nline;
+    view.NumPages++;
+    Roots.xpand(view.NextLine, nline);
+    Roots.xpand(view.PrevLine, nline);
+    Roots.xpand(view.FirstDetail, nline);
+    Roots.xpand(view.NextDetail, nline);
+    Roots.xpand(view.State, nline);
+    view.NextLine[newLine] = 0;
+    view.PrevLine[newLine] = 0;
+    view.FirstDetail[newLine] = 0;
+    view.NextDetail[newLine] = 0;
+    view.State[newLine] = ACTIVE_ROW;
 
     AdjustPruneBitMatrix(nline);
 
-    return viewNumPages;
+    return view.NumPages;
   }
 
   CopyHeaderFields = function (newLine, parentLine) {
-    for (var i = 0; i < viewHeaderFields.length; i++) {
-      var bfi = viewHeaderFields[i];
-      if ((viewType[bfi - 1] & HEADER_FIELD) != 0) {
+    for (var i = 0; i < view.HeaderFields.length; i++) {
+      var bfi = view.HeaderFields[i];
+      if ((view.Type[bfi - 1] & HEADER_FIELD) != 0) {
         PutLineValue(LineValue(parentLine, bfi), newLine, bfi);
       }
       else {   // HEADER_SUM
-        var k = viewSum[bfi - 1] - 1;
-        viewSums[k][newLine - 1] = viewSums[k][parentLine - 1];
+        var k = view.Sum[bfi - 1] - 1;
+        view.Sums[k][newLine - 1] = view.Sums[k][parentLine - 1];
       }
     }
   }
 
   this.CreateNewLineOnPage = function (page) {
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated.");
 
-    if (viewColumnarFields.length === 0)
+    if (view.ColumnarFields.length === 0)
       SOS("View has no columnar fields.\nUse: CreateNewPage() instead.");
 
-    if (page > viewNumPages || page <= 0)
+    if (page > view.NumPages || page <= 0)
       SOS("Page number " + page + " not in current view!");
 
     // Add a new row to the dataset
@@ -792,28 +793,28 @@ function Noodle(dataArray, labels) {
       newLine = mData.push([]);
     else
       newLine = mData.push({});
-    for (var i = 0; i < viewSums.length; i++)
-      viewSums[i].push(0.0);
+    for (var i = 0; i < view.Sums.length; i++)
+      view.Sums[i].push(0.0);
 
     // Copy data to the new row
     PrimeNewLine(newLine);
-    CopyHeaderFields(newLine, viewPages[page - 1]);
+    CopyHeaderFields(newLine, view.Pages[page - 1]);
 
     // Find last on current page
     var last = firstOf(page, nlineOf(page));
 
     // Update lists
-    Roots.xpand(viewNextLine, newLine);
-    Roots.xpand(viewPrevLine, newLine);
-    Roots.xpand(viewFirstDetail, newLine);
-    Roots.xpand(viewNextDetail, newLine);
-    Roots.xpand(viewState, newLine);
-    viewNextLine[last - 1] = newLine;
-    viewNextLine[newLine - 1] = 0;
-    viewPrevLine[newLine - 1] = last;
-    viewFirstDetail[newLine - 1] = 0;
-    viewNextDetail[newLine - 1] = 0;
-    viewState[newLine - 1] = ACTIVE_ROW;
+    Roots.xpand(view.NextLine, newLine);
+    Roots.xpand(view.PrevLine, newLine);
+    Roots.xpand(view.FirstDetail, newLine);
+    Roots.xpand(view.NextDetail, newLine);
+    Roots.xpand(view.State, newLine);
+    view.NextLine[last - 1] = newLine;
+    view.NextLine[newLine - 1] = 0;
+    view.PrevLine[newLine - 1] = last;
+    view.FirstDetail[newLine - 1] = 0;
+    view.NextDetail[newLine - 1] = 0;
+    view.State[newLine - 1] = ACTIVE_ROW;
 
     AdjustPruneBitMatrix(newLine);
 
@@ -883,7 +884,7 @@ function Noodle(dataArray, labels) {
     // Remove "Deleted" rows
     Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     v[0] = v[1] = DELETED_ROW;
-    Roots.rngprnArray(viewState, v, prune.first, prune.nextLine, prune.match);
+    Roots.rngprnArray(view.State, v, prune.first, prune.nextLine, prune.match);
 
     // Select rows that match the input sets
     if (inputs != 0) {
@@ -958,18 +959,18 @@ function Noodle(dataArray, labels) {
     }
 
     // Remove old prune flags first
-    Roots.xpand(viewState, this.Nline());
+    Roots.xpand(view.State, this.Nline());
     var val = [];
     Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     val[0] = val[1] = PRUNED_ROW;
-    Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
+    Roots.rngprnArray(view.State, val, prune.first, prune.nextLine, prune.match);
     val[0] = ACTIVE_ROW;
-    Roots.paclstArray(val[0], viewState, prune.match, prune.nextLine);
+    Roots.paclstArray(val[0], view.State, prune.match, prune.nextLine);
 
     // Get "Active" rows (ignore "Deleted" rows)
     Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     val[0] = val[1] = ACTIVE_ROW;
-    Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
+    Roots.rngprnArray(view.State, val, prune.first, prune.nextLine, prune.match);
     prune.first[0] = prune.match[0];
 
     // Select the requested input sets
@@ -1000,7 +1001,7 @@ function Noodle(dataArray, labels) {
 
     // Discard non-selected rows by marking them as "Pruned"
     val[0] = PRUNED_ROW;
-    Roots.paclstArray(val[0], viewState, prune.first, prune.nextLine);
+    Roots.paclstArray(val[0], view.State, prune.first, prune.nextLine);
     return 0;
   }
 
@@ -1039,11 +1040,11 @@ function Noodle(dataArray, labels) {
 
     // Find the next matching line
     if (locateData.operation === "Next") {
-      for (page = locateData.page; page <= viewNumPages; ++page) {
-        first = viewPages[page - 1];
+      for (page = locateData.page; page <= view.NumPages; ++page) {
+        first = view.Pages[page - 1];
         line = 0;
-        for (; first > 0; first = viewNextLine[first - 1]) {
-          if (viewNumCol)
+        for (; first > 0; first = view.NextLine[first - 1]) {
+          if (view.NumCol)
             ++line;
           if (page === locateData.page) {
             if (locateData.starthere && line < locateData.line)
@@ -1069,12 +1070,12 @@ function Noodle(dataArray, labels) {
       for (page = locateData.page; page > 0; --page) {
         line = nlineOf(page);
         last = firstOf(page, line);
-        if (!viewNumCol)
+        if (!view.NumCol)
           line = 0;
         else
           ++line;
-        for (; last > 0; last = viewPrevLine[last - 1]) {
-          if (viewNumPages)
+        for (; last > 0; last = view.PrevLine[last - 1]) {
+          if (view.NumPages)
             --line;
           if (page === locateData.page) {
             if (locateData.starthere && line > locateData.line)
@@ -1110,9 +1111,9 @@ function Noodle(dataArray, labels) {
     var val = [];
     Roots.seqlst(prune.first, prune.nline, prune.nextLine);
     val[0] = val[1] = PRUNED_ROW;
-    Roots.rngprnArray(viewState, val, prune.first, prune.nextLine, prune.match);
+    Roots.rngprnArray(view.State, val, prune.first, prune.nextLine, prune.match);
     val[0] = ACTIVE_ROW;
-    Roots.paclstArray(val[0], viewState, prune.match, prune.nextLine);
+    Roots.paclstArray(val[0], view.State, prune.match, prune.nextLine);
 
     prune = {};
   }
@@ -1133,11 +1134,11 @@ function Noodle(dataArray, labels) {
 
     if (mData === undefined)
       SOS("No data loaded!");
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated!\nPlease: initialize and define a view first!");
-    if (targetPage < 0 || targetPage > viewNumPages || sourcePage < 0 || sourcePage > viewNumPages)
-      SOS("Target and/or source page number outside valid range 1 - " + viewNumPages);
-    if (viewNumCol === 0 || viewNumCol === viewColumnarSumFields.length)
+    if (targetPage < 0 || targetPage > view.NumPages || sourcePage < 0 || sourcePage > view.NumPages)
+      SOS("Target and/or source page number outside valid range 1 - " + view.NumPages);
+    if (view.NumCol === 0 || view.NumCol === view.ColumnarSumFields.length)
       SOS("Can't move lines for pure HeaderPage view!");
 
     // Get line counts
@@ -1169,7 +1170,7 @@ function Noodle(dataArray, labels) {
     // find last source line
     last = firstOf(sourcePage, sourceLn);
 
-    if (viewPrevLine[first - 1] === 0 && viewNextLine[last - 1] === 0)
+    if (view.PrevLine[first - 1] === 0 && view.NextLine[last - 1] === 0)
       SOS("Can't move all lines from a page!");
 
     // Find the target spot
@@ -1177,37 +1178,37 @@ function Noodle(dataArray, labels) {
 
     // Remove the source lines from view and keep them to be moved
 
-    stayTop = viewPrevLine[first - 1];
-    stayBottom = viewNextLine[last - 1];
+    stayTop = view.PrevLine[first - 1];
+    stayBottom = view.NextLine[last - 1];
 
     // Remove from top of page
     if (stayTop === 0) {
-      viewPages[sourcePage - 1] = stayBottom;
-      viewPrevLine[stayBottom - 1] = 0;
+      view.Pages[sourcePage - 1] = stayBottom;
+      view.PrevLine[stayBottom - 1] = 0;
     }
     // Remove from within
     else {
-      viewNextLine[stayTop - 1] = stayBottom;
+      view.NextLine[stayTop - 1] = stayBottom;
       if (stayBottom != 0)
-        viewPrevLine[stayBottom - 1] = stayTop;
+        view.PrevLine[stayBottom - 1] = stayTop;
     }
 
     // Clean up the disconnected bunch
-    viewNextLine[last - 1] = viewPrevLine[first - 1] = 0;
+    view.NextLine[last - 1] = view.PrevLine[first - 1] = 0;
 
     // Propagate header values if needed
 
     if (sourcePage != targetPage) {
-      headerLine = viewPages[targetPage - 1];
+      headerLine = view.Pages[targetPage - 1];
       member = first;
       while (member != 0) {
         CopyHeaderFields(member, headerLine);
-        clone = viewNextDetail[member - 1];
+        clone = view.NextDetail[member - 1];
         while (clone != 0) {
           CopyHeaderFields(clone, headerLine);
-          clone = viewNextLine[clone - 1];
+          clone = view.NextLine[clone - 1];
         }
-        member = viewNextLine[member - 1];
+        member = view.NextLine[member - 1];
       }
     }
 
@@ -1216,29 +1217,29 @@ function Noodle(dataArray, labels) {
     if (append) {
       insertTop = insert;
       insertBottom = 0;
-      viewPrevLine[first - 1] = insertTop;
-      viewNextLine[insertTop - 1] = first;
-      viewNextLine[last - 1] = insertBottom;
+      view.PrevLine[first - 1] = insertTop;
+      view.NextLine[insertTop - 1] = first;
+      view.NextLine[last - 1] = insertBottom;
     }
 
     // Insert lines at target line
 
     else {
-      insertTop = viewPrevLine[insert - 1];
+      insertTop = view.PrevLine[insert - 1];
       insertBottom = insert;
 
       // On top of page
       if (insertTop === 0) {
-        viewNextLine[last - 1] = insertBottom;
-        viewPrevLine[insertBottom - 1] = last;
-        viewPages[targetPage - 1] = first;
+        view.NextLine[last - 1] = insertBottom;
+        view.PrevLine[insertBottom - 1] = last;
+        view.Pages[targetPage - 1] = first;
       }
       // Within the body
       else {
-        viewPrevLine[first - 1] = insertTop;
-        viewNextLine[insertTop - 1] = first;
-        viewNextLine[last - 1] = insertBottom;
-        viewPrevLine[insertBottom - 1] = last;
+        view.PrevLine[first - 1] = insertTop;
+        view.NextLine[insertTop - 1] = first;
+        view.NextLine[last - 1] = insertBottom;
+        view.PrevLine[insertBottom - 1] = last;
       }
     }
 
@@ -1259,7 +1260,7 @@ function Noodle(dataArray, labels) {
       val = seq.toString();
       first = firstOf(page, line);
       PutLineValue(val, first, bfi);
-      for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1])
+      for (clone = view.NextDetail[first - 1]; clone > 0; clone = view.NextLine[clone - 1])
         PutLineValue(val, clone, bfi);
     }
   }
@@ -1281,11 +1282,11 @@ function Noodle(dataArray, labels) {
 
     if (mData === undefined)
       SOS("No data loaded!");
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated!\nPlease: initialize and define a view first!");
-    if (onPage <= 0 || onPage > viewNumPages)
-      SOS("Page Number outside valid range 1 - " + viewNumPages);
-    if (viewNumCol === 0)
+    if (onPage <= 0 || onPage > view.NumPages)
+      SOS("Page Number outside valid range 1 - " + view.NumPages);
+    if (view.NumCol === 0)
       SOS("Can't delete line from a pure HeaderPage view!");
 
     nline = this.LineCount(onPage);
@@ -1301,27 +1302,27 @@ function Noodle(dataArray, labels) {
     first = firstOf(onPage, LineNumber);
 
     // Mark the status column for the line and its clones
-    viewState[first - 1] = DELETED_ROW;
-    for (clone = viewNextDetail[first - 1]; clone > 0; clone = viewNextLine[clone - 1]) {
-      viewState[clone - 1] = DELETED_ROW;
+    view.State[first - 1] = DELETED_ROW;
+    for (clone = view.NextDetail[first - 1]; clone > 0; clone = view.NextLine[clone - 1]) {
+      view.State[clone - 1] = DELETED_ROW;
     }
 
     // Delete line and its clones from list
 
-    stayTop = viewPrevLine[first - 1];
-    stayBottom = viewNextLine[first - 1];
+    stayTop = view.PrevLine[first - 1];
+    stayBottom = view.NextLine[first - 1];
 
     // Remove from top of page
     if (stayTop == 0) {
-      viewPages[onPage - 1] = stayBottom;
-      viewPrevLine[stayBottom - 1] = 0;
+      view.Pages[onPage - 1] = stayBottom;
+      view.PrevLine[stayBottom - 1] = 0;
     }
 
     // Remove from within page
     else {
-      viewNextLine[stayTop - 1] = stayBottom;
+      view.NextLine[stayTop - 1] = stayBottom;
       if (stayBottom != 0)
-        viewPrevLine[stayBottom - 1] = stayTop;
+        view.PrevLine[stayBottom - 1] = stayTop;
     }
 
     //	Update recent
@@ -1341,31 +1342,31 @@ function Noodle(dataArray, labels) {
 
     if (mData === undefined)
       SOS("No data loaded!");
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated!\nPlease: initialize and define a view first!");
-    if (PageNumber <= 0 || PageNumber > viewNumPages)
-      SOS("Page Number outside valid range 1 - " + viewNumPages);
-    if (viewNumHead === 0 || viewNumHead === viewHeaderSumFields.length) {
+    if (PageNumber <= 0 || PageNumber > view.NumPages)
+      SOS("Page Number outside valid range 1 - " + view.NumPages);
+    if (view.NumHead === 0 || view.NumHead === view.HeaderSumFields.length) {
       ErrorMsg("Can't delete a page from a pure Columnar view!");
       return -1;
     }
 
     //	Mark page as deleted
 
-    first = viewPages[PageNumber - 1];
+    first = view.Pages[PageNumber - 1];
 
     // Mark the status column for each line on the page
-    for (line = first; line > 0; line = viewNextLine[line - 1]) {
-      viewState[line - 1] = DELETED_ROW;
-      for (clone = viewNextDetail[line - 1]; clone > 0; clone = viewNextLine[clone - 1]) {
-        viewState[clone - 1] = DELETED_ROW;
+    for (line = first; line > 0; line = view.NextLine[line - 1]) {
+      view.State[line - 1] = DELETED_ROW;
+      for (clone = view.NextDetail[line - 1]; clone > 0; clone = view.NextLine[clone - 1]) {
+        view.State[clone - 1] = DELETED_ROW;
       }
     }
 
     //	Remove one page by filling the created gap
-    for (page = PageNumber; page < viewNumPages; page++)
-      viewPages[page - 1] = viewPages[page];
-    viewNumPages--;
+    for (page = PageNumber; page < view.NumPages; page++)
+      view.Pages[page - 1] = view.Pages[page];
+    view.NumPages--;
 
     // Update recent
     recentFirst = recentLine = recentNline = recentPage = 0;
@@ -1382,11 +1383,11 @@ function Noodle(dataArray, labels) {
 
     if (mData === undefined)
       SOS("No data loaded!");
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated!\nPlease: initialize and define a view first!");
-    if (Page <= 0 || Page > viewNumPages)
-      SOS("Page Number outside valid range 1 - " + viewNumPages);
-    if (viewNumCol === 0 || viewNumCol === viewColumnarSumFields.length)
+    if (Page <= 0 || Page > view.NumPages)
+      SOS("Page Number outside valid range 1 - " + view.NumPages);
+    if (view.NumCol === 0 || view.NumCol === view.ColumnarSumFields.length)
       SOS("Can't copy lines for pure HeaderPage view!");
 
     // Create a blank line first, then copy the parent line and clones to it.
@@ -1401,16 +1402,16 @@ function Noodle(dataArray, labels) {
     for (i = 1; i <= mNumFields; i++) {
       PutLineValue(LineValue(parentFirst, i), offspringFirst, i);
     }
-    if (viewSums.length > 0) {
-      for (i = 0; i < viewSums.length; i++) {
-        viewSums[i][offspringFirst - 1] = viewSums[i][parentFirst - 1];
+    if (view.Sums.length > 0) {
+      for (i = 0; i < view.Sums.length; i++) {
+        view.Sums[i][offspringFirst - 1] = view.Sums[i][parentFirst - 1];
       }
     }
 
     // Move the clones
 
     cloneCount = 0;
-    for (clones = viewNextDetail[parentFirst - 1]; clones > 0; clones = viewNextLine[clones - 1]) {
+    for (clones = view.NextDetail[parentFirst - 1]; clones > 0; clones = view.NextLine[clones - 1]) {
       cloneCount++;
       MakeRoomForNewEntry();     // Adds a line to mData
       for (i = 1; i <= mNumFields; i++) {
@@ -1418,24 +1419,24 @@ function Noodle(dataArray, labels) {
       }
 
       rowcount = this.Nline();
-      if (viewSums.length > 0) {
-        for (i = 0; i < viewSums.length; i++) {
-          viewSums[i][rowcount-1] = viewSums[i][clones - 1];
+      if (view.Sums.length > 0) {
+        for (i = 0; i < view.Sums.length; i++) {
+          view.Sums[i][rowcount-1] = view.Sums[i][clones - 1];
         }
       }
 
-      viewState[rowcount-1] = ACTIVE_ROW;
+      view.State[rowcount-1] = ACTIVE_ROW;
 
       if (cloneCount === 1) {
-        viewNextDetail[offspringFirst - 1] = rowcount;
-        viewNextLine[rowcount-1] = 0;
-        viewPrevLine[rowcount-1] = 0;
+        view.NextDetail[offspringFirst - 1] = rowcount;
+        view.NextLine[rowcount-1] = 0;
+        view.PrevLine[rowcount-1] = 0;
       }
       else {
-        viewNextLine[rowcount-2] = rowcount;
-        viewPrevLine[rowcount-1] = rowcount-1;
-        viewNextLine[rowcount-1] = 0;
-        viewNextDetail[rowcount-1] = 0;
+        view.NextLine[rowcount-2] = rowcount;
+        view.PrevLine[rowcount-1] = rowcount-1;
+        view.NextLine[rowcount-1] = 0;
+        view.NextDetail[rowcount-1] = 0;
       }
     }
 
@@ -1453,26 +1454,26 @@ function Noodle(dataArray, labels) {
 
     if (mData === undefined)
       SOS("No data loaded!");
-    if (!viewGenerated)
+    if (!view.Generated)
       SOS("View was not generated!\nPlease: initialize and define a view first!");
-    if (Page <= 0 || Page > viewNumPages)
-      SOS("Page Number outside valid range 1 - " + viewNumPages);
-    if (viewHeaderFields.length == 0 || viewHeaderFields.length == viewHeaderSumFields.length)
+    if (Page <= 0 || Page > view.NumPages)
+      SOS("Page Number outside valid range 1 - " + view.NumPages);
+    if (view.HeaderFields.length == 0 || view.HeaderFields.length == view.HeaderSumFields.length)
       SOS("Can't copy page for pure Columnar view!");
 
     // Process the copy operation
 
     // Extend the number of pages.  Push the current page and all others down one spot
-    viewNumPages++;
-    Roots.xpand(viewPages, viewNumPages);
-    for (i = viewNumPages; i >= OffspringPage; i--)
-      viewPages[i - 1] = viewPages[i - 2];
+    view.NumPages++;
+    Roots.xpand(view.Pages, view.NumPages);
+    for (i = view.NumPages; i >= OffspringPage; i--)
+      view.Pages[i - 1] = view.Pages[i - 2];
 
     // Copy the parent info to offspring
 
-    ParentFirst = viewPages[ParentPage - 1];
+    ParentFirst = view.Pages[ParentPage - 1];
     nline = 0;
-    for (member = ParentFirst; member > 0; member = viewNextLine[member - 1]) {
+    for (member = ParentFirst; member > 0; member = view.NextLine[member - 1]) {
       nline++;
       MakeRoomForNewEntry();
       n = this.Nline();
@@ -1480,32 +1481,32 @@ function Noodle(dataArray, labels) {
       for (i = 1; i <= mNumFields; i++) {
         PutLineValue(LineValue(member, i), n, i);
       }
-      if (viewSums.length > 0) {
-        for (i = 0; i < viewSums.length; i++) {
-          viewSums[i][n - 1] = viewSums[i][member - 1];
+      if (view.Sums.length > 0) {
+        for (i = 0; i < view.Sums.length; i++) {
+          view.Sums[i][n - 1] = view.Sums[i][member - 1];
         }
       }
-      viewState[n - 1] = ACTIVE_ROW;
+      view.State[n - 1] = ACTIVE_ROW;
 
       if (nline === 1) {
-        viewPages[OffspringPage - 1] = n;
-        viewNextLine[n - 1] = 0;
-        viewPrevLine[n - 1] = 0;
-        viewNextDetail[n - 1] = 0;
+        view.Pages[OffspringPage - 1] = n;
+        view.NextLine[n - 1] = 0;
+        view.PrevLine[n - 1] = 0;
+        view.NextDetail[n - 1] = 0;
         prevl = n;
       }
       else {
-        viewNextLine[prevl - 1] = n;
-        viewPrevLine[n - 1] = prevl;
-        viewNextLine[n - 1] = 0;
-        viewNextDetail[n - 1] = 0;
+        view.NextLine[prevl - 1] = n;
+        view.PrevLine[n - 1] = prevl;
+        view.NextLine[n - 1] = 0;
+        view.NextDetail[n - 1] = 0;
         prevl = n;
       }
 
       // Deal with clones
-      clone1 = viewNextDetail[member - 1];
+      clone1 = view.NextDetail[member - 1];
       nclone = 0;
-      for (clone = clone1; clone > 0; clone = viewNextLine[clone - 1]) {
+      for (clone = clone1; clone > 0; clone = view.NextLine[clone - 1]) {
         nclone++;
         MakeRoomForNewEntry();
         n = this.Nline();
@@ -1513,24 +1514,24 @@ function Noodle(dataArray, labels) {
         for (i = 1; i <= mNumFields; i++) {
           PutLineValue(LineValue(clone, i), n, i);
         }
-        if (viewSums.length > 0) {
-          for (i = 0; i < viewSums.length; i++) {
-            viewSums[i][n - 1] = viewSums[i][clone - 1];
+        if (view.Sums.length > 0) {
+          for (i = 0; i < view.Sums.length; i++) {
+            view.Sums[i][n - 1] = view.Sums[i][clone - 1];
           }
         }
-        viewState[n - 1] = ACTIVE_ROW;
+        view.State[n - 1] = ACTIVE_ROW;
 
         if (nclone == 1) {
-          viewNextDetail[prevl - 1] = n;
-          viewNextLine[n - 1] = 0;
-          viewPrevLine[n - 1] = 0;
+          view.NextDetail[prevl - 1] = n;
+          view.NextLine[n - 1] = 0;
+          view.PrevLine[n - 1] = 0;
           prevClone = n;
         }
         else {
-          viewNextLine[prevClone - 1] = n;
-          viewPrevLine[n - 1] = prevClone;
-          viewNextLine[n - 1] = 0;
-          viewNextDetail[n - 1] = 0;
+          view.NextLine[prevClone - 1] = n;
+          view.PrevLine[n - 1] = prevClone;
+          view.NextLine[n - 1] = 0;
+          view.NextDetail[n - 1] = 0;
           prevClone = n;
         }
       }
@@ -1560,11 +1561,11 @@ function Noodle(dataArray, labels) {
     Roots.xpand(lnextl, nline);
     Roots.seqlst(first, nline, lnextl);
     v[0] = v[1] = DELETED_ROW;
-    Roots.rngprnArray(viewState, v, first, lnextl, drop);
+    Roots.rngprnArray(view.State, v, first, lnextl, drop);
     RemoveRows(drop, lnextl);
 
     // All rows are now active
-    Roots.zerout(viewState);
+    Roots.zerout(view.State);
 
     // Convert the data into a string
     if (mData.stringify != undefined)
@@ -1597,7 +1598,7 @@ function Noodle(dataArray, labels) {
     start = end = page1;
     if (start === undefined || start === 0) {
       start = 1;
-      end = viewNumPages;
+      end = view.NumPages;
     }
 
     // Create the XML data
@@ -1615,10 +1616,10 @@ function Noodle(dataArray, labels) {
       xmldata = xmldata + "<page number=\"" + page + "\">\n";
 
       // Header info
-      if (viewHeaderFields.length > 0) {
+      if (view.HeaderFields.length > 0) {
         xmldata += "<header>\n";
-        for (i = 0; i < viewHeaderFields.length; i++) {
-          bfi = viewHeaderFields[i];
+        for (i = 0; i < view.HeaderFields.length; i++) {
+          bfi = view.HeaderFields[i];
           xmldata += "<field name=\"";
           xmldata += encodeXML(mLabels[bfi - 1]);
           xmldata += "\">";
@@ -1629,15 +1630,15 @@ function Noodle(dataArray, labels) {
       }
 
       // Detail
-      if (viewColumnarFields.length > 0) {
+      if (view.ColumnarFields.length > 0) {
         xmldata += "<detail>\n";
 
         var nline = this.LineCount(page);
         for (line = 1; line <= nline; line++) {
           xmldata += "<line>\n";
 
-          for (i = 0; i < viewColumnarFields.length; i++) {
-            bfi = viewColumnarFields[i];
+          for (i = 0; i < view.ColumnarFields.length; i++) {
+            bfi = view.ColumnarFields[i];
             xmldata += "<field name=\"";
             xmldata += encodeXML(mLabels[bfi - 1]);
             xmldata += "\">";
@@ -1706,7 +1707,7 @@ function Noodle(dataArray, labels) {
 
     // Build output data with active rows only
     for (r=1; r <= nline; r++) {
-      if (viewState[r-1] != DELETED_ROW) {
+      if (view.State[r-1] != DELETED_ROW) {
         sep = "";
         for (c=1; c <= nf; c++) {
           output += sep;
@@ -1745,9 +1746,9 @@ function Noodle(dataArray, labels) {
   this.getItem = function (row) {
     var arr = [];
     var line = row + 1;
-    var nf = viewColumnarFields.length;
+    var nf = view.ColumnarFields.length;
     for (var i = 0; i < nf; i++)
-      arr.push(this.GetValue(recentPage, line, viewColumnarFields[i]));
+      arr.push(this.GetValue(recentPage, line, view.ColumnarFields[i]));
     return arr;
   }
 
