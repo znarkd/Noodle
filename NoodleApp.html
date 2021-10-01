@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="September 30, 2021">
+  <meta name="version" content="October 1, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1206,7 +1206,10 @@
       _escreen.header.push(o);
       document.getElementById("allfields-header").classList.toggle("hide", true);
       updateScreenHeader();
+      if (_build_screen_selected_id != undefined)
+        document.getElementById(_build_screen_selected_id).classList.toggle("highlight", false);
       _build_screen_selected_id = undefined;
+      enableFieldAttributes(false);
     }
 
     var deleteScreenHeader = function () {
@@ -1218,6 +1221,8 @@
         updateScreenHeader();
         _build_screen_selected_id = undefined;
       }
+      clearFieldAttributes();
+      enableFieldAttributes(false);
     }
 
     var addScreenCol = function () {
@@ -1232,7 +1237,10 @@
       _escreen.columns.push(o);
       document.getElementById("allfields-detail").classList.toggle("hide", true);
       updateScreenDetail();
+      if (_build_screen_selected_id != undefined)
+        document.getElementById(_build_screen_selected_id).classList.toggle("highlight", false);
       _build_screen_selected_id = undefined;
+      enableFieldAttributes(false);
     }
 
     var deleteScreenCol = function () {
@@ -1244,6 +1252,8 @@
         updateScreenDetail();
         _build_screen_selected_id = undefined;
       }
+      clearFieldAttributes();
+      enableFieldAttributes(false);
     }
 
     var moveFieldUp = function () {
@@ -1294,6 +1304,16 @@
       document.getElementById("field-protected").checked = false;
       document.getElementById("field-hyperlink").checked = false;
       document.getElementById("field-width").value = "";
+    }
+
+    var enableFieldAttributes = function(setting) {
+      document.getElementById("screen-name").disabled = !setting;
+      document.getElementById("field-number").disabled = !setting;
+      document.getElementById("field-date").disabled = !setting;
+      document.getElementById("field-summary").disabled = !setting;
+      document.getElementById("field-protected").disabled = !setting;
+      document.getElementById("field-hyperlink").disabled = !setting;
+      document.getElementById("field-width").disabled = !setting;      
     }
 
     var setFieldAttributes = function(obj) {
@@ -1351,6 +1371,7 @@
       _build_screen_selected_id = id;
 
       clearFieldAttributes();
+      enableFieldAttributes(true);
 
       var i = parseInt(_build_screen_selected_id.substring(3));
       if (_build_screen_selected_id.startsWith("hed"))
@@ -1373,6 +1394,7 @@
 
       document.getElementById("build-screen").classList.toggle("hide", false);
       clearFieldAttributes();
+      enableFieldAttributes(false);
       updateScreenHeader();
       updateScreenDetail();
     }

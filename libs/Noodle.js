@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 29, 2021
+ * Release: October 1, 2021
  */
 
 function Noodle(dataArray, labels) {
@@ -258,7 +258,7 @@ function Noodle(dataArray, labels) {
       SOS("Field index is out of range.");
 
     view.HeaderFields.push(bfi);
-    view.Type[bfi - 1] |= HEADER_SUM;
+    view.Type[bfi - 1] = HEADER_SUM;
     view.HeaderSumFields.push(bfi);
     var sum = [];
     view.Sums.push(sum);
@@ -285,7 +285,7 @@ function Noodle(dataArray, labels) {
       SOS("Field index is out of range.");
 
     view.ColumnarFields.push(bfi);
-    view.Type[bfi - 1] |= COLUMNAR_SUM;
+    view.Type[bfi - 1] = COLUMNAR_SUM;
     view.ColumnarSumFields.push(bfi);
     var sum = [];
     view.Sums.push(sum);
