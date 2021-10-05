@@ -2,7 +2,7 @@
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 1, 2021
+ * Release: October 5, 2021
  */
 
 function Noodle(dataArray, labels) {
@@ -232,6 +232,7 @@ function Noodle(dataArray, labels) {
     view.HeaderSumFields.length = 0;
     view.ColumnarFields.length = 0;
     view.ColumnarSumFields.length = 0;
+    view.Type.length = 0;
     view.Sums.length = 0;
     view.Sum.length = mNumFields;
     view.Initialized = true;
@@ -246,7 +247,7 @@ function Noodle(dataArray, labels) {
     if (bfi <= 0 || bfi > mNumFields)
       SOS("Field index is out of range.");
     view.HeaderFields.push(bfi);
-    view.Type[bfi - 1] = HEADER_FIELD;
+    view.Type[bfi - 1] |= HEADER_FIELD;
   }
 
   this.EnterHeaderSum = function (bfi) {
@@ -258,7 +259,7 @@ function Noodle(dataArray, labels) {
       SOS("Field index is out of range.");
 
     view.HeaderFields.push(bfi);
-    view.Type[bfi - 1] = HEADER_SUM;
+    view.Type[bfi - 1] |= HEADER_SUM;
     view.HeaderSumFields.push(bfi);
     var sum = [];
     view.Sums.push(sum);
@@ -273,7 +274,7 @@ function Noodle(dataArray, labels) {
     if (bfi <= 0 || bfi > mNumFields)
       SOS("Field index is out of range.");
     view.ColumnarFields.push(bfi);
-    view.Type[bfi - 1] = COLUMNAR_FIELD;
+    view.Type[bfi - 1] |= COLUMNAR_FIELD;
   }
 
   this.EnterColumnarSum = function (bfi) {
@@ -285,7 +286,7 @@ function Noodle(dataArray, labels) {
       SOS("Field index is out of range.");
 
     view.ColumnarFields.push(bfi);
-    view.Type[bfi - 1] = COLUMNAR_SUM;
+    view.Type[bfi - 1] |= COLUMNAR_SUM;
     view.ColumnarSumFields.push(bfi);
     var sum = [];
     view.Sums.push(sum);
@@ -662,17 +663,16 @@ function Noodle(dataArray, labels) {
 
     // Get the data from data set
 
-    // Regular field
-    if ((view.Type[bfi - 1] & COLUMNAR_FIELD) != 0 ||
-      (view.Type[bfi - 1] & HEADER_FIELD) != 0) {
-      return LineValue(first, bfi);
-    }
-
     // Summary field
-    else {
+    if ((view.Type[bfi - 1] & HEADER_SUM) != 0 ||
+      (view.Type[bfi - 1] & COLUMNAR_SUM) != 0)
+    {
       var i = view.Sum[bfi - 1];
       return view.Sums[i - 1][first - 1];
     }
+
+    // Regular field
+    return LineValue(first, bfi);
   }
 
 
