@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="October 1, 2021">
+  <meta name="version" content="October 6, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -975,6 +975,7 @@
         d["Num"] = Math.floor((Math.random() * 100) + 1);
         d["Date"] = randomDate(_startdate, _enddate);
         d["Count"] = 1;
+        d["Fraction"] = 5/7;
       }
       currentFile.name = "demo.json";
       currentFile.ext = "json";
@@ -993,6 +994,7 @@
             case "RNum":
             case "Num":
             case "Count":
+            case "Fraction":
             case "Date":
               rc = aRow[fx] - bRow[fx];
               if (rc != 0)
@@ -1120,6 +1122,11 @@
           "field": "Count",
           "width": 60,
           "number": true
+        },
+        {
+          "field": "Fraction",
+          "width": 200,
+          "number": true
         }
         ]
       };
@@ -1127,6 +1134,24 @@
         "name": "Categories",
         "columns": [{
           "field": "Category"
+        },
+        {
+          "field": "Seq",
+          "width": 100,
+          number: true,
+          summary: true
+        },
+        {
+          "field": "RNum",
+          "width": 200,
+          number: true,
+          summary: true
+        },
+        {
+          "field": "Fraction",
+          "width": 200,
+          number: true,
+          summary: true
         }]
       };
 
