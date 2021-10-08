@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="October 6, 2021">
+  <meta name="version" content="October 8, 2021">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -2391,7 +2391,10 @@
     }
 
     var trashClick = function () {
-      alert("Trash hasn't been implemented");
+      if (focusField.startsWith("hedit"))
+        DeletePage();
+      else
+        DeleteRow();
     }
 
     var showFind = function () {
