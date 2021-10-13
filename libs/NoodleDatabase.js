@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 10, 2021
+ * Release: October 12, 2021
  */
 
 function NoodleDatabase(stream) {
@@ -351,7 +351,7 @@ function NoodleDatabase(stream) {
         while (len-- > 0)
           base.block[i++] = encoder.encode(vstr[j++]);
         while (rest-- > 0)
-          base.block[i++] = encode.encode(' ');
+          base.block[i++] = encoder.encode(' ');
         break;
       default:
         throw("NoodleDatabase: Invalid data type");
@@ -493,6 +493,7 @@ function NoodleDatabase(stream) {
       case "range":
         break;
       case "mask":
+      case "regex":  
         break;
       case "compare":
         break;
