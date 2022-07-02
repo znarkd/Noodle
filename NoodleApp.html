@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="October 8, 2021">
+  <meta name="version" content="July 2, 2022">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1498,7 +1498,7 @@
 
     var fileLoaded = function (file) {
       currentFile.source = file.source;
-      currentFile.ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
+      currentFile.ext = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1);
       editScreen = [];
 
       try {
