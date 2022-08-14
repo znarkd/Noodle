@@ -104,7 +104,7 @@ Roots.parseCSV = function (text, seperator) {
         }
 
         // Start quote
-        if (ch === '"' && seperator === ",")
+        if (ch === '"' && seperator != "\t")
           inquote = true;
 
         // Ignore leading white space
