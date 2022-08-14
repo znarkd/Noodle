@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 23, 2021
+ * Release: August 14, 2022
  */
 
 var Roots = Roots || {};
@@ -104,7 +104,7 @@ Roots.parseCSV = function (text, seperator) {
         }
 
         // Start quote
-        if (ch === '"')
+        if (ch === '"' && seperator === ",")
           inquote = true;
 
         // Ignore leading white space
