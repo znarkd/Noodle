@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: August 14, 2022
+ * Release: August 20, 2022
  */
 
 var Roots = Roots || {};
@@ -34,39 +34,33 @@ Roots.GetLocalFile = function (file, callback) {
 }
 
 // Attempt to determine the seperator character
-// used by a CSV file, either comma or tab.
+// used by a CSV file, either comma, tab, or semicolon.
 
 Roots.initCSV = function (text) {
   var i; n = text.length;
-  var ch, inquote = false;
-  var tab = 0, comma = 0, lines = 0;
+  var ch, max;
+  var comma = 0, tab = 0, semicolon = 0, lines = 0;
 
   for (i = 0; i < n; i++) {
     ch = text[i];
-    if (!inquote) {
-      if (ch === '"')
-        inquote = true;
-      if (ch === ',')
-        comma += 1;
-      else if (ch === '\t')
-        tab += 1;
-      else if (ch === '\n') {
-        if (++lines > 3)
-          break;
-      }
-    }
-    else {
-      if (ch === '"')
-        inquote = false;
-      else if (ch === '\n') {
-        if (++lines > 3)
-          break;
-      }
+    if (ch === ',')
+      comma += 1;
+    else if (ch === '\t')
+      tab += 1;
+    else if (ch === ';')
+      semicolon += 1;
+    else if (ch === '\n') {
+      if (++lines > 10)
+        break;
     }
   }
-  if (comma > tab)
+
+  max = Math.max(tab, comma, semicolon);
+  if (comma === max)
     return ',';
-  return '\t';
+  if (semicolon === max)
+    return ';';
+  return ('\t');
 }
 
 // Turn a CSV file into an array

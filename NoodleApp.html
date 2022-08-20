@@ -1498,7 +1498,10 @@
 
     var fileLoaded = function (file) {
       currentFile.source = file.source;
-      currentFile.ext = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1);
+      if ("ext" in file)
+        currentFile.ext = file.ext;
+      else
+        currentFile.ext = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1);
       currentFile.ext = currentFile.ext.toLowerCase();
       editScreen = [];
 
