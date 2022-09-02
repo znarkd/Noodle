@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="August 20, 2022">
+  <meta name="version" content="September 1, 2022">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1502,6 +1502,8 @@
         currentFile.ext = file.ext;
       else
         currentFile.ext = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity) + 1);
+      if (file.source === "URL")
+        currentFile.ext = currentFile.ext.split('?')[0];
       currentFile.ext = currentFile.ext.toLowerCase();
       editScreen = [];
 

@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: August 20, 2022
+ * Release: September 1, 2022
  */
 
 var Roots = Roots || {};
