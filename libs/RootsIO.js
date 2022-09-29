@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 1, 2022
+ * Release: September 29, 2022
  */
 
 var Roots = Roots || {};
@@ -29,8 +29,8 @@ Roots.GetLocalFile = function (file, callback) {
     callback(f);
   };
 
-  // Read file into memory as UTF-8
-  reader.readAsText(file, "UTF-8");
+  // Read file into memory
+  reader.readAsText(file);
 }
 
 // Attempt to determine the seperator character
