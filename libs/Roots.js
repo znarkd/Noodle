@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: February 27, 2021
+ * Release: October 10, 2022
  */
 
 var Roots = Roots || {};
@@ -360,7 +360,7 @@ Roots.laybit = function(bitString, bpl, fields) {
 
 Roots.lgand = function(seta, cpl, setb) {
   if (cpl < 0)
-    throw("Roots.lgand: cpl < 0");
+    throw "Roots.lgand: cpl < 0";
   if (!(seta instanceof Uint8Array))
     throw "Roots.lgand: seta must be Uint8Array";
   if (!(setb instanceof Uint8Array))
@@ -443,7 +443,7 @@ Roots.lgmove = function(block, cpl, nline, sfld, dfld, pad) {
 
 Roots.lgor = function(seta, cpl, setb) {
   if (cpl < 0)
-    throw("Roots.lgor: cpl < 0");
+    throw "Roots.lgor: cpl < 0";
   if (!(seta instanceof Uint8Array))
     throw "Roots.lgor: seta must be Uint8Array";
   if (!(setb instanceof Uint8Array))
@@ -466,7 +466,7 @@ Roots.lgor = function(seta, cpl, setb) {
 
 Roots.lgexcl = function(seta, cpl, setb) {
   if (cpl < 0)
-    throw("Roots.lgexcl: cpl < 0");
+    throw "Roots.lgexcl: cpl < 0";
   if (!(seta instanceof Uint8Array))
     throw "Roots.lgexcl: seta must be Uint8Array";
   if (!(setb instanceof Uint8Array))
@@ -493,7 +493,7 @@ Roots.list1 = function(sorti, nline, nextLine) {
     return 0;
 
   if (nline < 0)
-    throw("Roots.list1: nline < 0");
+    throw "Roots.list1: nline < 0";
 
   first = sorti[0];
 	last = first;
@@ -768,6 +768,122 @@ Roots.pcrlst = function(rnum, block, cpl, field, first, nextLine) {
   }
 }
 
+// For all block lines of first/nextLine, the string stored at block[field]
+// is compared with a regular expression.
+
+// Entries matching the regular expression are entered in match/nextLine.
+// Non-matching entries remain in first/nextLine.
+
+Roots.rexprn = function(block, cpl, field, regex, first, nextLine, match) {
+  if (!(block instanceof Uint8Array))
+    throw "Roots.rngprn: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.rngprn: cpl < 1";
+  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
+    throw "Roots.rngprn: Bad field values";
+  
+  var num, v=[], cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+  v[1] = field[1];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.rexprn: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+    
+    v[0] = field[0] + (cur_line-1) * cpl;
+    num = Roots.bunpac(block,v);
+
+    // Match
+    if (num >= range[0] && num <= range[1]) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
+// For all lines of first/nextLine, the string stored at arr[line]
+// is compared with a regular expression.  
+
+// Entries matching the regular expression are entered in match/lnextl.
+// Non-matching entries remain in first/lnextl.
+
+Roots.rexprnArray = function(arr, regex, first, nextLine, match) {
+  if (!Array.isArray(arr))
+    throw "Roots.rexprnArray: invalid array";
+
+  var cur_line, next_line, prev_line, last_match;
+  var check = nextLine.length;
+
+  match[0] = next_line = prev_line = last_match = 0;
+  cur_line = first[0];
+
+  while (cur_line != 0) {
+    if (check-- <= 0)
+      throw "Roots.rexprnArray: Bad input list!";
+
+    next_line = nextLine[cur_line-1];
+
+    // Match
+    if (arr[cur_line-1] >= range[0] && arr[cur_line-1] <= range[1]) {
+
+      // Disconnect current line from top of input list
+      if (prev_line === 0)
+        first[0] = next_line;
+
+      // Disconnect current line from spot other than top of input list
+      else nextLine[prev_line-1] = next_line;
+
+      // Insert current line into match list
+         
+      // First member of match list?
+      if (last_match === 0)
+        match[0] = cur_line;
+         
+      // Extend match list
+      else nextLine[last_match-1] = cur_line;
+
+      last_match = cur_line;
+    }
+
+    // Non-match
+    else prev_line = cur_line;
+
+    cur_line = next_line;
+  }
+
+  if (last_match != 0)
+    nextLine[last_match-1] = 0;
+}
+
 // For all block lines of first/nextLine, the floating point number
 // stored at block[field] is compared with range.
 
@@ -900,7 +1016,7 @@ Roots.rngprn = function(block, cpl, field, range, first, nextLine, match) {
 
 Roots.rngprnArray = function(arr, range, first, nextLine, match) {
   if (!Array.isArray(arr))
-    throw ("Roots.rngprnArray: invalid array");
+    throw "Roots.rngprnArray: invalid array";
 
   var cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
@@ -1050,7 +1166,7 @@ Roots.scanpr = function(block, cpl, field, text, tfield, first, nextLine, match)
 
 Roots.scanprArray = function(arr, text, tfield, first, nextLine, match) {
   if (!Array.isArray(arr))
-    throw ("Roots.scanprArray: invalid array");
+    throw "Roots.scanprArray: invalid array";
 
   var cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
@@ -1113,7 +1229,7 @@ Roots.scanprArray = function(arr, text, tfield, first, nextLine, match) {
 
 Roots.scanprArrayCol = function(arr, col, text, tfield, first, nextLine, match) {
   if (!Array.isArray(arr))
-    throw ("Roots.scanprArrayCol: invalid array");
+    throw "Roots.scanprArrayCol: invalid array";
 
   var cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
@@ -1512,10 +1628,11 @@ Roots.txtprn = function(block, cpl, field, text, tfield, first, nextLine, match)
 
 Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
   if (!Array.isArray(arr))
-    throw ("Roots.txtprnArrayCol: invalid array");
+    throw "Roots.txtprnArrayCol: invalid array";
 
   var cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
+  var text;
 
   match[0] = next_line = prev_line = last_match = 0;
   cur_line = first[0];
@@ -1527,7 +1644,8 @@ Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
     next_line = nextLine[cur_line-1];
 
     // Match
-    if (arr[cur_line-1][col] && values.indexOf(arr[cur_line-1][col].toString()) >= 0) {
+    text = arr[cur_line-1][col] ?? "";
+    if (values.indexOf(test.toString()) >= 0) {
 
       // Disconnect current line from top of input list
       if (prev_line === 0)
@@ -1565,7 +1683,7 @@ Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
 
 Roots.transfer = function(source, length) {
   if (!(source instanceof Uint8Array))
-    throw("Roots.transfer: Source must be an instance of Uint8Array");
+    throw "Roots.transfer: Source must be an instance of Uint8Array";
   if (length <= source.length)
     return source.slice(0, length);
   var destView = new Uint8Array(length);
