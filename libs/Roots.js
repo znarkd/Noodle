@@ -1645,7 +1645,7 @@ Roots.txtprnArrayCol = function(arr, col, values, first, nextLine, match) {
 
     // Match
     text = arr[cur_line-1][col] ?? "";
-    if (values.indexOf(text.toString()) >= 0) {
+    if (values.indexOf(text) >= 0) {
 
       // Disconnect current line from top of input list
       if (prev_line === 0)
