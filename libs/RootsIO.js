@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 29, 2022
+ * Release: October 10, 2022
  */
 
 var Roots = Roots || {};
@@ -81,7 +81,7 @@ Roots.parseCSV = function (text, seperator) {
 
       // End of column
       if (ch === seperator) {
-        columns.push(sb.toString().replace(/\s+$/, ''));
+        columns.push(sb.replace(/\s+$/, ''));
         sb = "";
       }
 
@@ -90,7 +90,7 @@ Roots.parseCSV = function (text, seperator) {
         // End of line
         if (ch === '\n') {
           if (sb.length > 0)
-            columns.push(sb.toString().replace(/\s+$/, ''));
+            columns.push(sb.replace(/\s+$/, ''));
           sb = "";
           arr.push(columns);
           columns = [];
@@ -141,7 +141,7 @@ Roots.parseCSV = function (text, seperator) {
 
   // Close out the last column
   if (sb.length > 0)
-    columns.push(sb.toString().replace(/\s+$/, ''));
+    columns.push(sb.replace(/\s+$/, ''));
 
   if (columns.length > 0)
     arr.push(columns);
@@ -191,7 +191,7 @@ Roots.GDriveStart = function (callback) {
   }
   else {
     _callback = callback;
-    _stateValue = "zNoodle" + Date.now().toString() + "\x7a\x63\x7a\x63";
+    _stateValue = "zNoodle" + Date.now() + "\x7a\x63\x7a\x63";
     var uri = window.location.href.slice(0, window.location.href.lastIndexOf("/")) + "/gdrive.html";
     var url = "https://accounts.google.com/o/oauth2/v2/auth?scope=";
     url += _scope;
