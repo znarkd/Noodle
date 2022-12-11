@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 10, 2022
+ * Release: December 11, 2022
  */
 
 var Roots = Roots || {};
@@ -1248,8 +1248,8 @@ Roots.scanprArrayCol = function(arr, col, text, tfield, first, nextLine, match) 
 
     next_line = nextLine[cur_line-1];
 
-    s1 = arr[cur_line-1][col].toLowerCase();
-
+    s1 = (arr[cur_line-1][col] ?? "").toLowerCase();
+  
     // Match
     if (s1.includes(s2)) {
 
