@@ -1185,7 +1185,7 @@ Roots.scanprArray = function(arr, text, tfield, first, nextLine, match) {
 
     next_line = nextLine[cur_line-1];
     
-    s1 = arr[cur_line-1].toLowerCase();
+    s1 = (arr[cur_line-1] ?? "").toLowerCase();
     
     // Match
     if (s1.includes(s2)) {
