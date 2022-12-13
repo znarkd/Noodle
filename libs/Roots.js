@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 11, 2022
+ * Release: December 13, 2022
  */
 
 var Roots = Roots || {};
@@ -775,19 +775,21 @@ Roots.pcrlst = function(rnum, block, cpl, field, first, nextLine) {
 // Non-matching entries remain in first/nextLine.
 
 Roots.rexprn = function(block, cpl, field, regex, first, nextLine, match) {
-  if (!(block instanceof Uint8Array))
-    throw "Roots.rngprn: block must be Uint8Array";
-  if (cpl <= 0)
-    throw "Roots.rngprn: cpl < 1";
-  if (field[0] <= 0 || field[1] <= 0 || field[1] > cpl)
-    throw "Roots.rngprn: Bad field values";
-  
-  var num, v=[], cur_line, next_line, prev_line, last_match;
+  var n, start, cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
+  var s1, rc;
+  var decoder = new TextDecoder("utf-8");
+  
+  if (!(block instanceof Uint8Array))
+    throw "Roots.rexprn: block must be Uint8Array";
+  if (cpl <= 0)
+    throw "Roots.rexprn: cpl < 1";
+  if (field[0] + field[1] - 1 > cpl)
+    throw "Roots.rexprn: Bad field value";
 
   match[0] = next_line = prev_line = last_match = 0;
   cur_line = first[0];
-  v[1] = field[1];
+  n = field[1];
 
   while (cur_line != 0) {
     if (check-- <= 0)
@@ -795,11 +797,12 @@ Roots.rexprn = function(block, cpl, field, regex, first, nextLine, match) {
 
     next_line = nextLine[cur_line-1];
     
-    v[0] = field[0] + (cur_line-1) * cpl;
-    num = Roots.bunpac(block,v);
+    start = field[0] + (cur_line-1) * cpl - 1;
+    s1 = decoder.decode(block.slice(start, start+n));
+    rc = s1.search(regex);
 
     // Match
-    if (num >= range[0] && num <= range[1]) {
+    if (rc >= 0) {
 
       // Disconnect current line from top of input list
       if (prev_line === 0)
@@ -840,7 +843,7 @@ Roots.rexprnArray = function(arr, regex, first, nextLine, match) {
   if (!Array.isArray(arr))
     throw "Roots.rexprnArray: invalid array";
 
-  var cur_line, next_line, prev_line, last_match;
+  var val, cur_line, next_line, prev_line, last_match;
   var check = nextLine.length;
 
   match[0] = next_line = prev_line = last_match = 0;
@@ -852,8 +855,10 @@ Roots.rexprnArray = function(arr, regex, first, nextLine, match) {
 
     next_line = nextLine[cur_line-1];
 
+    val = arr[cur_line-1] ?? "";
+      
     // Match
-    if (arr[cur_line-1] >= range[0] && arr[cur_line-1] <= range[1]) {
+    if (val.search(regex) >= 0) {
 
       // Disconnect current line from top of input list
       if (prev_line === 0)
