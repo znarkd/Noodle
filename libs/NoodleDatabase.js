@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018-present  Dan Kranz
- * Release: October 12, 2021
+ * Release: December 21, 2022
  */
 
 function NoodleDatabase(stream) {
@@ -209,7 +209,7 @@ function NoodleDatabase(stream) {
         num = Roots.bunpac(base.block, v);
         if (num === 0)
           return "";
-        return table[field[bfi-1].tindex-1].item[num-1].toString();
+        return table[field[bfi-1].tindex-1].item[num-1];
       case 'B':
         num = Roots.bunpac(base.block, v);
         return num.toString();
