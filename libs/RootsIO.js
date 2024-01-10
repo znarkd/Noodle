@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 10, 2022
+ * Release: January 9, 2024
  */
 
 var Roots = Roots || {};
@@ -66,8 +66,8 @@ Roots.initCSV = function (text) {
 // Turn a CSV file into an array
 
 Roots.parseCSV = function (text, seperator) {
-  var i, ch, test, sb;
-  var inquote = false;
+  var i, ch, nf, test, sb;
+  var inquote = false, firstLine = true;
   var n = text.length;
   sb = "";
   var columns = [];
@@ -93,6 +93,18 @@ Roots.parseCSV = function (text, seperator) {
             columns.push(sb.replace(/\s+$/, ''));
           sb = "";
           arr.push(columns);
+
+          // Make sure that each row contains as many columns as the 1st row
+          if (firstLine) {
+            nf = columns.length;
+            firstLine = false;
+          }
+          else {
+            while (columns.length < nf) {
+              columns.push("");
+            }
+          }
+
           columns = [];
           continue;
         }
