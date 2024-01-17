@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="November 8, 2023">
+  <meta name="version" content="January 16, 2024">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -530,10 +530,11 @@
       width: 100px;
     }
 
-    #find-dialog {
+    #find-dialog,
+    #prune-dialog {
       width: 100%;
       height: 33px;
-      display: block;
+      display: inline-block;
       box-sizing: border-box;
       border: 1px;
       margin-left: 14px;
@@ -541,7 +542,16 @@
       z-index: 2;
     }
 
-    #find-data {
+    .radio-inline {
+      position: relative;
+      display: inline-block;
+      padding-right: 2px;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+
+    #find-data,
+    #prune-data {
       border: none;
       outline: none;
     }
@@ -737,7 +747,7 @@
             <a id="menuPaste">Paste</a-->
             <a id="menuFind">Find</a>
             <h2>Data</h2>
-            <a>Prune</a>
+            <a id="menuPrune">Prune</a>
             <a id="menuPruneCurrent">Prune by Current Field</a>
             <a id="menuInvertPrune">Invert Prune</a>
             <a id="menuRemovePrune" style="border-bottom: 1px solid black;">Remove Prune</a>
@@ -774,6 +784,23 @@
               <i class="fa fa-arrow-up" aria-hidden="true"></i>
             </button>
             <button id="find-close" title="close Find">
+              <i class="fa fa-times" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <div id="prune-dialog" class="hide">
+          <div>
+            <label class="radio-inline">
+              <input id="prune1" type="radio" name="pruneType" value="match" checked>Keep
+            </label>
+            <label class="radio-inline">
+              <input id="prune2" type="radio" name="pruneType" value="leftover">Drop
+            </label>
+            <input id="prune-data" size=17 placeholder="Prune value" aria-label="Prune" value=""></input>
+            <button id="prune-go" title="do Prune">
+              <i class="fa fa-check" aria-hidden="true"></i>
+            </button>
+            <button id="prune-close" title="close Prune">
               <i class="fa fa-times" aria-hidden="true"></i>
             </button>
           </div>
@@ -871,6 +898,7 @@
       document.getElementById("menuXML").addEventListener("click", doReport);
       document.getElementById("menuCSV").addEventListener("click", doExport);
       document.getElementById("menuFind").addEventListener("click", showFind);
+      document.getElementById("menuPrune").addEventListener("click", showPrune);
       document.getElementById("menuPruneCurrent").addEventListener("click", PruneCurrent);
       document.getElementById("menuInvertPrune").addEventListener("click", InvertPrune);
       document.getElementById("menuRemovePrune").addEventListener("click", RemovePrune);
@@ -898,7 +926,9 @@
       document.getElementById("find-prev").addEventListener("click", function () {
         doFind("Previous");
       });
+      document.getElementById("prune-go").addEventListener("click", doPrune);
       document.getElementById("find-close").addEventListener("click", hideFind);
+      document.getElementById("prune-close").addEventListener("click", hidePrune);
       //document.getElementById("file-list-cancel").addEventListener("click", hideFileList);
       window.addEventListener("resize", resizeEditDisplay);
       window.addEventListener("orientationchange", resizeEditDisplay);
@@ -1794,6 +1824,7 @@
 
       document.getElementById("edit-screen").classList.toggle("hide", false);
       document.getElementById("find-dialog").classList.toggle("hide", true);
+      document.getElementById("prune-dialog").classList.toggle("hide", true);
 
       // Load data into the newly created screen page
       FillPage();
@@ -2367,6 +2398,7 @@
     // Previous page
     var leftArrowClick = function () {
       document.getElementById("find-dialog").classList.toggle("hide", true);
+      document.getElementById("prune-dialog").classList.toggle("hide", true);
       if (--view.curpag < 1) {
         view.curpag = 1;
         return;
@@ -2381,6 +2413,7 @@
     // Next page
     var rightArrowClick = function () {
       document.getElementById("find-dialog").classList.toggle("hide", true);
+      document.getElementById("prune-dialog").classList.toggle("hide", true);
       if (++view.curpag > view.npage)
         view.curpag = view.npage + 1;
       FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
@@ -2392,6 +2425,7 @@
 
     var resizeEditDisplay = function () {
       document.getElementById("find-dialog").classList.toggle("hide", true);
+      document.getElementById("prune-dialog").classList.toggle("hide", true);
       if (view.hedlin)
         FillHeader(view.curpag, view.npage, view.bfihed, view.hedlin);
       if (view.collin) {
@@ -2417,6 +2451,7 @@
         e.classList.toggle("hide", true);
         return;
       }
+      document.getElementById("prune-dialog").classList.toggle("hide", true);
 
       if (focusField === undefined) {
         focusField = "hedit0";
@@ -2427,7 +2462,7 @@
           focusColumn = parseInt(k[1]);
         }
       }
-
+      
       // Set placeholder value for find input box
       if (focusField.startsWith("hedit")) {
         locate.bfi = view.bfihed[focusColumn];
@@ -2535,6 +2570,78 @@
 
     var doExport = function () {
       db1.WriteCsvFile("output.csv", ',', true);
+    }
+
+    var showPrune = function() {
+      var e, k;
+      locate = {};
+
+      e = document.getElementById("prune-dialog");
+      if (!(e.classList.contains("hide"))) {
+        e.classList.toggle("hide", true);
+        return;
+      }
+      document.getElementById("find-dialog").classList.toggle("hide", true);
+
+      if (focusField === undefined) {
+        focusField = "hedit0";
+        focusColumn = 0;
+        if (view.hedlin === 0) {
+          focusField = document.getElementById("detail").getElementsByTagName("INPUT")[0].id;
+          k = focusField.split(',');
+          focusColumn = parseInt(k[1]);
+        }
+      }
+      
+      // Set placeholder value for prune input box
+      if (focusField.startsWith("hedit")) {
+        locate.bfi = view.bfihed[focusColumn];
+        locate.focus = focusField;
+        locate.line = 0;
+      }
+      else {
+        locate.bfi = view.bficol[focusColumn - 1];
+        locate.focus = focusColumn;
+        k = focusField.split(',');
+        locate.line = parseInt(k[0]);
+      }
+      document.getElementById("prune-data").placeholder = db1.FieldName(locate.bfi) + " values";
+      document.getElementById("prune-data").value = "";
+      
+      e.classList.toggle("hide", false);
+      document.getElementById("prune-data").focus();
+    }
+
+    var hidePrune = function () {
+      document.getElementById("prune-dialog").classList.toggle("hide", true);
+    }
+
+    var doPrune = function () {
+      var data = [];
+      data[0] = document.getElementById("prune-data").value.replace(/\s+$/, '');
+
+      var pruneOutput;
+      if (document.getElementById("prune1").checked)
+        pruneOutput = "match";
+      else
+        pruneOutput = "leftover";
+
+      var pruneOperation = "scan";
+      var type = db1.GetDataType(locate.bfi);
+      if (type === "number" || type === "B" || type === "R"
+      || type === "bigint") {
+        pruneOperation = "value";
+      }
+
+      if (db1.PruneBracket(pruneSet, pruneOperation, locate.bfi, data, {
+        [pruneOutput] : "keep"
+      }))
+        return;
+      if (db1.ApplyPrune("keep"))
+        return;
+      pruneSet = "keep";
+
+      screenChange();       
     }
 
     var PruneCurrent = function () {
