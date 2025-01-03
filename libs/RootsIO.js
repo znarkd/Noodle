@@ -216,8 +216,8 @@ Roots.GDriveStart = function (callback) {
     _expires = Date.now();
 
     var newWindow = window.open(url, 'name', 'height=600,width=450');
-    if (newWindow && window.focus)
-      newWindow.focus();
+    //if (newWindow && window.focus)
+    //  newWindow.focus();
   }
 }
 
