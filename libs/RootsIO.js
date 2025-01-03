@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: January 9, 2024
+ * Release: January 3, 2025
  */
 
 var Roots = Roots || {};
@@ -216,7 +216,7 @@ Roots.GDriveStart = function (callback) {
     _expires = Date.now();
 
     var newWindow = window.open(url, 'name', 'height=600,width=450');
-    if (window.focus)
+    if (newWindow && window.focus)
       newWindow.focus();
   }
 }
