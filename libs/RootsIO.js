@@ -221,13 +221,14 @@ Roots.GDriveStart = function (callback) {
 
 Roots.GDriveSelectFile = function (callback) {
   gapi.load('picker', function () {
-    if (_oauthToken && _expires > Date.now()) {
+    //if (_oauthToken && _expires > Date.now()) {
+    if (_oauthToken) {
       var view = new google.picker.DocsView(google.picker.ViewId.DOCS);
       view.setParent("root");
       view.setMode(google.picker.DocsViewMode.LIST);
       view.setIncludeFolders(true);
       view.setEnableDrives(true);
-      view.setQuery("*.*");
+      //view.setQuery("*.*");
       var picker = new google.picker.PickerBuilder().
         addView(view).
         setOAuthToken(_oauthToken).
