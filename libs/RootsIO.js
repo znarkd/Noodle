@@ -224,10 +224,10 @@ Roots.GDriveSelectFile = function (callback) {
     //if (_oauthToken && _expires > Date.now()) {
     if (_oauthToken) {
       var view = new google.picker.DocsView(google.picker.ViewId.DOCS);
-      view.setParent("root");
-      view.setMode(google.picker.DocsViewMode.LIST);
-      view.setIncludeFolders(true);
       view.setEnableDrives(true);
+      view.setIncludeFolders(true);
+      view.setMode(google.picker.DocsViewMode.LIST);
+      view.setParent("root");
       //view.setQuery("*.*");
       var picker = new google.picker.PickerBuilder().
         addView(view).
