@@ -228,6 +228,7 @@ Roots.GDriveSelectFile = function (callback) {
         setParent("root");
       const sharedWithMeView = new google.picker.DocsView(google.picker.ViewId.DOCS).
         setOwnedByMe(false).
+        setIncludeFolders(true).
         setMode(google.picker.DocsViewMode.LIST);
       var picker = new google.picker.PickerBuilder().
         addView(myView).
