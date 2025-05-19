@@ -223,6 +223,7 @@ Roots.GDriveSelectFile = function (callback) {
   gapi.load('picker', function () {
     if (_oauthToken && _expires > Date.now()) {
       const myView = new google.picker.DocsView(google.picker.ViewId.DOCS).
+        includeItemsFromAllDrives(true).
         setIncludeFolders(true).
         setSelectFolderEnabled(true).
         setMode(google.picker.DocsViewMode.LIST).
@@ -234,8 +235,7 @@ Roots.GDriveSelectFile = function (callback) {
         setMode(google.picker.DocsViewMode.LIST);
       var picker = new google.picker.PickerBuilder().
         addView(myView).
-        addView(sharedWithMeView).
-        addView(new google.picker.View(google.picker.ViewId.FOLDERS)).
+        //addView(sharedWithMeView).
         setOAuthToken(_oauthToken).
         setDeveloperKey(_developerKey).
         setCallback(callback).
