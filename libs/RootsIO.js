@@ -235,7 +235,7 @@ Roots.GDriveSelectFile = function (callback) {
       var picker = new google.picker.PickerBuilder().
         addView(myView).
         addView(sharedWithMeView).
-        add(new google.picker.View(google.picker.ViewId.FOLDERS)).
+        addView(new google.picker.View(google.picker.ViewId.FOLDERS)).
         setOAuthToken(_oauthToken).
         setDeveloperKey(_developerKey).
         setCallback(callback).
