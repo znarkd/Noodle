@@ -223,7 +223,6 @@ Roots.GDriveSelectFile = function (callback) {
   gapi.load('picker', function () {
     if (_oauthToken && _expires > Date.now()) {
       const myView = new google.picker.DocsView(google.picker.ViewId.DOCS).
-        includeItemsFromAllDrives(true).
         setIncludeFolders(true).
         setSelectFolderEnabled(true).
         setMode(google.picker.DocsViewMode.LIST).
