@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: March 25, 2025
+ * Release: May 19, 2025
  */
 
 var Roots = Roots || {};
@@ -224,11 +224,13 @@ Roots.GDriveSelectFile = function (callback) {
     if (_oauthToken && _expires > Date.now()) {
       const myView = new google.picker.DocsView(google.picker.ViewId.DOCS).
         setIncludeFolders(true).
+        setSelectFolderEnabled(true).
         setMode(google.picker.DocsViewMode.LIST).
         setParent("root");
       const sharedWithMeView = new google.picker.DocsView(google.picker.ViewId.DOCS).
         setOwnedByMe(false).
         setIncludeFolders(true).
+        setSelectFolderEnabled(true).
         setMode(google.picker.DocsViewMode.LIST);
       var picker = new google.picker.PickerBuilder().
         addView(myView).
