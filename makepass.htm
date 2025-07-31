@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+
+<title>Strong Password
+</title>
+
+<script type="text/javascript">
+
+function myFunction()
+{
+   var upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+   var lower = "abcdefghijklmnopqrstuvwxyz";
+   var letters = upper + lower;
+   var digits = "23456789";
+   var symbols = "-=,.@#*_+?!$";
+   var uncertain = "l1O0";
+   var tab = letters + digits + symbols + uncertain;
+   var N = document.getElementById("numLength").valueAsNumber;
+   var M = tab.length;
+   var i, num;
+   var output = [];
+   
+   // Minimum password length is 8, maximum is 32
+   if (N < 8)
+      N = 8;
+   if (N > 32)
+      N = 32;
+   
+   // Grab a character from each group to make it strong
+   
+   num = Math.floor(52 * Math.random());
+   output[0] = letters[num];
+      
+   num = Math.floor(symbols.length * Math.random());
+   output[1] = symbols[num];
+
+   num = Math.floor(digits.length * Math.random());
+   output[2] = digits[num];
+
+   num = Math.floor(26 * Math.random());
+   var c = output[0];
+   if (c === c.toUpperCase())
+      output[3] = lower[num];
+   else
+      output[3] = upper[num];
+   
+  num = Math.floor(uncertain.length * Math.random());
+  output[4] = uncertain[num];
+
+  // Fill out the rest of the password
+   
+  for (i=5; i<N; i++) {
+    num = Math.floor(M * Math.random());
+    output[i]=tab[num];
+  }
+ 
+  // Display the result
+   
+  document.getElementById("output").innerHTML = output.join("").toString();
+  document.getElementById("numLength").value = N;
+
+  // Copy the result to the clipboard
+  
+  navigator.clipboard.writeText(output.join("").toString());
+}
+ 
+</script>
+
+</head>
+<body>
+<h2>
+Generate a random password string with the specified length.
+</h2>
+
+<form>
+<input id="numLength" type="number" min="8" max="32" size="2" value="16">
+</form>
+
+<p id="prompt">Click the button to create a password</p>
+<p id="output">&nbsp;</p>
+<button type="button" onClick="myFunction()">Get password</button>
+</body>
+</html>
