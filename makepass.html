@@ -24,9 +24,9 @@ function myFunction()
    var i, num;
    var output = [];
    
-   // Minimum password length is 8, maximum is 32
-   if (N < 8)
-      N = 8;
+   // Minimum password length is 12, maximum is 32
+   if (N < 12)
+      N = 12;
    if (N > 32)
       N = 32;
    
@@ -77,7 +77,7 @@ Generate a random password string with the specified length.
 </h2>
 
 <form>
-<input id="numLength" type="number" min="8" max="32" size="2" value="16">
+<input id="numLength" type="number" min="12" max="32" size="2" value="16">
 </form>
 
 <p id="prompt">Click the button to create a password</p>
