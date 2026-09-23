@@ -233,13 +233,13 @@ Roots.GDriveSelectFile = function (callback) {
         .setIncludeFolders(true)
         .setSelectFolderEnabled(true)
         .setMode(google.picker.DocsViewMode.LIST)
-        .setMimeTypes("text/csv,text/json,text/plain,application/json")
+        .setMimeTypes("text/csv,text/tab-separated-values,text/plain,application/json")
         .setParent("root");
       const sharedWithMeView = new google.picker.DocsView(google.picker.ViewId.DOCS)
         .setOwnedByMe(false)
         .setIncludeFolders(true)
         .setSelectFolderEnabled(true)
-        .setMimeTypes("text/csv,text/json,text/plain,application/json")
+        .setMimeTypes("text/csv,text/tab-separated-values,text/plain,application/json")
         .setMode(google.picker.DocsViewMode.LIST);
       
       const picker = new google.picker.PickerBuilder()
