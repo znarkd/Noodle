@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: May 19, 2025
+ * Release: September 23, 2026
  */
 
 var Roots = Roots || {};
@@ -163,7 +163,8 @@ Roots.parseCSV = function (text, seperator) {
 
 // ----- Google Drive ---------------------------------------------------------
 
-// The Client ID obtained from the Google API Console.
+// The CLIENT_ID, API_KEY, and APP_ID are obtained from the Google API Console.
+
 var _clientId = '\x39\x34\x35\x38\x34\x37\x35\x35\x32\x34\x37\x39';
 _clientId += '\x2d\x63\x6e\x66\x6e\x75\x73\x76\x68\x68\x70\x70\x73';
 _clientId += '\x71\x70\x68\x76\x66\x65\x6b\x6d\x71\x69\x62\x30\x39';
@@ -172,73 +173,84 @@ _clientId += '\x67\x6f\x6f\x67\x6c\x65\x75\x73\x65\x72\x63\x6f\x6e';
 _clientId += '\x74\x65\x6e\x74\x2e\x63\x6f\x6d';
 
 // The Browser API key obtained from the Google API Console.
-var _developerKey = '\x41\x49\x7a\x61\x53\x79\x43\x2d\x72\x42\x30';
-_developerKey += '\x33\x36\x49\x5f\x4a\x56\x5a\x78\x4a\x41\x79\x79';
-_developerKey += '\x4c\x6f\x6a\x34\x30\x78\x58\x4e\x64\x68\x73\x68';
-_developerKey += '\x35\x67\x47\x55';
+var _APIKey = '\x41\x49\x7a\x61\x53\x79\x43\x2d\x72\x42\x30';
+_APIKey += '\x33\x36\x49\x5f\x4a\x56\x5a\x78\x4a\x41\x79\x79';
+_APIKey += '\x4c\x6f\x6a\x34\x30\x78\x58\x4e\x64\x68\x73\x68';
+_APIKey += '\x35\x67\x47\x55';
+
+var _AppId = '\x39\x34\x35\x38\x34\x37\x35\x35\x32\x34\x37\x39';
 
 var _scope = 'https://www.googleapis.com/auth/drive';
 
-var _oauthToken = undefined;
-var _expires;
-var _stateValue;
+var _accessToken = null;
 var _callback;
 
-function messageSent(event) {
-  if (event.data.state === _stateValue && event.data.token != undefined) {
-    _oauthToken = String(event.data.token);
-    window.removeEventListener("message", messageSent);
-    _expires += ((event.data.expires - 60) * 1000);
-    if (_callback != undefined)
-      _callback();
-  }
+// A helper function that returns a Promise when Google OAuth is completed
+function getGoogleAccessToken(clientId) {
+  return new Promise((resolve, reject) => {
+    
+    // Ensure the Google SDK library has loaded completely
+    if (typeof google === "undefined" || !google.accounts?.oauth2) {
+      return reject(new Error("Google Identity Services SDK not loaded."));
+    }
+
+    // Initialize the token client
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: _scope,
+      prompt: 'consent',
+      callback: (response) => {
+        if (response.error) {
+          reject(new Error(`Google OAuth error: ${response.error}`));
+        } else if (response.access_token) {
+          resolve(response.access_token); 
+        }
+      },
+    });
+
+    // Triggers the actual Google sign-in popup window
+    tokenClient.requestAccessToken(); 
+  });
 }
 
 // Start a Google Drive process
 
-Roots.GDriveStart = function (callback) {
-  if (_oauthToken && _expires > Date.now()) {
-    if (callback)
-      callback();
+Roots.GDriveStart = async function (callback) {
+  if (!_accessToken) {
+    // Waits until the OAuth is complete
+     _accessToken = await getGoogleAccessToken(_clientId);
   }
-  else {
+  if (callback) {
     _callback = callback;
-    _stateValue = "zNoodle" + Date.now() + "\x7a\x63\x7a\x63";
-    var uri = window.location.href.slice(0, window.location.href.lastIndexOf("/")) + "/gdrive.html";
-    var url = "https://accounts.google.com/o/oauth2/v2/auth?scope=";
-    url += _scope;
-    url += "&include_granted_scopes=true&response_type=token&state=";
-    url += _stateValue;
-    url += ("&client_id=" + _clientId);
-    url += ("&redirect_uri=" + uri);
-
-    window.addEventListener("message", messageSent);
-    _expires = Date.now();
-
-    window.open(url, 'name', 'height=600,width=450');
+    callback();
   }
 }
 
 Roots.GDriveSelectFile = function (callback) {
   gapi.load('picker', function () {
-    if (_oauthToken && _expires > Date.now()) {
-      const myView = new google.picker.DocsView(google.picker.ViewId.DOCS).
-        setIncludeFolders(true).
-        setSelectFolderEnabled(true).
-        setMode(google.picker.DocsViewMode.LIST).
-        setParent("root");
-      const sharedWithMeView = new google.picker.DocsView(google.picker.ViewId.DOCS).
-        setOwnedByMe(false).
-        setIncludeFolders(true).
-        setSelectFolderEnabled(true).
-        setMode(google.picker.DocsViewMode.LIST);
-      var picker = new google.picker.PickerBuilder().
-        addView(myView).
-        addView(sharedWithMeView).
-        setOAuthToken(_oauthToken).
-        setDeveloperKey(_developerKey).
-        setCallback(callback).
-        build();
+    if (_accessToken) {
+      const myView = new google.picker.DocsView(google.picker.ViewId.DOCS)
+        .setIncludeFolders(true)
+        .setSelectFolderEnabled(true)
+        .setMode(google.picker.DocsViewMode.LIST)
+        .setMimeTypes("text/csv,text/json,text/plain,application/json")
+        .setParent("root");
+      const sharedWithMeView = new google.picker.DocsView(google.picker.ViewId.DOCS)
+        .setOwnedByMe(false)
+        .setIncludeFolders(true)
+        .setSelectFolderEnabled(true)
+        .setMimeTypes("text/csv,text/json,text/plain,application/json")
+        .setMode(google.picker.DocsViewMode.LIST);
+      
+      const picker = new google.picker.PickerBuilder()
+        .setAppId(_AppId)
+        .setOAuthToken(_accessToken)
+        .setDeveloperKey(_APIKey)
+        .addView(myView)
+        .addView(sharedWithMeView)
+        .setCallback(callback)
+        .build();
+        
       picker.setVisible(true);
     }
   });
@@ -271,7 +283,7 @@ Roots.GDriveList = function (callback, parentId) {
     }
   };
   xhr.open('GET', url);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + _oauthToken);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + _accessToken);
   xhr.send();
 }
 
@@ -296,7 +308,7 @@ Roots.GDriveGetFile = function (file, callback) {
     }
   };
   xhr.open('GET', url);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + _oauthToken);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + _accessToken);
   xhr.send();
 }
 
@@ -324,7 +336,7 @@ Roots.GDrivePutFile = function (file, callback) {
 
   var xhr = new XMLHttpRequest();
   xhr.open(method, url);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + _oauthToken);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + _accessToken);
   xhr.responseType = 'json';
   xhr.onload = function () {
     callback(xhr.response);

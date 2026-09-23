@@ -8,7 +8,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="January 16, 2024">
+  <meta name="version" content="September 23, 2026">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -20,6 +20,7 @@
   <script src="libs/node_modules/react-virtualized-auto-sizer/dist/index.iife.js"></script>
   <script src="libs/node_modules/react-draggable/web/react-draggable.min.js"></script>
   <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
   <script src="libs/RootsIO.js"></script>
@@ -1038,6 +1039,12 @@
           }
         }
         return 0;
+      }
+
+      zData.GetDataType = function(bfi) {
+        if (bfi === 1 || bfi >= 7)
+          return "Number";
+        return "String";
       }
 
       db1 = new Noodle(zData);
@@ -2523,8 +2530,8 @@
         data[0] = document.getElementById("find-data").value.replace(/\s+$/, '');
 
         var pruneOperation = "scan";
-        var type = db1.GetDataType(locate.bfi);
-        if (type === "number" || type === "B" || type === "R"
+        var type = db1.GetDataType(locate.bfi).toLowerCase();
+        if (type === "number" || type === "b" || type === "r"
         || type === "bigint") {
           pruneOperation = "value";
         }
@@ -2627,8 +2634,8 @@
         pruneOutput = "leftover";
 
       var pruneOperation = "scan";
-      var type = db1.GetDataType(locate.bfi);
-      if (type === "number" || type === "B" || type === "R"
+      var type = db1.GetDataType(locate.bfi).toLowerCase();
+      if (type === "number" || type === "b" || type === "r"
       || type === "bigint") {
         pruneOperation = "value";
       }
