@@ -95,6 +95,7 @@ Use data views to your advantage to minimize data editing chores.
 
 View and revise your own data by selecting either "Open" or "External Link."
 
+[NoodleApp's Privacy Policy](https://znarkd.github.io/Noodle/Demo_Privacy.md)
 
 ### License
 Copyright © [Dan Kranz](https://github.com/znarkd?tab=repositories).  All rights reserved.
