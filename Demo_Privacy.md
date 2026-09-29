@@ -3,6 +3,5 @@ NoodleApp is a demonstration web application designed to showcase Noodle’s cap
 
 NoodleApp does not collect user information, cache data, transmit data to external services, or use cookies.
 
-# Github
 NoodleApp is hosted on Github.  Here is a link to 
 [Github's privacy policy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
