@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: September 23, 2026
+ * Release: October 1, 2026
  */
 
 var Roots = Roots || {};
@@ -180,7 +180,7 @@ _APIKey += '\x35\x67\x47\x55';
 
 var _AppId = '\x39\x34\x35\x38\x34\x37\x35\x35\x32\x34\x37\x39';
 
-var _scope = 'https://www.googleapis.com/auth/drive';
+var _scope = 'https://www.googleapis.com/auth/drive.file';
 
 var _accessToken = null;
 var _callback;
@@ -198,7 +198,7 @@ function getGoogleAccessToken(clientId) {
     const tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: _scope,
-      prompt: 'consent',
+      //prompt: 'consent',
       callback: (response) => {
         if (response.error) {
           reject(new Error(`Google OAuth error: ${response.error}`));
