@@ -2,86 +2,149 @@
 <html lang="en">
 
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<link rel="icon" href="makepass.png" type="image/png">
-<title>Strong Password
-</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <link rel="icon" href="makepass.png" type="image/png">
+  <title>Strong Password
+  </title>
 
-<script type="text/javascript">
+  <style>
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #333;
+      line-height: 1.5;
+    }
 
-function myFunction()
-{
-   var upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-   var lower = "abcdefghijklmnopqrstuvwxyz";
-   var letters = upper + lower;
-   var digits = "23456789";
-   var symbols = "!@-_+=:;,.?";
-   var uncertain = "l1O0";
-   var tab = letters + digits + symbols + uncertain;
-   var N = document.getElementById("numLength").valueAsNumber;
-   var M = tab.length;
-   var i, num;
-   var output = [];
-   
-   // Minimum password length is 12, maximum is 32
-   if (N < 12)
-      N = 12;
-   if (N > 32)
-      N = 32;
-   
-   // Grab a character from each group to make it strong
-   
-   num = Math.floor(52 * Math.random());
-   output[0] = letters[num];
-      
-   num = Math.floor(symbols.length * Math.random());
-   output[1] = symbols[num];
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+    }
 
-   num = Math.floor(digits.length * Math.random());
-   output[2] = digits[num];
+    h2 {
+      margin-top: 0;
+      color: #1f4e79;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
 
-   num = Math.floor(26 * Math.random());
-   var c = output[0];
-   if (c === c.toUpperCase())
-      output[3] = lower[num];
-   else
-      output[3] = upper[num];
-   
-  num = Math.floor(uncertain.length * Math.random());
-  output[4] = uncertain[num];
+    h3 {
+      color: #374151;
+      margin-top: 24px;
+    }
 
-  // Fill out the rest of the password
-   
-  for (i=5; i<N; i++) {
-    num = Math.floor(M * Math.random());
-    output[i]=tab[num];
-  }
- 
-  // Display the result
-   
-  document.getElementById("output").innerHTML = output.join("").toString();
-  document.getElementById("numLength").value = N;
+    p {
+      margin-bottom: 16px;
+    }
 
-  // Copy the result to the clipboard
-  
-  navigator.clipboard.writeText(output.join("").toString());
-}
- 
-</script>
+    .info-box {
+      background: #f8fafc;
+      border-left: 4px solid #1f4e79;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+
+    .select {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 8px;
+    }
+
+    input[type="number"] {
+      margin-top: 10px;
+    }
+  </style>
+
+  <script type="text/javascript">
+
+    function myFunction() {
+      var upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      var lower = "abcdefghijklmnopqrstuvwxyz";
+      var letters = upper + lower;
+      var digits = "23456789";
+      var symbols = "!@-_+=:;,.?";
+      var uncertain = "l1O0";
+      var tab = letters + digits + symbols + uncertain;
+      var N = document.getElementById("numLength").valueAsNumber;
+      var M = tab.length;
+      var i, num;
+      var output = [];
+
+      // Minimum password length is 12, maximum is 32
+      if (N < 12)
+        N = 12;
+      if (N > 32)
+        N = 32;
+
+      // Grab a character from each group to make it strong
+
+      num = Math.floor(52 * Math.random());
+      output[0] = letters[num];
+
+      num = Math.floor(symbols.length * Math.random());
+      output[1] = symbols[num];
+
+      num = Math.floor(digits.length * Math.random());
+      output[2] = digits[num];
+
+      num = Math.floor(26 * Math.random());
+      var c = output[0];
+      if (c === c.toUpperCase())
+        output[3] = lower[num];
+      else
+        output[3] = upper[num];
+
+      num = Math.floor(uncertain.length * Math.random());
+      output[4] = uncertain[num];
+
+      // Fill out the rest of the password
+
+      for (i = 5; i < N; i++) {
+        num = Math.floor(M * Math.random());
+        output[i] = tab[num];
+      }
+
+      // Display the result
+
+      document.getElementById("output").innerHTML = output.join("").toString();
+      document.getElementById("numLength").value = N;
+
+      // Copy the result to the clipboard
+
+      navigator.clipboard.writeText(output.join("").toString());
+    }
+  </script>
 
 </head>
+
 <body>
-<h2>
-Generate a random password string with the specified length.
-</h2>
+  <div class="app">
+    <div class="card">
+      <h2>
+        Generate a random password string with the specified length.
+      </h2>
+      <div class="select">
+        <label for="numLength">
+          <strong>Specify the password length</strong>
+        </label>
+        <br>
+        <input id="numLength" type="number" min="12" max="32" size="2" value="16">
+      </div>
 
-<form>
-<input id="numLength" type="number" min="12" max="32" size="2" value="16">
-</form>
-
-<p id="prompt">Click the button to create a password</p>
-<p id="output">&nbsp;</p>
-<button type="button" onClick="myFunction()">Get password</button>
+      <p id="prompt">Click the button to create a password.
+        The new password will be copied to the clipboard.</p>
+      <p id="output">&nbsp;</p>
+      <button type="button" onClick="myFunction()">Get password</button>
+    </div>
+  </div>
 </body>
+
 </html>
