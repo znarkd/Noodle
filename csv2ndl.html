@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Copyright (c) 2026 Dan Kranz.  All rights reserved. -->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>csv2ndl</title>
+  <meta name="description" content="CSV to Noodle database">
+  <meta name="keywords" content="ARMR, Noodle, data, database">
+  <meta name="author" content="Dan Kranz">
+  <meta name="version" content="November 10, 2026">
+  <script src="../libs/Roots.js"></script>
+  <script src="../libs/Noodle.js"></script>
+  <script src="../libs/RootsIO.js"></script>
+  <script src="../libs/NoodleDatabase.js"></script>
+
+  <style>
+    .hide {
+      display: none !important
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #1f4e79;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: #374151;
+      margin-top: 24px;
+    }
+
+    p {
+      margin-bottom: 16px;
+    }
+
+    ol {
+      padding-left: 24px;
+    }
+
+    ol li {
+      margin-bottom: 18px;
+    }
+
+    .field-title {
+      font-weight: 600;
+      color: #1f4e79;
+    }
+
+    .info-box {
+      background: #f8fafc;
+      border-left: 4px solid #1f4e79;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th {
+      background: #1f4e79;
+      color: white;
+      text-align: left;
+      padding: 10px;
+    }
+
+    td {
+      border: 1px solid #d1d5db;
+      padding: 10px;
+    }
+
+    tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    .file-select {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 8px;
+    }
+
+    input[type="file"] {
+      margin-top: 10px;
+    }
+
+    .output-code {
+      max-width: 100%;
+      background: #f8fafc;
+    }
+  </style>
+</head>
+
+<script type="text/javascript">
+
+  var ndl;
+  var db;
+  var output;
+  var outputName;
+
+  window.onload = function () {
+    document.getElementById("specFile").addEventListener("change", function () {
+      specFileSelected(this.files);
+    });
+    document.getElementById("dataFile").addEventListener("change", function () {
+      dataFileSelected(this.files);
+    });
+    document.getElementById("saveButton").addEventListener("click", function () {
+      saveFile();
+    });
+    document.getElementById("cancelButton").addEventListener("click", function () {
+      saveCancled();
+    })
+  }
+
+  var specFileSelected = function (files) {
+    let currentFile = files[0];
+    if (currentFile)
+      Roots.GetLocalFile(currentFile, specFileLoaded);
+  }
+
+  var specFileLoaded = function (file) {
+    let data = Roots.parseCSV(file.data, ',');
+    ndl = new NoodleDatabase();
+
+    let nline = data.length;
+    for (let line = 0; line < nline; line++) {
+      if (data[line][0].length != 0) {
+        let field = ndl.createField(data[line][0], data[line][1], data[line][2], data[line][3]);
+        ndl.AddField(field);
+      }
+    }
+    ndl.createDefaultScreen();
+
+    document.getElementById("source-screen").classList.toggle("hide", true);
+    document.getElementById("input-screen").classList.toggle("hide", false);
+  }
+
+  var dataFileSelected = function (files) {
+    let currentFile = files[0];
+    if (currentFile)
+      Roots.GetLocalFile(currentFile, dataFileLoaded);
+  }
+
+  var dataFileLoaded = function (file) {
+    let fn = file.name.replace(/\.[^/.]+$/, "");
+    ndl.SetBaseName(fn);
+    outputName = fn + ".ndl";
+
+    let sep = Roots.initCSV(file.data);
+    let data = Roots.parseCSV(file.data, sep);
+
+    // The first row of the input file contains the column labels
+    let labels = data.shift();
+    let nf = labels.length;
+
+    db = new Noodle(ndl);
+
+    // Map input columns to output columns
+    let fieldMap = [];
+    for (let i = 0; i < nf; i++) {
+      fieldMap[i] = db.BFI(labels[i])
+    }
+
+    // Create a data view for entering data into the new database
+    db.InitializeView();
+    let n = db.FieldCount();
+    for (let i = 0; i < n; i++) {
+      db.EnterColumnar(i + 1);
+    }
+    db.GenerateView();
+
+    let nline = data.length;
+    for (let line = 0; line < nline; line++) {
+      if (line != 0)
+        db.CreateNewLineOnPage(1);
+      for (let k = 0; k < nf; k++) {
+        if (fieldMap[k] != 0)
+          db.PutValue(data[line][k], 1, line + 1, fieldMap[k]);
+      }
+    }
+
+    output = db.stringify();
+    document.getElementById("outputCode").innerText = output;
+
+    document.getElementById("input-screen").classList.toggle("hide", true);
+    document.getElementById("save-screen").classList.toggle("hide", false);
+  }
+
+  var saveCancled = function () {
+    document.getElementById("outputMessage").innerText = "Save canceled.";
+    document.getElementById("save-screen").classList.toggle("hide", true);
+    document.getElementById("message-screen").classList.toggle("hide", false);
+  }
+
+  var saveFile = async function () {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: outputName
+      });
+
+      const writable = await handle.createWritable();
+      await writable.write(output);
+      await writable.close();
+      document.getElementById("outputMessage").innerText = "Done!";
+    }
+    catch (error) {
+      if (error.name === "AbortError")
+        document.getElementById("outputMessage").innerText = "User canceled the save operation.";
+      else if (error.message === "window.showSaveFilePicker is not a function")
+        document.getElementById("outputMessage").innerText = "Local file save is not supported by this browser.";
+      else
+        document.getElementById("outputMessage").innerText = error.message;
+    }
+
+    document.getElementById("save-screen").classList.toggle("hide", true);
+    document.getElementById("outputCode").classList.toggle("hide", true);
+    document.getElementById("message-screen").classList.toggle("hide", false);
+  }
+</script>
+
+<body>
+  <div class="app">
+    <div id="source-screen" class="card">
+
+      <h2>Convert a CSV File to a Noodle Database</h2>
+
+      <div class="file-select">
+        <label for="specFile">
+          <strong>Select Output Specification File</strong>
+        </label>
+        <br>
+        <input type="file" id="specFile">
+      </div>
+
+      <p>
+        Select an output specification file that defines the structure of the new database.
+        Each line in the specification file contains a comma-separated field definition.
+      </p>
+
+      <div class="info-box">
+        Each field definition requires four attributes:
+        <strong>Field Length</strong>,
+        <strong>Data Type</strong>,
+        <strong>Field Name</strong>, and
+        <strong>Display Width</strong>.
+      </div>
+
+      <ol>
+        <li>
+          <span class="field-title">Field Length (Bytes)</span><br>
+          Specifies the number of bytes allocated to the field in the Noodle database.
+        </li>
+
+        <li>
+          <span class="field-title">Data Type</span><br>
+          The first character must identify the field type using one of the values below.
+        </li>
+      </ol>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>B</strong> - Binary Integer</td>
+            <td>Whole numbers such as 1, 58, -25, or 3000.</td>
+          </tr>
+          <tr>
+            <td><strong>R</strong> - Real Number</td>
+            <td>Floating-point values such as 1.245, -3.0, or 10.5.</td>
+          </tr>
+          <tr>
+            <td><strong>D</strong> - Date</td>
+            <td>Date values such as 7/22/93 or July 22, 1993.</td>
+          </tr>
+          <tr>
+            <td><strong>M</strong> - Date and Time</td>
+            <td>Date and Time in milliseconds</td>
+          </tr>
+          <tr>
+            <td><strong>Z</strong> - Zero-Filled Integer</td>
+            <td>Fixed-width numbers such as 0123, 0001, or 5432.</td>
+          </tr>
+          <tr>
+            <td><strong>T</strong> - Tabular</td>
+            <td>Text or character string data.</td>
+          </tr>
+          <tr>
+            <td><strong>E</strong> - Elemental data</td>
+            <td>Data stored as found in the source file</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box">
+        <strong>T</strong> types must include a numeric suffix indicating the
+        associated table number.<br>
+        <strong>R</strong> types must include a numeric suffix
+        specifying the number of decimal places to display.
+      </div>
+
+      <ol start="3">
+        <li>
+          <span class="field-title">Field Name</span><br>
+          An alphanumeric identifier. Names may contain letters and numbers and
+          should begin with a letter.
+        </li>
+
+        <li>
+          <span class="field-title">Display Width</span><br>
+          Specifies the column width used when displaying the field.
+        </li>
+      </ol>
+      <div class="info-box">
+        <strong><u>Example</u></strong><br>
+        <code>
+        2,B,Seq,2<br>
+        2,T3,Item,16<br>
+        5,E,Space,5<br>
+        1,T1,Category,9<br>
+        1,B,Count,5
+        </code>
+      </div>
+    </div>
+
+    <div id="input-screen" class="card hide">
+      <p>Select the input data file.</p>
+      <form>
+        <input type="file" id="dataFile" />
+      </form>
+    </div>
+
+    <div id="save-screen" class="hide">
+      <div class="card">
+        Save the output?
+        <button id="saveButton">Save</button>
+        <button id="cancelButton">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <code id="outputCode" class="output-code"></code>
+
+  <div id="message-screen" class="app card info-box hide">
+    <span id="outputMessage"></span>
+  </div>
+
+</html>

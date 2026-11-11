@@ -1,8 +1,8 @@
 /*
  * Use Noodle to construct dynamic data views of tabular data.
  * It provides set-based data viewing and updates without SQL.
- * Copyright (c) 2014-present  Dan Kranz
- * Release: October 6, 2021
+ * Copyright (c) 2014 Dan Kranz.  All rights reserved.
+ * Release: November 9, 2026
  */
 
 function Noodle(dataArray, labels) {

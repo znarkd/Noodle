@@ -1,7 +1,7 @@
 /*
  * Roots.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: December 13, 2022
+ * Release: December 22, 2022
  */
 
 var Roots = Roots || {};
@@ -1483,6 +1483,34 @@ Roots.srmoveArray = function(sorti, arr) {
 
   for (i=0; i < n; i++)
     arr[i] = output[i];
+}
+
+// Re-structure block.
+// cplDelta bytes are added to the right of each block line.
+// The new area is initialized with the byte value pad.
+
+Roots.strech = function(block, cpl, nline, cplDelta, pad) {
+  var n, sf=[], df=[];
+
+  if (nline == 0 || cplDelta == 0)
+    return cpl;
+
+  // Create vacancies on top
+
+  sf[0] = 1;
+  sf[1] = df[1] = nline * cpl;
+  df[0] = nline * cplDelta + 1;
+  Roots.lgmove(block, sf[1], sf, block, df[1], df, 1, "\0");
+
+  // Re-build all nlines with cplDelta on the right
+
+  sf[0] = df[0];
+  sf[1] = cpl;
+  df[0] = 1;
+  df[1] = n = cpl + cplDelta;
+  Roots.lgmove(block, cpl, sf, block, n, df, nline, pad);
+
+  return n;
 }
 
 // Prune by bit-string.

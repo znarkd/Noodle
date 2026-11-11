@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
- * Copyright (c) 2018-present  Dan Kranz
- * Release: December 21, 2022
+ * Copyright (c) 2018 Dan Kranz.  All rights reserved.
+ * Release: November 9, 2026
  */
 
 function NoodleDatabase(stream) {
@@ -13,29 +13,33 @@ function NoodleDatabase(stream) {
   var blkfld = [];
 
   var myself = this;
-    
+
   // Utility functions
-  
+
   // https://gist.github.com/getify/7325764
-  convertBinaryStringToUint8Array = function(bStr) {
+  convertBinaryStringToUint8Array = function (bStr) {
     var i, len = bStr.length, u8_array = new Uint8Array(len);
-    for (i=0; i < len; i++) {
+    for (i = 0; i < len; i++) {
       u8_array[i] = bStr.charCodeAt(i);
     }
     return u8_array;
   }
-  
-  convertUint8ArrayToBinaryString = function(u8Array) {
+
+  convertUint8ArrayToBinaryString = function (u8Array) {
     var i, len = base.cpl * base.nline, b_str = "";
-    for (i=0; i < len; i++) {
+    for (i = 0; i < len; i++) {
       b_str += String.fromCharCode(u8Array[i]);
     }
     return b_str;
   }
-  
-  validateField = function(i) {
+
+  validateField = function (i) {
+    var fldName = field[i].name ?? "";
+    if (fldName === "")
+      throw ("Field name cannot be blank");
+
     if (field[i].width <= 0)
-      throw("display width < 1");
+      throw ("Display width must be 1 or greater");
 
     switch (field[i].type) {
       // Tabular
@@ -47,39 +51,39 @@ function NoodleDatabase(stream) {
       // Binary - displayed with leading zeros
       case 'Z':
         if (field[i].cpl <= 0 || field[i].cpl > 4)
-          throw("Invalid cpl for Type-" + field[i].type);
+          throw ("Invalid cpl for Type-" + field[i].type);
         break;
 
       // Date
       case 'D':
         if (field[i].cpl != 4)
-          throw("cpl for Type-D must equal 4");
+          throw ("cpl for Type-D must equal 4");
         break;
 
       // Date & Time in milliseconds
       case 'M':
         if (field[i].cpl != 8)
-          throw("cpl for Type-M must equal 8");
+          throw ("cpl for Type-M must equal 8");
         break;
 
       // Real
       case 'R':
         if (field[i].cpl != 4 && field[i].cpl != 8)
-          throw("cpl for Type-R must be 4 or 8");
+          throw ("cpl for Type-R must be 4 or 8");
         if (field[i].decimals === undefined)
-          throw("Type-R requires decimals value")
+          throw ("Type-R requires decimals value")
 
       // Elemental data (stored as found in data source)
       case 'E':
         break;
 
       default:
-        throw("Invalid data type");
+        throw ("Invalid data type");
     }
   }
-  
+
   // Constructor
-  
+
   if (stream === undefined || stream === null) {
     name = "new";
     base.cpl = 0;
@@ -95,11 +99,11 @@ function NoodleDatabase(stream) {
       base.block = convertBinaryStringToUint8Array(window.atob(base.block));
       table = ary.NoodleDatabase.table;
       ndlEditScreen = ary.NoodleDatabase.screen;
-      
+
       // Save field's location in base.block and perform validity checks
 
       var start = 1;
-      for (var i=0; i < field.length; i++) {
+      for (var i = 0; i < field.length; i++) {
         blkfld[i] = [];
         blkfld[i][0] = start;
         blkfld[i][1] = field[i].cpl;
@@ -108,23 +112,80 @@ function NoodleDatabase(stream) {
         validateField(i);
       }
     }
-    catch(err) {
-      throw("NoodleDatabase: Invalid format. " + err);
+    catch (err) {
+      throw ("NoodleDatabase: Invalid format. " + err);
     }
   }
-  
+
+  this.GetBaseName = function () {
+    return name;
+  }
+
+  this.SetBaseName = function (newName) {
+    name = newName;
+  }
+
+  // Create a field object
+
+  this.createField = function (cpl, dataType, fieldName, displayWidth) {
+    var field = {};
+    field.cpl = Number(cpl);
+    field.type = dataType;
+    field.name = fieldName.trim();
+    field.width = Number(displayWidth);
+
+
+    // Get table index number
+    if (dataType.startsWith("T")) {
+      field.type = "T";
+      field.tindex = Number(dataType.slice(1));
+    }
+
+    // RTYPE decimals
+    else if (dataType.startsWith("R")) {
+      field.type = "R";
+      field.decimals = Number(dataType.slice(1));
+    }
+
+    return field;
+  }
+
+  // Append a new field to the database
+
+  this.AddField = function (newField) {
+    var i = field.length;
+    field.push(newField);
+    validateField(i);
+
+    blkfld.push([]);
+    blkfld[i][0] = base.cpl + 1;
+    blkfld[i][1] = newField.cpl;
+
+    if (base.nline == 0)
+      base.cpl += newField.cpl;
+    else
+      base.cpl = Roots.strech(base.block, base.cpl, base.nline, newField.cpl, "\0");
+
+    if (newField.type === 'T') {
+      if (table[newField.tindex - 1] == undefined) {
+        table[newField.tindex - 1] = {};
+        table[newField.tindex - 1].item = [];
+      }
+    }
+  }
+
   // Return the number of rows (lines) in the database
 
-  this.length = function() {
+  this.length = function () {
     return base.nline;
   }
-  
+
   // Return the field names in an array
-  
-  this.GetFieldLabels = function() {
+
+  this.GetFieldLabels = function () {
     var i, labels = [];
-    
-    for (i=0; i < field.length; i++) {
+
+    for (i = 0; i < field.length; i++) {
       labels.push(field[i].name);
     }
     return labels;
@@ -132,32 +193,49 @@ function NoodleDatabase(stream) {
 
   // Return a field type
 
-  this.GetDataType = function(bfi) {
-    return field[bfi-1].type;
+  this.GetDataType = function (bfi) {
+    return field[bfi - 1].type;
   }
-  
+
   // Get the database's edit screens
-  
-  this.GetEditScreens = function() {
+
+  this.GetEditScreens = function () {
     return ndlEditScreen;
   }
-  
+
+  // Create a default screen if none exist
+
+  this.createDefaultScreen = function () {
+    if (ndlEditScreen.length > 0)
+      return;
+
+    var screen = {};
+    screen.name = "Raw Data";
+    screen.columns = [];
+
+    for (let i = 0; i < field.length; i++) {
+      screen.columns[i] = {};
+      screen.columns[i].field = field[i].name;
+    }
+    ndlEditScreen[0] = screen;
+  }
+
   // Compare field values
-  
+
   // Note: The list parameter is included only for compatibility with Roots.
-  
-  this.Compare = function(list, a, b, sortColumns) {
-    var i, k, aval, bval, v=[], rc;
-    for (i=0; i < sortColumns.length; i++) {
-      switch(field[sortColumns[i]-1].type) {
+
+  this.Compare = function (list, a, b, sortColumns) {
+    var i, k, aval, bval, v = [], rc;
+    for (i = 0; i < sortColumns.length; i++) {
+      switch (field[sortColumns[i] - 1].type) {
         case 'T':
         case 'B':
         case 'D':
         case 'Z':
-          v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0];
-          v[1] = blkfld[sortColumns[i]-1][1];
+          v[0] = (a * base.cpl) + blkfld[sortColumns[i] - 1][0];
+          v[1] = blkfld[sortColumns[i] - 1][1];
           aval = Roots.bunpac(base.block, v);
-          v[0] = (b * base.cpl) + blkfld[sortColumns[i]-1][0];
+          v[0] = (b * base.cpl) + blkfld[sortColumns[i] - 1][0];
           bval = Roots.bunpac(base.block, v);
           rc = aval - bval;
           if (rc != 0)
@@ -165,51 +243,51 @@ function NoodleDatabase(stream) {
           break;
         case 'M':
         case 'R':
-          v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0];
-          v[1] = blkfld[sortColumns[i]-1][1];
+          v[0] = (a * base.cpl) + blkfld[sortColumns[i] - 1][0];
+          v[1] = blkfld[sortColumns[i] - 1][1];
           aval = Roots.runpac(base.block, v);
-          v[0] = (b * base.cpl) + blkfld[sortColumns[i]-1][0];
+          v[0] = (b * base.cpl) + blkfld[sortColumns[i] - 1][0];
           bval = Roots.runpac(base.block, v);
           rc = aval - bval;
           if (rc != 0)
             return rc;
           break;
         case 'E':
-          v[0] = (a * base.cpl) + blkfld[sortColumns[i]-1][0] - 1;
-          v[1] = blkfld[sortColumns[i]-1][1];
-          aval = base.block.slice(v[0], v[0]+v[1]);
-          v[0] = (b * base.cpl) + blkfld[sortColumns[i]-1][0] - 1;
-          bval = base.block.slice(v[0], v[0]+v[1]);
-          for (k=0; k < v[1]; k++) {
+          v[0] = (a * base.cpl) + blkfld[sortColumns[i] - 1][0] - 1;
+          v[1] = blkfld[sortColumns[i] - 1][1];
+          aval = base.block.slice(v[0], v[0] + v[1]);
+          v[0] = (b * base.cpl) + blkfld[sortColumns[i] - 1][0] - 1;
+          bval = base.block.slice(v[0], v[0] + v[1]);
+          for (k = 0; k < v[1]; k++) {
             if (aval[k] != bval[k])
               return aval[k] - bval[k];
           }
           break;
         default:
-          throw("NoodleDatabase: Invalid data type");
+          throw ("NoodleDatabase: Invalid data type");
       }
     }
     return 0;
   }
-  
+
   // Get a field value from the database
-  
-  this.LineValue = function(line, bfi) {
+
+  this.LineValue = function (line, bfi) {
     if (line <= 0 || line > base.nline)
-      throw("NoodleDatabase: Invalid line number");
+      throw ("NoodleDatabase: Invalid line number");
     if (bfi > field.length)
-      throw("NoodleDatabase: Invalid field index");
-    
-    var num, v=[];
-    v[0] = ((line-1) * base.cpl) + blkfld[bfi-1][0];
-    v[1] = blkfld[bfi-1][1];
-    
-    switch(field[bfi-1].type) {
+      throw ("NoodleDatabase: Invalid field index");
+
+    var num, v = [];
+    v[0] = ((line - 1) * base.cpl) + blkfld[bfi - 1][0];
+    v[1] = blkfld[bfi - 1][1];
+
+    switch (field[bfi - 1].type) {
       case 'T':
         num = Roots.bunpac(base.block, v);
         if (num === 0)
           return "";
-        return table[field[bfi-1].tindex-1].item[num-1];
+        return table[field[bfi - 1].tindex - 1].item[num - 1].toString();
       case 'B':
         num = Roots.bunpac(base.block, v);
         return num.toString();
@@ -217,9 +295,9 @@ function NoodleDatabase(stream) {
         num = Roots.bunpac(base.block, v);
         if (num === 0)
           return "";
-        var y = Math.trunc(num/10000);
-        var m = "0" + Math.trunc((num%10000)/100);
-        var d = "0" + Math.trunc(num%100);
+        var y = Math.trunc(num / 10000);
+        var m = "0" + Math.trunc((num % 10000) / 100);
+        var d = "0" + Math.trunc(num % 100);
         return m.slice(-2) + '/' + d.slice(-2) + '/' + y;
       case 'M':
         num = Roots.runpac(base.block, v);
@@ -229,67 +307,67 @@ function NoodleDatabase(stream) {
         return num.toLocaleString();
       case 'Z':
         num = Roots.bunpac(base.block, v);
-        return num.toString().padStart(field[bfi-1].width, '0');
+        return num.toString().padStart(field[bfi - 1].width, '0');
       case 'R':
         num = Roots.runpac(base.block, v);
-        return num.toFixed(field[bfi-1].decimals);
+        return num.toFixed(field[bfi - 1].decimals);
       case 'E':
         var decoder = new TextDecoder("utf-8");
-        return decoder.decode(base.block.slice(v[0]-1, v[0]-1+v[1]));
+        return decoder.decode(base.block.slice(v[0] - 1, v[0] - 1 + v[1]));
       default:
-        throw("NoodleDatabase: Invalid data type");
+        throw ("NoodleDatabase: Invalid data type");
     }
   }
-  
+
   // Add a new line (row) to the database
-  
-  this.push = function() {
+
+  this.push = function () {
     if (base.cpl <= 0)
-      throw("NoodleDatabase: base cpl < 1");
-    
+      throw ("NoodleDatabase: base cpl < 1");
+
     // Allocate memory if needed.  Allow room for additional growth.
-    var need = base.cpl * (base.nline+1);
+    var need = base.cpl * (base.nline + 1);
     if (need > base.block.length)
-      base.block = Roots.transfer(base.block, base.cpl * (base.nline+200));
-    
+      base.block = Roots.transfer(base.block, base.cpl * (base.nline + 200));
+
     // Add the new line
     base.nline += 1;
 
     // Blank the new line per field type
-    for (var i=0; i < field.length; i++) {
+    for (var i = 0; i < field.length; i++) {
       if (field[i].type === 'E')
-        this.PutLineValue(" ", base.nline, i+1);
+        this.PutLineValue(" ", base.nline, i + 1);
     }
 
     return base.nline;
   }
-  
+
   // Save a value to the database
 
-  const _maxval = [255,65535,16777215,2147483647];
-  
-  this.PutLineValue = function(val, line, bfi) {
-    if (line <= 0 || line > base.nline)
-      throw("NoodleDatabase: Invalid line number");
-    if (bfi > field.length)
-      throw("NoodleDatabase: Invalid field index");
-    
-    var v=[];
-    v[0] = ((line-1) * base.cpl) + blkfld[bfi-1][0];
-    v[1] = blkfld[bfi-1][1];
+  const _maxval = [255, 65535, 16777215, 2147483647];
 
-    switch(field[bfi-1].type) {
+  this.PutLineValue = function (val, line, bfi) {
+    if (line <= 0 || line > base.nline)
+      throw ("NoodleDatabase: Invalid line number");
+    if (bfi > field.length)
+      throw ("NoodleDatabase: Invalid field index");
+
+    var v = [];
+    v[0] = ((line - 1) * base.cpl) + blkfld[bfi - 1][0];
+    v[1] = blkfld[bfi - 1][1];
+
+    switch (field[bfi - 1].type) {
       case 'T':
         var index = 0;
         // remove trailing blanks
-        var str = val.replace(/\s+$/,'');
+        var str = val.replace(/\s+$/, '');
         if (str.length > 0) {
-          index = table[field[bfi-1].tindex-1].item.indexOf(str) + 1;
+          index = table[field[bfi - 1].tindex - 1].item.indexOf(str) + 1;
           if (index === 0)
-            index = table[field[bfi-1].tindex-1].item.push(str);
+            index = table[field[bfi - 1].tindex - 1].item.push(str);
         }
         if (index > _maxval[v[1]])
-          throw("Table index exceeds field's cpl");
+          throw ("Table index exceeds field's cpl");
         else
           Roots.pacbin(index, base.block, v);
         break;
@@ -318,7 +396,7 @@ function NoodleDatabase(stream) {
           var y = date.getFullYear();
           var m = date.getMonth() + 1;
           var d = date.getDate();
-          var ymd=(y*10000)+(m*100)+d;
+          var ymd = (y * 10000) + (m * 100) + d;
           Roots.pacbin(ymd, base.block, v);
         }
         break;
@@ -347,31 +425,31 @@ function NoodleDatabase(stream) {
         if (len > v[1]) len = v[1];
         var rest = v[1] - len;
         var encoder = new TextEncoder("utf-8");
-        var i = v[0]-1, j=0;
+        var i = v[0] - 1, j = 0;
         while (len-- > 0)
           base.block[i++] = encoder.encode(vstr[j++]);
         while (rest-- > 0)
           base.block[i++] = encoder.encode(' ');
         break;
       default:
-        throw("NoodleDatabase: Invalid data type");
+        throw ("NoodleDatabase: Invalid data type");
     }
     return true;
   }
 
   // Select database rows by value
 
-  valuePrune = function(p) {
-    var bstr, i, index, tindex, v=[];
-    var hits=[0], outlst=[0], date;
+  valuePrune = function (p) {
+    var bstr, i, index, tindex, v = [];
+    var hits = [0], outlst = [0], date;
 
-    switch(field[p.bfi-1].type) {
+    switch (field[p.bfi - 1].type) {
       case 'T':
-        bstr  = new Uint8Array(table[field[p.bfi-1].tindex-1].item.length/8+1);
-        tindex = field[p.bfi-1].tindex;
-        for (i=0; i < p.values.length; i++) {
+        bstr = new Uint8Array(table[field[p.bfi - 1].tindex - 1].item.length / 8 + 1);
+        tindex = field[p.bfi - 1].tindex;
+        for (i = 0; i < p.values.length; i++) {
           if (p.values[i].length > 0) {
-            index = table[tindex-1].item.indexOf(p.values[i]) + 1;
+            index = table[tindex - 1].item.indexOf(p.values[i]) + 1;
             if (index > 0) {
               v[0] = index;
               v[1] = 1;
@@ -379,64 +457,64 @@ function NoodleDatabase(stream) {
             }
           }
           else {
-            v[0]=v[1]=0;
-            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            v[0] = v[1] = 0;
+            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi - 1], v, p.first, p.nextLine, hits);
             Roots.conlst(outlst, hits, p.nextLine);
           }
         }
-        Roots.strprn(base.block, base.cpl, blkfld[p.bfi-1], bstr, p.first, p.nextLine, hits);
+        Roots.strprn(base.block, base.cpl, blkfld[p.bfi - 1], bstr, p.first, p.nextLine, hits);
         Roots.conlst(outlst, hits, p.nextLine);
         break;
       case 'B':
       case 'Z':
-        for (i=0; i < p.values.length; i++) {
+        for (i = 0; i < p.values.length; i++) {
           if (Number(p.values[i]) != NaN) {
-            v[0]=v[1]=Math.trunc(p.values[i]);
-            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            v[0] = v[1] = Math.trunc(p.values[i]);
+            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi - 1], v, p.first, p.nextLine, hits);
             Roots.conlst(outlst, hits, p.nextLine);
           }
         }
         break;
       case 'D':
-        for (i=0; i < p.values.length; i++) {
+        for (i = 0; i < p.values.length; i++) {
           date = new Date(p.values[i]);
           if (date != "Invalid Date") {
-            v[0]=v[1]=(date.getFullYear()*10000)+((date.getMonth()+1)*100)+date.getDate();
-            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            v[0] = v[1] = (date.getFullYear() * 10000) + ((date.getMonth() + 1) * 100) + date.getDate();
+            Roots.rngprn(base.block, base.cpl, blkfld[p.bfi - 1], v, p.first, p.nextLine, hits);
             Roots.conlst(outlst, hits, p.nextLine);
           }
         }
         break;
       case 'M':
-        for (i=0; i < p.values.length; i++) {
+        for (i = 0; i < p.values.length; i++) {
           date = new Date(p.values[i]);
           if (date != "Invalid Date") {
             v[0] = date;
             v[1] = date + 86399999;   // disregard time
-            Roots.rgrprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            Roots.rgrprn(base.block, base.cpl, blkfld[p.bfi - 1], v, p.first, p.nextLine, hits);
             Roots.conlst(outlst, hits, p.nextLine);
           }
         }
         break;
       case 'R':
-        for (i=0; i < p.values.length; i++) {
+        for (i = 0; i < p.values.length; i++) {
           if (Number(p.values[i]) != NaN) {
-            v[0]=v[1]=p.values[i];
-            Roots.rgrprn(base.block, base.cpl, blkfld[p.bfi-1], v, p.first, p.nextLine, hits);
+            v[0] = v[1] = p.values[i];
+            Roots.rgrprn(base.block, base.cpl, blkfld[p.bfi - 1], v, p.first, p.nextLine, hits);
             Roots.conlst(outlst, hits, p.nextLine);
           }
         }
         break;
       case 'E':
-        v[0]=1;
-        for (i=0; i < p.values.length; i++) {
-          v[1]=p.values[i].length;
-          Roots.txtprn(base.block, base.cpl, blkfld[p.bfi-1], p.values[i], v, p.first, p.nextLine, hits);
+        v[0] = 1;
+        for (i = 0; i < p.values.length; i++) {
+          v[1] = p.values[i].length;
+          Roots.txtprn(base.block, base.cpl, blkfld[p.bfi - 1], p.values[i], v, p.first, p.nextLine, hits);
           Roots.conlst(outlst, hits, p.nextLine);
         }
         break;
       default:
-        throw("NoodleDatabase: Invalid data type");
+        throw ("NoodleDatabase: Invalid data type");
     }
     p.match[0] = outlst[0];
     return 0;
@@ -444,39 +522,39 @@ function NoodleDatabase(stream) {
 
   // Select database rows via text scanning
 
-  scanPrune = function(p) {
-    var bstr, i, index, tindex, v=[];
-    var hits=[0], outlst=[0];
-    var tlines, tfirst=[0], tmatch=[0], tnextt=[];
+  scanPrune = function (p) {
+    var bstr, i, index, tindex, v = [];
+    var hits = [0], outlst = [0];
+    var tlines, tfirst = [0], tmatch = [0], tnextt = [];
 
-    switch(field[p.bfi-1].type) {
+    switch (field[p.bfi - 1].type) {
       case 'T':
-        tindex = field[p.bfi-1].tindex;
-        tlines = table[tindex-1].item.length;
-        bstr  = new Uint8Array(tlines/8+1);
+        tindex = field[p.bfi - 1].tindex;
+        tlines = table[tindex - 1].item.length;
+        bstr = new Uint8Array(tlines / 8 + 1);
         Roots.xpand(tnextt, tlines);
         Roots.seqlst(tfirst, tlines, tnextt);
-        v[0]=1;
-        for (i=0; i < p.values.length; i++) {
+        v[0] = 1;
+        for (i = 0; i < p.values.length; i++) {
           if (p.values[i].length > 0) {
-            v[1]=p.values[i].length;
-            Roots.scanprArray(table[tindex-1].item, p.values[i], v, tfirst, tnextt, tmatch);
+            v[1] = p.values[i].length;
+            Roots.scanprArray(table[tindex - 1].item, p.values[i], v, tfirst, tnextt, tmatch);
             Roots.setbit(tmatch, tnextt, bstr);
           }
         }
-        Roots.strprn(base.block, base.cpl, blkfld[p.bfi-1], bstr, p.first, p.nextLine, hits);
+        Roots.strprn(base.block, base.cpl, blkfld[p.bfi - 1], bstr, p.first, p.nextLine, hits);
         Roots.conlst(outlst, hits, p.nextLine);
         break;
       case 'E':
-        v[0]=1;
-        for (i=0; i < p.values.length; i++) {
-          v[1]=p.values[i].length;
-          Roots.scanpr(base.block, base.cpl, blkfld[p.bfi-1], p.values[i], v, p.first, p.nextLine, hits);
+        v[0] = 1;
+        for (i = 0; i < p.values.length; i++) {
+          v[1] = p.values[i].length;
+          Roots.scanpr(base.block, base.cpl, blkfld[p.bfi - 1], p.values[i], v, p.first, p.nextLine, hits);
           Roots.conlst(outlst, hits, p.nextLine);
         }
         break;
       default:
-        throw("NoodleDatabase: Invalid data type for scanPrune");
+        throw ("NoodleDatabase: Invalid data type for scanPrune");
     }
     p.match[0] = outlst[0];
     return 0;
@@ -484,7 +562,7 @@ function NoodleDatabase(stream) {
 
   // Main function for creating prune sets
 
-  this.PruneValues = function(pruneData) {
+  this.PruneValues = function (pruneData) {
     switch (pruneData.operation) {
       case "value":
         return valuePrune(pruneData);
@@ -493,7 +571,7 @@ function NoodleDatabase(stream) {
       case "range":
         break;
       case "mask":
-      case "regex":  
+      case "regex":
         break;
       case "compare":
         break;
@@ -506,27 +584,27 @@ function NoodleDatabase(stream) {
 
   // Delete rows from the database
 
-  this.RemoveRows = function(first, nextLine) {
-    var nline=[base.nline];
+  this.RemoveRows = function (first, nextLine) {
+    var nline = [base.nline];
     Roots.delent(base.block, base.cpl, nline, first, nextLine);
     base.nline = nline[0];
   }
 
   // Clean the database and its tables
 
-  cleanDataBase = function() {
-    var i, newi, t, oldt, used, flds, first=[0], sf=[1];
-    var range=[], drop=[];
-    var map=[], nextLine=[], group=[], rank=[], sorti=[];
+  cleanDataBase = function () {
+    var i, newi, t, oldt, used, flds, first = [0], sf = [1];
+    var range = [], drop = [];
+    var map = [], nextLine = [], group = [], rank = [], sorti = [];
 
     // Remove stale table entries
 
     // Look at each table
-    for (t=0; t < table.length; t++) {
+    for (t = 0; t < table.length; t++) {
       used = false;
       flds = [];
-      for (i=0; i < field.length; i++) {
-        if (field[i].tindex-1 === t) {
+      for (i = 0; i < field.length; i++) {
+        if (field[i].tindex - 1 === t) {
           used = true;
           flds.push(blkfld[i]);
         }
@@ -551,13 +629,13 @@ function NoodleDatabase(stream) {
       // Generate table entry deletion map
       Roots.zerout(map);
       Roots.seqlst(first, base.nline, nextLine);
-      for (i=0; i < flds.length; i++)
+      for (i = 0; i < flds.length; i++)
         Roots.idxmap(base.block, base.cpl, flds[i], first, nextLine, map);
-      
+
       // Generate old table's sorti
-      Roots.mrsort(table[t].item, function(list,a,b) {
-          return list[a].localeCompare(list[b]);
-        }, sf, group, nextLine, sorti);
+      Roots.mrsort(table[t].item, function (list, a, b) {
+        return list[a].localeCompare(list[b]);
+      }, sf, group, nextLine, sorti);
 
       // Save the old table length
       oldt = table[t].item.length;
@@ -568,47 +646,47 @@ function NoodleDatabase(stream) {
       drop[0] = 0;
       Roots.rngprnArray(map, range, first, nextLine, drop);
       Roots.delentArray(table[t].item, drop, nextLine);
-      
+
       // Build rank translation.  old-new : rank(sorti)=newi
       Roots.zerout(rank);
       newi = 0;
-      for (i=0; i < oldt; i++) {
-        if (map[sorti[i]-1])
-          rank[sorti[i]-1] = ++newi;
+      for (i = 0; i < oldt; i++) {
+        if (map[sorti[i] - 1])
+          rank[sorti[i] - 1] = ++newi;
       }
 
       // Build sorti for new table given the new rank column
       newi = 0;
-      for (i=0; i < oldt; i++) {
+      for (i = 0; i < oldt; i++) {
         if (rank[i])
-          sorti[rank[i]-1] = ++newi;
-      }      
+          sorti[rank[i] - 1] = ++newi;
+      }
 
       // Re-arrange the table, i.e. physically sort it
       Roots.srmoveArray(sorti, table[t].item);
 
       // Update table index values in the database
-      for (i=0; i < flds.length; i++)
+      for (i = 0; i < flds.length; i++)
         Roots.lgmap(base.block, base.cpl, base.nline, flds[i], rank);
     }
   }
 
   // Remove duplicate rows from the database
-  
-  removeDuplicateRows = function() {
-    var i, first=[], ngroup, sf=[1], bstr;
-    var keep=[0], drop=[0], nline=[base.nline];
-    var group=[], nextLine=[];
+
+  removeDuplicateRows = function () {
+    var i, first = [], ngroup, sf = [1], bstr;
+    var keep = [0], drop = [0], nline = [base.nline];
+    var group = [], nextLine = [];
     Roots.xpand(group, base.nline);
     Roots.xpand(nextLine, base.nline);
 
-    _lineCompare = function(list,a,b) {
+    _lineCompare = function (list, a, b) {
       var i, k, aval, bval;
       k = a * base.cpl;
-      aval = base.block.slice(k, k+base.cpl);
+      aval = base.block.slice(k, k + base.cpl);
       k = b * base.cpl;
-      bval = base.block.slice(k, k+base.cpl);
-      for (i=0; i < base.cpl; i++) {
+      bval = base.block.slice(k, k + base.cpl);
+      for (i = 0; i < base.cpl; i++) {
         if (aval[i] != bval[i])
           return aval[i] - bval[i];
       }
@@ -623,10 +701,10 @@ function NoodleDatabase(stream) {
       return;
 
     // Mark duplicate rows for deletion
-    bstr = new Uint8Array(base.nline/8 + 1);
+    bstr = new Uint8Array(base.nline / 8 + 1);
     Roots.zerout(bstr);
-    for (i=0; i < ngroup; i++) {
-      first[0] = nextLine[group[i]-1];
+    for (i = 0; i < ngroup; i++) {
+      first[0] = nextLine[group[i] - 1];
       if (first[0])
         Roots.setbit(first, nextLine, bstr);
     }
@@ -637,10 +715,10 @@ function NoodleDatabase(stream) {
     Roots.delent(base.block, base.cpl, nline, drop, nextLine);
     base.nline = nline[0];
   }
-  
+
   // Convert the database into a text format for data exchange or saving
 
-  this.stringify = function() {
+  this.stringify = function () {
     cleanDataBase();
     removeDuplicateRows();
 
@@ -656,5 +734,5 @@ function NoodleDatabase(stream) {
     ndl.NoodleDatabase.screen = ndlEditScreen;
     return JSON.stringify(ndl);
   }
-  
+
 }
