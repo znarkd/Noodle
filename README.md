@@ -83,7 +83,7 @@ db1.PutValue("Z", page, 0, bfi);
 
 ### Demo
 
-[NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html?rev=20261001) - an unhosted 
+[NoodleApp](https://znarkd.github.io/Noodle/NoodleApp.html?rev=20261113) - an unhosted 
 web app that exhibits Noodle's capabilities.
 
 Select the "Demo" link to view 20,000 rows of sample data.  Try changing data views (screens)
@@ -96,6 +96,12 @@ Use data views to your advantage to minimize data editing chores.
 View and revise your own data by selecting either "Open" or "External Link."
 
 [NoodleApp's Privacy Policy](https://znarkd.github.io/Noodle/Demo_Privacy)
+
+### Tools
+
+[csv2ndl](https://znarkd.github.io/Noodle/csv2ndl.html) - Convert a CSV file to a Noodle Database
+
+[makepass](https://znarkd.github.io/Noodle/makepass.html) - Create a strong password
 
 ### License
 Copyright © [Dan Kranz](https://github.com/znarkd?tab=repositories).  All rights reserved.

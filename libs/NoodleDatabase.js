@@ -1,7 +1,7 @@
 /*
  * The Noodle Database object.
  * Copyright (c) 2018 Dan Kranz.  All rights reserved.
- * Release: November 9, 2026
+ * Release: November 13, 2026
  */
 
 function NoodleDatabase(stream) {
@@ -11,8 +11,9 @@ function NoodleDatabase(stream) {
   var table = [];
   var ndlEditScreen = [];
   var blkfld = [];
-
   var myself = this;
+
+  var displayErrors = true;
 
   // Utility functions
 
@@ -82,6 +83,13 @@ function NoodleDatabase(stream) {
     }
   }
 
+  showErrorMsg = function (msg) {
+    if (displayErrors)
+      alert(msg);
+    else
+      console.log(msg);
+  }
+
   // Constructor
 
   if (stream === undefined || stream === null) {
@@ -115,6 +123,10 @@ function NoodleDatabase(stream) {
     catch (err) {
       throw ("NoodleDatabase: Invalid format. " + err);
     }
+  }
+
+  this.DisplayErrorMessages = function (setting) {
+    displayErrors = setting;
   }
 
   this.GetBaseName = function () {
@@ -377,19 +389,19 @@ function NoodleDatabase(stream) {
           if (Math.trunc(val) <= _maxval[v[1]])
             Roots.pacbin(Math.trunc(val), base.block, v);
           else {
-            alert("The number input is too large");
+            showErrorMsg("The number input is too large");
             return false;
           }
         }
         else {
-          alert("Not a number");
+          showErrorMsg("Not a number: " + val);
           return false;
         }
         break;
       case 'D':
         var date = new Date(val);
         if (isNaN(date.getTime())) {
-          alert("Invalid Date");
+          showErrorMsg("Not a valid date: " + val);
           return false;
         }
         else {
@@ -403,7 +415,7 @@ function NoodleDatabase(stream) {
       case 'M':
         var date = new Date(val);
         if (isNaN(date.getTime())) {
-          alert("Invalid Date");
+          showErrorMsg("Invalid Date");
           return false;
         }
         else {
@@ -415,7 +427,7 @@ function NoodleDatabase(stream) {
           Roots.pacrel(val, base.block, v);
         }
         else {
-          alert("Not a number");
+          showErrorMsg("Not a number: " + val);
           return false;
         }
         break;

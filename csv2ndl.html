@@ -9,7 +9,7 @@
   <meta name="description" content="CSV to Noodle database">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="November 12, 2026">
+  <meta name="version" content="November 13, 2026">
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
   <script src="libs/RootsIO.js"></script>
@@ -170,6 +170,8 @@
     let fn = file.name.replace(/\.[^/.]+$/, "");
     ndl.SetBaseName(fn);
     outputName = fn + ".ndl";
+
+    ndl.DisplayErrorMessages(false);
 
     let sep = Roots.initCSV(file.data);
     let data = Roots.parseCSV(file.data, sep);
