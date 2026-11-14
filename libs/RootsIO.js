@@ -1,7 +1,7 @@
 /*
  * RootsIO.js
  * Copyright (c) 2014-present  Dan Kranz
- * Release: October 1, 2026
+ * Release: November 14, 2026
  */
 
 var Roots = Roots || {};
@@ -34,12 +34,12 @@ Roots.GetLocalFile = function (file, callback) {
 }
 
 // Attempt to determine the seperator character
-// used by a CSV file, either comma, tab, or semicolon.
+// used by a CSV file, either comma, tab, percent sign, or semicolon.
 
 Roots.initCSV = function (text) {
   var i; n = text.length;
   var ch, max;
-  var comma = 0, tab = 0, semicolon = 0, lines = 0;
+  var comma = 0, tab = 0, psign = 0, semicolon = 0, lines = 0;
 
   for (i = 0; i < n; i++) {
     ch = text[i];
@@ -47,6 +47,8 @@ Roots.initCSV = function (text) {
       comma += 1;
     else if (ch === '\t')
       tab += 1;
+    else if (ch === '%')
+      psign += 1;
     else if (ch === ';')
       semicolon += 1;
     else if (ch === '\n') {
@@ -55,11 +57,13 @@ Roots.initCSV = function (text) {
     }
   }
 
-  max = Math.max(tab, comma, semicolon);
+  max = Math.max(tab, comma, psign, semicolon);
   if (comma === max)
     return ',';
   if (semicolon === max)
     return ';';
+  if (psign === max)
+    return '%';
   return ('\t');
 }
 
@@ -183,12 +187,19 @@ var _AppId = '\x39\x34\x35\x38\x34\x37\x35\x35\x32\x34\x37\x39';
 var _scope = 'https://www.googleapis.com/auth/drive.file';
 
 var _accessToken = null;
+var _tokenExpiresAt = 0;
 var _callback;
+
+// 2. Helper to check if token is missing or expired (with a 60s buffer)
+function isTokenValid() {
+  const bufferMs = 60 * 1000;
+  return Boolean(_accessToken && Date.now() < _tokenExpiresAt - bufferMs);
+}
 
 // A helper function that returns a Promise when Google OAuth is completed
 function getGoogleAccessToken(clientId) {
   return new Promise((resolve, reject) => {
-    
+
     // Ensure the Google SDK library has loaded completely
     if (typeof google === "undefined" || !google.accounts?.oauth2) {
       return reject(new Error("Google Identity Services SDK not loaded."));
@@ -203,22 +214,23 @@ function getGoogleAccessToken(clientId) {
         if (response.error) {
           reject(new Error(`Google OAuth error: ${response.error}`));
         } else if (response.access_token) {
-          resolve(response.access_token); 
+          _tokenExpiresAt = Date.now() + Number(response.expires_in) * 1000;
+          resolve(response.access_token);
         }
       },
     });
 
     // Triggers the actual Google sign-in popup window
-    tokenClient.requestAccessToken(); 
+    tokenClient.requestAccessToken();
   });
 }
 
 // Start a Google Drive process
 
 Roots.GDriveStart = async function (callback) {
-  if (!_accessToken) {
+  if (!isTokenValid()) {
     // Waits until the OAuth is complete
-     _accessToken = await getGoogleAccessToken(_clientId);
+    _accessToken = await getGoogleAccessToken(_clientId);
   }
   if (callback) {
     _callback = callback;
@@ -241,7 +253,7 @@ Roots.GDriveSelectFile = function (callback) {
         .setSelectFolderEnabled(true)
         .setMimeTypes("text/csv,text/tab-separated-values,text/plain,application/json")
         .setMode(google.picker.DocsViewMode.LIST);
-      
+
       const picker = new google.picker.PickerBuilder()
         .setAppId(_AppId)
         .setOAuthToken(_accessToken)
@@ -250,7 +262,7 @@ Roots.GDriveSelectFile = function (callback) {
         .addView(sharedWithMeView)
         .setCallback(callback)
         .build();
-        
+
       picker.setVisible(true);
     }
   });
