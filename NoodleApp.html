@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- Copyright (c) 2014 Dan Kranz.  All rights reserved. -->
 
 <head>
   <meta charset="utf-8">
@@ -8,7 +9,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="October 1, 2026">
+  <meta name="version" content="November 14, 2026">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -444,7 +445,7 @@
     #build-screen-form {
       display: -ms-grid;
       display: grid;
-      grid-template-areas: "header header""lists attr""footer footer";
+      grid-template-areas: "header header" "lists attr" "footer footer";
       grid-gap: 0px;
       background-color: gray;
       margin: auto;
@@ -1006,7 +1007,7 @@
         d["Num"] = Math.floor((Math.random() * 100) + 1);
         d["Date"] = randomDate(_startdate, _enddate);
         d["Count"] = 1;
-        d["Fraction"] = 5/7;
+        d["Fraction"] = 5 / 7;
       }
       currentFile.name = "demo.json";
       currentFile.ext = "json";
@@ -1041,7 +1042,7 @@
         return 0;
       }
 
-      zData.GetDataType = function(bfi) {
+      zData.GetDataType = function (bfi) {
         if (bfi === 1 || bfi >= 7)
           return "Number";
         return "String";
@@ -1358,7 +1359,7 @@
       }
     }
 
-    var clearFieldAttributes = function() {
+    var clearFieldAttributes = function () {
       document.getElementById("screen-name").value = _escreen.name;
       document.getElementById("field-number").checked = false;
       document.getElementById("field-date").checked = false;
@@ -1368,16 +1369,16 @@
       document.getElementById("field-width").value = "";
     }
 
-    var enableFieldAttributes = function(setting) {
+    var enableFieldAttributes = function (setting) {
       document.getElementById("field-number").disabled = !setting;
       document.getElementById("field-date").disabled = !setting;
       document.getElementById("field-summary").disabled = !setting;
       document.getElementById("field-protected").disabled = !setting;
       document.getElementById("field-hyperlink").disabled = !setting;
-      document.getElementById("field-width").disabled = !setting;      
+      document.getElementById("field-width").disabled = !setting;
     }
 
-    var setFieldAttributes = function(obj) {
+    var setFieldAttributes = function (obj) {
       if (obj.width != undefined)
         document.getElementById("field-width").value = obj.width;
       if (obj.number != undefined)
@@ -1396,13 +1397,13 @@
       _escreen.name = event.target.value;
     }
 
-    var fieldAttributeChange = function(event) {
+    var fieldAttributeChange = function (event) {
       if (_build_screen_selected_id === undefined)
         return false;
       var element = event.target.value;
       if (element === undefined)
         return false;
-        
+
       var i = parseInt(_build_screen_selected_id.substring(3));
       if (_build_screen_selected_id.startsWith("hed"))
         _escreen.header[i][element] = event.target.checked;
@@ -1522,9 +1523,9 @@
     }
 
     // Read a file from a website
-    
-    var external_link = function() {
-      var site = prompt("Enter a URL","https://");
+
+    var external_link = function () {
+      var site = prompt("Enter a URL", "https://");
       if (site === null || site === "") return;
 
       Roots.Wget(site, fileLoaded);
@@ -1587,31 +1588,59 @@
 
     // Save the current file
 
-    var saveClick = function () {
+    var saveClick = async function () {
       if (currentFile.source != "GDrive") {
-        var r = confirm("Save only supports Google Drive right now.   Save there?");
-        if (!r)
-          return;
+        try {
+          // 1. Open the picker FIRST while transient user activation is guaranteed
+          const handle = await window.showSaveFilePicker({
+            suggestedName: currentFile.name
+          });
+
+          // 2. Serialize the data AFTER the user selects a destination
+          if (currentFile.ext == "csv")
+            currentFile.data = db1.WriteCsvFile(currentFile.name, ',', false);
+          else if (currentFile.ext == "tsv")
+            currentFile.data = db1.WriteCsvFile(currentFile.name, '\t', false);
+          else
+            currentFile.data = db1.stringify();
+
+          // 3. Write to the file handle
+          const writable = await handle.createWritable();
+          await writable.write(currentFile.data);
+          await writable.close();
+        }
+        catch (error) {
+          if (error.name === "AbortError")
+            ;
+          else if (error instanceof TypeError || !window.showSaveFilePicker)
+            alert("Local file save is not supported by this browser.");
+          else
+            alert(error.message);
+        }
       }
+      else {
+        if (currentFile.ext == "csv")
+          currentFile.data = db1.WriteCsvFile(currentFile.name, ',', false);
+        else if (currentFile.ext == "tsv")
+          currentFile.data = db1.WriteCsvFile(currentFile.name, '\t', false);
+        else
+          currentFile.data = db1.stringify();
 
-      if (currentFile.ext == "csv")
-        currentFile.data = db1.WriteCsvFile(currentFile.name, ',', false);
-      else
-        currentFile.data = db1.stringify();
-
-      Roots.GDriveStart(function () {
-        Roots.GDrivePutFile(currentFile, function (resp) {
-          if (resp.error) {
-            alert(resp.error.message);
-            return;
-          }
-          currentFile = resp;
-          currentFile.ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
-          currentFile.source = "GDrive";
-          showEditScreen();
+        Roots.GDriveStart(function () {
+          Roots.GDrivePutFile(currentFile, function (resp) {
+            if (resp.error) {
+              alert(resp.error.message);
+              return;
+            }
+            currentFile = resp;
+            currentFile.ext = currentFile.name.slice((Math.max(0, currentFile.name.lastIndexOf(".")) || Infinity) + 1);
+            currentFile.source = "GDrive";
+          });
         });
-      });
-    }
+      }
+      
+      showEditScreen();
+    };
 
     var ScreenGet = function () {
       editScreen = db1.GetEditScreens(editScreen);
@@ -1957,12 +1986,12 @@
 
     // Get the width of grid columns
     var getColumnWidth = function (index) {
-      if (index === 0 || index-1 >= view.collin)
+      if (index === 0 || index - 1 >= view.collin)
         return 60;
-      var w = editScreen[currentScreen - 1].columns[index-1].width;
+      var w = editScreen[currentScreen - 1].columns[index - 1].width;
       if (w === undefined) {
         w = 140;
-        editScreen[currentScreen - 1].columns[index-1].width = w;
+        editScreen[currentScreen - 1].columns[index - 1].width = w;
       }
       return w;
     }
@@ -2092,17 +2121,17 @@
 
       if (rowIndex === 0) {
         let value;
-        if (columnIndex-1 === view.collin)
+        if (columnIndex - 1 === view.collin)
           value = "*";
         else
-          value = db1.FieldName(view.bficol[columnIndex-1]);
+          value = db1.FieldName(view.bficol[columnIndex - 1]);
 
         return React.createElement('div', {
-            className: "GridHeader labelCell",
-            style: style
-          }, React.createElement('div', {
-            className: "labelText"
-          }, value),
+          className: "GridHeader labelCell",
+          style: style
+        }, React.createElement('div', {
+          className: "labelText"
+        }, value),
           React.createElement(window.ReactDraggable, {
             axis: "x",
             defaultClassName: "DragHandle",
@@ -2144,7 +2173,7 @@
           value = "";
       }
       else
-        value = db1.GetValue(view.curpag, rowIndex, view.bficol[columnIndex-1]);
+        value = db1.GetValue(view.curpag, rowIndex, view.bficol[columnIndex - 1]);
       return React.createElement(
         CellInput, {
         id: rowIndex + ',' + columnIndex,
@@ -2154,7 +2183,7 @@
         defaultValue: value,
         cellChange: detailChange,
         line: rowIndex,
-        bfi: view.bficol[columnIndex-1]
+        bfi: view.bficol[columnIndex - 1]
       }
       );
     }
@@ -2343,7 +2372,7 @@
     }
 
     function GridWithStickyCells(props) {
-      
+
       // Add a column for the sticky, leftside, row number column,
       // and add a row for the sticky, header row.
       props.columnCount += 1;
@@ -2469,7 +2498,7 @@
           focusColumn = parseInt(k[1]);
         }
       }
-      
+
       // Set placeholder value for find input box
       if (focusField.startsWith("hedit")) {
         locate.bfi = view.bfihed[focusColumn];
@@ -2532,7 +2561,7 @@
         var pruneOperation = "scan";
         var type = db1.GetDataType(locate.bfi).toLowerCase();
         if (type === "number" || type === "b" || type === "r"
-        || type === "bigint") {
+          || type === "bigint") {
           pruneOperation = "value";
         }
 
@@ -2579,7 +2608,7 @@
       db1.WriteCsvFile("output.csv", ',', true);
     }
 
-    var showPrune = function() {
+    var showPrune = function () {
       var e, k;
       locate = {};
 
@@ -2599,7 +2628,7 @@
           focusColumn = parseInt(k[1]);
         }
       }
-      
+
       // Set placeholder value for prune input box
       if (focusField.startsWith("hedit")) {
         locate.bfi = view.bfihed[focusColumn];
@@ -2614,7 +2643,7 @@
       }
       document.getElementById("prune-data").placeholder = db1.FieldName(locate.bfi) + " values";
       document.getElementById("prune-data").value = "";
-      
+
       e.classList.toggle("hide", false);
       document.getElementById("prune-data").focus();
     }
@@ -2636,19 +2665,19 @@
       var pruneOperation = "scan";
       var type = db1.GetDataType(locate.bfi).toLowerCase();
       if (type === "number" || type === "b" || type === "r"
-      || type === "bigint") {
+        || type === "bigint") {
         pruneOperation = "value";
       }
 
       if (db1.PruneBracket(pruneSet, pruneOperation, locate.bfi, data, {
-        [pruneOutput] : "keep"
+        [pruneOutput]: "keep"
       }))
         return;
       if (db1.ApplyPrune("keep"))
         return;
       pruneSet = "keep";
 
-      screenChange();       
+      screenChange();
     }
 
     var PruneCurrent = function () {
