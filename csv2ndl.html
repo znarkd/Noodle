@@ -9,7 +9,7 @@
   <meta name="description" content="CSV to Noodle database">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="November 13, 2026">
+  <meta name="version" content="November 19, 2026">
   <script src="libs/Roots.js"></script>
   <script src="libs/Noodle.js"></script>
   <script src="libs/RootsIO.js"></script>
@@ -144,17 +144,26 @@
   }
 
   var specFileLoaded = function (file) {
-    let data = Roots.parseCSV(file.data, ',');
-    ndl = new NoodleDatabase();
 
-    let nline = data.length;
-    for (let line = 0; line < nline; line++) {
-      if (data[line][0].length != 0) {
-        let field = ndl.createField(data[line][0], data[line][1], data[line][2], data[line][3]);
-        ndl.AddField(field);
+    // New database
+    if (file.ext != "ndl") {
+      let data = Roots.parseCSV(file.data, ',');
+      ndl = new NoodleDatabase();
+
+      let nline = data.length;
+      for (let line = 0; line < nline; line++) {
+        if (data[line][0].length != 0) {
+          let field = ndl.createField(data[line][0], data[line][1], data[line][2], data[line][3]);
+          ndl.AddField(field);
+        }
       }
+      ndl.createDefaultScreen();
     }
-    ndl.createDefaultScreen();
+    
+    // Load existing NoodleDatabase
+    else {
+      ndl = new NoodleDatabase(file.data);
+    }
 
     document.getElementById("source-screen").classList.toggle("hide", true);
     document.getElementById("input-screen").classList.toggle("hide", false);
@@ -253,7 +262,7 @@
 
       <div class="file-select">
         <label for="specFile">
-          <strong>Select Output Specification File</strong>
+          <strong>Select an Output Specification File or an existing NoodleDatabase</strong>
         </label>
         <br>
         <input type="file" id="specFile">
