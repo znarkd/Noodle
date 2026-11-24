@@ -9,7 +9,7 @@
   <meta name="description" content="Noodle database editor">
   <meta name="keywords" content="ARMR, Noodle, data, database">
   <meta name="author" content="Dan Kranz">
-  <meta name="version" content="November 14, 2026">
+  <meta name="version" content="November 23, 2026">
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -1638,7 +1638,7 @@
           });
         });
       }
-      
+
       showEditScreen();
     };
 
@@ -1773,6 +1773,7 @@
         view.collin = editScreen[currentScreen - 1].columns.length;
       else
         view.collin = 0;
+      view.cAttribute = [];
       for (i = 0; i < view.collin; i++) {
         view.bficol[i] = db1.BFI(editScreen[currentScreen - 1].columns[i].field);
         view.cAttribute[i] = 0;
@@ -1887,6 +1888,8 @@
     }
 
     var headerChange = function (e) {
+      // Get the field's existing value from the database
+
       // Ignore changes to Protected or Summary field
 
       // Add a new page?
@@ -2049,7 +2052,7 @@
       // The cell lost focus; i.e. was blurred
       onBlur(event) {
         if (this.state.changed) {
-          if (this.props.bfi === undefined)
+          if (this.props.bfi === undefined || view.cAttribute[focusColumn - 1] & ATTR_SUMMARY || view.cAttribute[focusColumn - 1] & ATTR_PROTECTED)
             event.target.value = this.props.defaultValue;
           else
             this.props.cellChange(this.props, event.target.value);
