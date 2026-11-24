@@ -1753,6 +1753,7 @@
         view.hedlin = editScreen[currentScreen - 1].header.length;
       else
         view.hedlin = 0;
+      view.hAttribute = [];
       for (i = 0; i < view.hedlin; i++) {
         view.bfihed[i] = db1.BFI(editScreen[currentScreen - 1].header[i].field);
         view.hAttribute[i] = 0;
@@ -1888,9 +1889,16 @@
     }
 
     var headerChange = function (e) {
-      // Get the field's existing value from the database
-
+      // Save the value to the database (id starts with "hedit")
+      var num = parseInt(e.target.id.substring(5));
+      
       // Ignore changes to Protected or Summary field
+      if (view.hAttribute[num] & ATTR_PROTECTED || view.hAttribute[num] & ATTR_SUMMARY) {
+
+        // Reset field display to it's existing database value
+        document.getElementById(e.target.id).value = db1.GetValue(view.curpag, 0, view.bfihed[num]);
+        return;
+      }
 
       // Add a new page?
       if (view.curpag > view.npage) {
@@ -1899,8 +1907,6 @@
         document.getElementById("pagecount").innerText = "Page " + view.curpag + " of " + view.npage;
       }
 
-      // Save the value to the database (id starts with "hedit")
-      var num = parseInt(e.target.id.substring(5));
       db1.PutValue(e.target.value, view.curpag, 0, view.bfihed[num]);
     }
 
